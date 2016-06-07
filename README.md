@@ -67,7 +67,7 @@ Test with curl:
 * `$ sudo make uninstall`
 
 ## Configuration
-For details see `config/gobetween.toml`
+For details see [config/gobetween.toml](config/gobetween.toml)
 
 ## Performance
 To increase performance run with:
