@@ -1,89 +1,101 @@
  <img src="/logo.png?raw=true" alt="gobetween" width="256px" />
  
-**gobetween** - modern & minimalistic proxy server for the Cloud era.
+**gobetween** -  modern & minimalistic proxy server for the :cloud: Cloud era.
 
-*Current status*
-In development. Incompatible changes may occur until v1.0.0.
-If you tried gobetween in your dev, your feedback would be highly appreciated.
+**Current status**: *In development*. Incompatible changes may occur until v1.0.0. gobetween is still not production ready, but we already successfully tried it in several highy loaded production deployments.
 
 ## Features
 
-TCP proxying (udp and more will come later).
+* TCP Proxy (udp and more will come later)
 
-Flexible backends discovery strategies:
-* Static list - hardcoded list
-* Docker / Docker Swarm - query backends from Docker API by label
-* Exec - Run arbitrary external script and read backends from output
-* JSON - Make http query and parse json
-* Text/Regexp - Make http query and parse text with regexps
-* SRV - Query SRV server
+* Clear and beautiful TOML config file.
 
-Powerful healthchecks:
-* Ping - Simple TCP ping healtcheck
-* Exec - Run external script providing host and port and read healtcheck status from output
+* Discovery
+  * **Static** - hardcode backends in config file
+  * **Docker** - query backends from Docker / Swarm API filtered by label
+  * **Exec** - execte arbitrary program and read backends from it's output
+  * **JSON** - make http query and parse backends from response json
+  * **Plaintext** - make http query and parse backends from response text with regexps
+  * **SRV** - query SRV server for a backends
 
-Balancing strategies:
-* Iphash
-* Leastconn
-* Roundrobin
-* Weight
+* Healthchecks
+  * **Ping** - simple TCP ping healtcheck
+  * **Exec** - execute external program passing host & port, and read healtcheck status from the stdout
 
-Clear and beautiful TOML config file.
+* Balancing
+  * **Iphash**
+  * **Leastconn**
+  * **Roundrobin**
+  * **Weight**
 
-## Usage (for end users)
+* Integrates seamlessly with Docker (thanks yo docker discovery) and with any custom syste (thanks to exec discovery and healchecks)!
 
-# Download and install
-* https://github.com/yyyar/gobetween/releases
-* 
-For configuration documentation see default config file.
+## Usage
 
-## Development (for hacking)
+* Download and install https://github.com/yyyar/gobetween/releases
+
+For configuration documentation see [wiki](https://github.com/yyyar/gobetween/wiki) and [config gile](config/gobetween.toml).
+
+
+## Hacking
 
 ### Requirements
 * Go 1.6+ https://golang.org/
 
-### Install dependencies
-* $ make deps
+### Clone
+* `$ git clone git@github.com:yyyar/gobetween.git`
 
-### Debug and Test
+### Install dependencies
+* `$ make deps`
+
+### Run
+* `$ make run`
+
+### Debug
 Run several web servers for test in different terminals:
 * `$ python -m SimpleHTTPServer 8000`
 * `$ python -m SimpleHTTPServer 8001`
 
-Run
-* `$ make run`
-
-Test with curl:
+### Test:
 * `$ curl http://localhost:3000`
 
-# Install from sources
-* Clone this repo
+
+## Install from sources
+* `$ git clone git@github.com:yyyar/gobetween.git`
 * `$ make`
 * `$ sudo -E make install`
 * `$ vim /etc/gobetween.toml`
 * `$ gobetween -c /etc/gobetween.toml`
 
-# Uninstall
+### Uninstall
 * `$ sudo make uninstall`
 
+
 ## Configuration
-For details see [config/gobetween.toml](config/gobetween.toml)
+For details see [wiki](https://github.com/yyyar/gobetween/wiki) and [config/gobetween.toml](config/gobetween.toml)
+
 
 ## Performance
 To increase performance run with:
 ```GOMAXPROCS=`nproc` gobetween```
 
-## Authors & Constributors
+See [Performance Testing](https://github.com/yyyar/gobetween/wiki/Performance-tests-results) for performance testing results.
+
+
+## Authors & Contributors
 - [Yaroslav Pogrebnyak](http://pogrebnyak.info)
 - Nick Doikov
 - Ievgen Ponomarenko
+
 
 ## The Name
 It's play on words: gobetween ("go between"). ALso it's written in Go,
 and it's a proxy so it's between 2 parties :-)
 
+
 ## License
 MIT. See LICENSE file for more details.
 
+
 ## Logo
-Logo was designed by [Max Demchenko](https://www.linkedin.com/in/max-demchenko-116170112)
+Logo by [Max Demchenko](https://www.linkedin.com/in/max-demchenko-116170112)
