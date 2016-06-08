@@ -34,7 +34,7 @@
 
 * Download and install https://github.com/yyyar/gobetween/releases
 
-For configuration documentation see [wiki](https://github.com/yyyar/gobetween/wiki) and [config gile](config/gobetween.toml).
+For configuration documentation see [wiki](https://github.com/yyyar/gobetween/wiki) and [config file](config/gobetween.toml).
 
 
 ## Hacking
