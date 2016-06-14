@@ -47,9 +47,9 @@ authors:
 	@cat AUTHORS
 
 clean-deps:
-	rm -dRf ./vendor/src
-	rm -dRf ./vendor/pkg
-	rm -dRf ./vendor/bin
+	rm -rf ./vendor/src
+	rm -rf ./vendor/pkg
+	rm -rf ./vendor/bin
 
 deps: clean-deps
 	GOPATH=${PWD}/vendor go get -u -v \
