@@ -1,5 +1,7 @@
  <img src="/logo.png?raw=true" alt="gobetween" width="256px" />
- 
+
+[![Build Status](https://travis-ci.org/yyyar/gobetween.svg?branch=master)](https://travis-ci.org/yyyar/gobetween)
+
 **gobetween** -  modern & minimalistic proxy server for the :cloud: Cloud era.
 
 **Current status**: *In development*. Incompatible changes may occur until v1.0.0. gobetween is still not production ready, but we already successfully tried it in several highy loaded production deployments.
