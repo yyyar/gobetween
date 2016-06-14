@@ -5,9 +5,7 @@
  */
 package config
 
-import (
-	"time"
-)
+import ()
 
 /**
  * Config file top-level object
@@ -30,10 +28,10 @@ type LoggingConfig struct {
  * Default values can be overriden in server
  */
 type ConnectionOptions struct {
-	MaxConnections           *int        `toml:"max_connections"`
-	ClientIdleTimeout        *MyDuration `toml:"client_idle_timeout"`
-	BackendIdleTimeout       *MyDuration `toml:"backend_idle_timeout"`
-	BackendConnectionTimeout *MyDuration `toml:"backend_connection_timeout"`
+	MaxConnections           *int    `toml:"max_connections"`
+	ClientIdleTimeout        *string `toml:"client_idle_timeout"`
+	BackendIdleTimeout       *string `toml:"backend_idle_timeout"`
+	BackendConnectionTimeout *string `toml:"backend_connection_timeout"`
 }
 
 /**
@@ -111,27 +109,4 @@ type HealthcheckConfig struct {
 	ExecCommand                string `toml:"exec_command"`
 	ExecExpectedPositiveOutput string `toml:"exec_expected_positive_output"`
 	ExecExpectedNegativeOutput string `toml:"exec_expected_negative_output"`
-}
-
-/* ----- Custom ----- */
-
-/**
- * Custom duration struct for unmarshalling
- */
-type MyDuration struct {
-	Duration time.Duration
-}
-
-/**
- * Unmarshal duration fields
- */
-func (d *MyDuration) UnmarshalText(text []byte) error {
-	var err error
-	s := string(text)
-	if s == "" {
-		d.Duration = 0
-		return nil
-	}
-	d.Duration, err = time.ParseDuration(s)
-	return err
 }

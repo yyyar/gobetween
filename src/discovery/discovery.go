@@ -90,26 +90,9 @@ func (this *Discovery) Start() {
 	this.out = make(chan []core.Backend)
 
 	// Prepare interval
-	var interval time.Duration
-	if this.cfg.Interval == "" {
-		interval = 0
-	} else {
-		var err error
-		interval, err = time.ParseDuration(this.cfg.Interval)
-		if err != nil {
-			log.Fatal(err)
-		}
-	}
-
-	// Prepare fail policy
-	switch this.cfg.Failpolicy {
-	case
-		"keeplast",
-		"setempty":
-	case "":
-		this.cfg.Failpolicy = "keeplast"
-	default:
-		log.Fatal("Not supported failpolicy ", this.cfg.Failpolicy)
+	interval, err := time.ParseDuration(this.cfg.Interval)
+	if err != nil {
+		log.Fatal(err)
 	}
 
 	go func() {

@@ -64,6 +64,25 @@ func prepareConfig(name string, server config.Server, defaults config.Connection
 		log.Fatal("Not supported balance type", server.Balance)
 	}
 
+	/* Discovery */
+	switch server.Discovery.Failpolicy {
+	case
+		"keeplast",
+		"setempty":
+	case "":
+		server.Discovery.Failpolicy = "keeplast"
+	default:
+		log.Fatal("Not supported failpolicy ", server.Discovery.Failpolicy)
+	}
+
+	if server.Discovery.Interval == "" {
+		server.Discovery.Interval = "0"
+	}
+
+	if server.Discovery.Timeout == "" {
+		server.Discovery.Timeout = "0"
+	}
+
 	/* TODO: Still need to decide how to get rid of this */
 
 	if defaults.MaxConnections == nil {
@@ -74,24 +93,24 @@ func prepareConfig(name string, server config.Server, defaults config.Connection
 	}
 
 	if defaults.ClientIdleTimeout == nil {
-		defaults.ClientIdleTimeout = &config.MyDuration{}
+		*defaults.ClientIdleTimeout = "0"
 	}
 	if server.ClientIdleTimeout == nil {
-		server.ClientIdleTimeout = defaults.ClientIdleTimeout
+		*server.ClientIdleTimeout = *defaults.ClientIdleTimeout
 	}
 
 	if defaults.BackendIdleTimeout == nil {
-		defaults.BackendIdleTimeout = &config.MyDuration{}
+		*defaults.BackendIdleTimeout = "0"
 	}
 	if server.BackendIdleTimeout == nil {
-		server.BackendIdleTimeout = defaults.BackendIdleTimeout
+		*server.BackendIdleTimeout = *defaults.BackendIdleTimeout
 	}
 
 	if defaults.BackendConnectionTimeout == nil {
-		defaults.BackendConnectionTimeout = &config.MyDuration{}
+		*defaults.BackendConnectionTimeout = "0"
 	}
 	if server.BackendConnectionTimeout == nil {
-		server.BackendConnectionTimeout = defaults.BackendConnectionTimeout
+		*server.BackendConnectionTimeout = *defaults.BackendConnectionTimeout
 	}
 
 	return server

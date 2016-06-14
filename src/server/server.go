@@ -13,6 +13,7 @@ import (
 	"../discovery"
 	"../healthcheck"
 	"../logging"
+	"../utils"
 	"net"
 )
 
@@ -185,7 +186,7 @@ func (this *Server) handle(clientConn net.Conn) {
 	}
 
 	/* Connect to backend */
-	backendConn, err := net.DialTimeout(this.cfg.Protocol, backend.Address(), this.cfg.BackendConnectionTimeout.Duration)
+	backendConn, err := net.DialTimeout(this.cfg.Protocol, backend.Address(), utils.ParseDurationOrDefault(*this.cfg.BackendConnectionTimeout, 0))
 	if err != nil {
 		log.Error(err)
 		return
@@ -195,8 +196,8 @@ func (this *Server) handle(clientConn net.Conn) {
 
 	/* Stat proxying */
 	log.Debug("Begin ", clientConn.RemoteAddr(), " -> ", this.listener.Addr(), " -> ", backendConn.RemoteAddr())
-	clientStatsChan := proxy(clientConn, backendConn, this.cfg.ClientIdleTimeout.Duration)
-	backendStatsChan := proxy(backendConn, clientConn, this.cfg.BackendIdleTimeout.Duration)
+	clientStatsChan := proxy(clientConn, backendConn, utils.ParseDurationOrDefault(*this.cfg.ClientIdleTimeout, 0))
+	backendStatsChan := proxy(backendConn, clientConn, utils.ParseDurationOrDefault(*this.cfg.BackendIdleTimeout, 0))
 
 	/* Wait proxies to finish */
 	writtenClient := <-clientStatsChan
