@@ -30,52 +30,30 @@
   * **Roundrobin**
   * **Weight**
 
-* Integrates seamlessly with Docker (thanks yo docker discovery) and with any custom syste (thanks to exec discovery and healchecks)!
+* Integrates seamlessly with Docker (thanks to docker discovery) and with any custom system (thanks to exec discovery and healtchecks)!
 
 ## Usage
 
-* Download and install https://github.com/yyyar/gobetween/releases
-
-For configuration documentation see [wiki](https://github.com/yyyar/gobetween/wiki) and [config file](config/gobetween.toml).
+* [Download and Install](https://github.com/yyyar/gobetween/wiki/2.-Installation)
+* Consider [Configuration manual](https://github.com/yyyar/gobetween/wiki/3.-Configuration) and [config file](config/gobetween.toml)
 
 
 ## Hacking
 
-### Requirements
-* Go 1.6+ https://golang.org/
-
-### Clone
+* Install Go 1.6+ https://golang.org/
 * `$ git clone git@github.com:yyyar/gobetween.git`
-
-### Install dependencies
 * `$ make deps`
-
-### Run
 * `$ make run`
 
-### Debug
+### Debug and test
 Run several web servers for test in different terminals:
+
 * `$ python -m SimpleHTTPServer 8000`
 * `$ python -m SimpleHTTPServer 8001`
 
-### Test:
+Put `localhost:8000` and `localhost:8001` to static_list of static discovery in config file, then test:
+
 * `$ curl http://localhost:3000`
-
-
-## Install from sources
-* `$ git clone git@github.com:yyyar/gobetween.git`
-* `$ make`
-* `$ sudo -E make install`
-* `$ vim /etc/gobetween.toml`
-* `$ gobetween -c /etc/gobetween.toml`
-
-### Uninstall
-* `$ sudo make uninstall`
-
-
-## Configuration
-For details see [wiki](https://github.com/yyyar/gobetween/wiki) and [config/gobetween.toml](config/gobetween.toml)
-
 
 ## Performance
 To increase performance run with:
