@@ -1,10 +1,12 @@
- <img src="/logo.png?raw=true" alt="gobetween" width="256px" />
+<img src="/logo.png?raw=true" alt="gobetween" width="256px" />
 
 [![Build Status](https://travis-ci.org/yyyar/gobetween.svg?branch=master)](https://travis-ci.org/yyyar/gobetween)
 
 **gobetween** -  modern & minimalistic proxy server for the :cloud: Cloud era.
 
-**Current status**: *In development*. Incompatible changes may occur until v1.0.0. gobetween is still not production ready, but we already successfully tried it in several highy loaded production deployments.
+**Current status**: *In development*.
+
+Incompatible changes may occur until v1.0.0. gobetween currently is not production ready, but we already successfully using it in several highy loaded production environments.
 
 ## Features
 
@@ -56,10 +58,7 @@ Put `localhost:8000` and `localhost:8001` to static_list of static discovery in 
 * `$ curl http://localhost:3000`
 
 ## Performance
-To increase performance run with:
-```GOMAXPROCS=`nproc` gobetween```
-
-See [Performance Testing](https://github.com/yyyar/gobetween/wiki/Performance-tests-results) for performance testing results.
+See [Performance Testing](https://github.com/yyyar/gobetween/wiki/Performance-tests-results).
 
 
 ## Authors & Contributors
@@ -69,7 +68,7 @@ See [Performance Testing](https://github.com/yyyar/gobetween/wiki/Performance-te
 
 
 ## The Name
-It's play on words: gobetween ("go between"). ALso it's written in Go,
+It's play on words: gobetween ("go between"). Also it's written in Go,
 and it's a proxy so it's between 2 parties :-)
 
 

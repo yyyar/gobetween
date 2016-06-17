@@ -11,6 +11,8 @@ import (
 	"flag"
 	"github.com/BurntSushi/toml"
 	"math/rand"
+	"os"
+	"runtime"
 	"time"
 )
 
@@ -32,6 +34,11 @@ var configPath string
  * Initialize package
  */
 func init() {
+
+	// Set GOMAXPROCS if not set
+	if os.Getenv("GOMAXPROCS") == "" {
+		runtime.GOMAXPROCS(runtime.NumCPU())
+	}
 
 	// Init random seed
 	rand.Seed(time.Now().UnixNano())
