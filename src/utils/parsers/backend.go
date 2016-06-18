@@ -32,7 +32,7 @@ func ParseBackendDefault(line string) (*core.Backend, error) {
 func ParseBackend(line string, pattern string) (*core.Backend, error) {
 
 	//trim string
-	line = strings.TrimSpace(line);
+	line = strings.TrimSpace(line)
 
 	// parse string by regexp
 	var reg = regexp.MustCompile(pattern)

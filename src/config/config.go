@@ -5,8 +5,6 @@
  */
 package config
 
-import ()
-
 /**
  * Config file top-level object
  */
@@ -25,7 +23,7 @@ type LoggingConfig struct {
 }
 
 /**
- * Default values can be overriden in server
+ * Default values can be overridden in server
  */
 type ConnectionOptions struct {
 	MaxConnections           *int    `toml:"max_connections"`

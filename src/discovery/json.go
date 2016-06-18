@@ -100,7 +100,7 @@ func jsonFetch(cfg config.DiscoveryConfig) (*[]core.Backend, error) {
 
 	var backends []core.Backend
 
-	for k, _ := range parsedArray {
+	for k := range parsedArray {
 
 		var key = "[" + strconv.Itoa(k) + "]."
 

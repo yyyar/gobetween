@@ -115,7 +115,7 @@ func (this *Healthcheck) Start() {
 			case <-this.stop:
 
 				// Stop all workers
-				for i, _ := range this.workers {
+				for i := range this.workers {
 					this.workers[i].Stop()
 				}
 
@@ -139,7 +139,7 @@ func (this *Healthcheck) UpdateWorkers(targets []core.Target) {
 	// Keep or add needed workers
 	for _, t := range targets {
 		var keep *Worker
-		for i, _ := range this.workers {
+		for i := range this.workers {
 			c := this.workers[i]
 			if t.EqualTo(c.target) {
 				keep = c
@@ -164,7 +164,7 @@ func (this *Healthcheck) UpdateWorkers(targets []core.Target) {
 	}
 
 	// Stop needed workers
-	for i, _ := range this.workers {
+	for i := range this.workers {
 		c := this.workers[i]
 		remove := true
 		for _, t := range targets {

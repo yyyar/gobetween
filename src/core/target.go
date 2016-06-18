@@ -5,8 +5,6 @@
  */
 package core
 
-import ()
-
 /**
  * Target host and port
  */

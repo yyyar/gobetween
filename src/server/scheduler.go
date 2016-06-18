@@ -158,7 +158,7 @@ func (this *Scheduler) HandleBackendLiveChange(target core.Target, live bool) {
 func (this *Scheduler) HandleBackendsUpdate(backends []core.Backend) {
 	updated := map[core.Target]*core.Backend{}
 
-	for i, _ := range backends {
+	for i := range backends {
 		b := backends[i]
 		oldB, ok := this.backends[b.Target]
 
