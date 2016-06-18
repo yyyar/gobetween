@@ -1,38 +1,41 @@
 <img src="/logo.png?raw=true" alt="gobetween" width="256px" />
 
+[![Tag](https://img.shields.io/github/tag/yyyar/gobetween.svg)](https://github.com/yyyar/gobetween/releases/latest)
 [![Build Status](https://travis-ci.org/yyyar/gobetween.svg?branch=master)](https://travis-ci.org/yyyar/gobetween)
+[![Go Report Card](https://goreportcard.com/badge/github.com/yyyar/gobetween)](https://goreportcard.com/report/github.com/yyyar/gobetween)
+[![Docs](https://img.shields.io/badge/docs-current-brightgreen.svg)](https://github.com/yyyar/gobetween/wiki)
+[![Docker](https://img.shields.io/docker/pulls/yyyar/gobetween.svg)](https://hub.docker.com/r/yyyar/gobetween/)
+[![License](https://img.shields.io/badge/license-MIT-blue.svg)](/LICENSE)
 
 **gobetween** -  modern & minimalistic proxy server for the :cloud: Cloud era.
 
-**Current status**: *In development*.
-
-Incompatible changes may occur until v1.0.0. gobetween currently is not production ready, but we already successfully using it in several highy loaded production environments.
+**Current status**: *Under active development*. Currently in use in several highy loaded production environments.
 
 ## Features
 
-* TCP Proxy (udp and more will come later)
+* TCP Load Balancing
 
 * Clear and beautiful TOML config file.
 
-* Discovery
-  * **Static** - hardcode backends in config file
+* Backends Discovery
+  * **Static** - hardcode backends list in config file
   * **Docker** - query backends from Docker / Swarm API filtered by label
-  * **Exec** - execte arbitrary program and read backends from it's output
-  * **JSON** - make http query and parse backends from response json
-  * **Plaintext** - make http query and parse backends from response text with regexps
-  * **SRV** - query SRV server for a backends
+  * **Exec** - execte arbitrary program and get backends from it's stdout
+  * **JSON** - query arbitrary http url and pick backends from response json (of any structure)
+  * **Plaintext** - query arbitrary http and parse backends from response text with customized regexp
+  * **SRV** - query DNS server and get backends from SRV records
 
-* Healthchecks
+* Backends Healthchecks
   * **Ping** - simple TCP ping healtcheck
-  * **Exec** - execute external program passing host & port, and read healtcheck status from the stdout
+  * **Exec** - execute arbitrary program passing host & port as options, and read healtcheck status from the stdout
 
-* Balancing
+* Balancing Strategies
   * **Iphash**
   * **Leastconn**
   * **Roundrobin**
   * **Weight**
 
-* Integrates seamlessly with Docker (thanks to docker discovery) and with any custom system (thanks to exec discovery and healtchecks)!
+* Integrates seamlessly with Docker and with any custom system (thanks to exec discovery and healtchecks)!
 
 ## Usage
 
@@ -47,34 +50,29 @@ Incompatible changes may occur until v1.0.0. gobetween currently is not producti
 * `$ make deps`
 * `$ make run`
 
-### Debug and test
-Run several web servers for test in different terminals:
+### Debug and Test
+Run several web servers for tests in different terminals:
 
 * `$ python -m SimpleHTTPServer 8000`
 * `$ python -m SimpleHTTPServer 8001`
 
-Put `localhost:8000` and `localhost:8001` to static_list of static discovery in config file, then test:
+Put `localhost:8000` and `localhost:8001` to static_list of static discovery in config file, then try it:
 
 * `$ curl http://localhost:3000`
 
 ## Performance
 See [Performance Testing](https://github.com/yyyar/gobetween/wiki/Performance-tests-results).
 
+## The Name
+It's play on words: gobetween ("go between"). Also, it's written in Go, and it's a proxy so it's something that stays between 2 parties :smile:
+
+## License
+MIT. See LICENSE file for more details.
 
 ## Authors & Contributors
 - [Yaroslav Pogrebnyak](http://pogrebnyak.info)
 - Nick Doikov
 - Ievgen Ponomarenko
-
-
-## The Name
-It's play on words: gobetween ("go between"). Also it's written in Go,
-and it's a proxy so it's between 2 parties :-)
-
-
-## License
-MIT. See LICENSE file for more details.
-
 
 ## Logo
 Logo by [Max Demchenko](https://www.linkedin.com/in/max-demchenko-116170112)
