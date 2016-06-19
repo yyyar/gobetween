@@ -45,8 +45,8 @@
 
 ## Usage
 
-* [Download and Install](https://github.com/yyyar/gobetween/wiki/2.-Installation)
-* Consider [Configuration manual](https://github.com/yyyar/gobetween/wiki/3.-Configuration) and [config file](config/gobetween.toml)
+* [Download and Install](https://github.com/yyyar/gobetween/wiki/Installation)
+* Consider [Configuration manual](https://github.com/yyyar/gobetween/wiki) and [config file](config/gobetween.toml)
 
 
 ## Hacking
@@ -67,7 +67,7 @@ Put `localhost:8000` and `localhost:8001` to static_list of static discovery in 
 * `$ curl http://localhost:3000`
 
 ## Performance
-See [Performance Testing](https://github.com/yyyar/gobetween/wiki/Performance-tests-results).
+See [Performance Testing](https://github.com/yyyar/gobetween/wiki/Performance-tests).
 
 ## The Name
 It's play on words: gobetween ("go between"). Also, it's written in Go, and it's a proxy so it's something that stays between 2 parties :smile:
