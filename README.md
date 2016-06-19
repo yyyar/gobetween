@@ -16,6 +16,10 @@
 * TCP Load Balancing
 
 * Clear and beautiful TOML config file.
+ 
+* Integrates seamlessly with Docker and with any custom system (thanks to Exec discovery and healtchecks)
+
+* Single binary distribution (only one gobetween binary + TOML config file)
 
 * Backends Discovery
   * **Static** - hardcode backends list in config file
@@ -35,7 +39,9 @@
   * **Roundrobin**
   * **Weight**
 
-* Integrates seamlessly with Docker and with any custom system (thanks to exec discovery and healtchecks)!
+
+## Architecture
+<img src="http://i.piccy.info/i9/8b92154435be32f21eaa3ff7b3dc6d1c/1466244332/74457/1043487/gog.png" alt="gobetween" />
 
 ## Usage
 
