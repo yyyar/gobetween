@@ -6,10 +6,13 @@
 package main
 
 import (
+	"./api"
 	"./config"
 	"./logging"
 	"./server"
 )
+
+var servers = map[string]interface{}{}
 
 /**
  * Run and control server
@@ -23,10 +26,14 @@ func Start(cfg config.Config) {
 	for name, s := range cfg.Servers {
 		config := prepareConfig(name, s, cfg.Defaults)
 		server := server.New(name, config)
+		servers[name] = config
 		go server.Start()
 	}
 
 	log.Info("Start up complete")
+
+	// TODO: Make better way to exchange with data between rest api and manager
+	go api.Start(cfg.Api, servers)
 
 	// block forever
 	<-(chan string)(nil)

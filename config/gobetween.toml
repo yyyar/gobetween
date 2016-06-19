@@ -1,11 +1,5 @@
 #
-# gobetween.toml - sample config file
-#
-# @author Yaroslav Pogrebnyak <yyyaroslav@gmail.com>
-#
-
-#
-# Global configurations
+# gobetween.toml - config file
 #
 
 #
@@ -16,6 +10,13 @@
 level = "warn"    # "debug" | "info" | "warn" | "error"
 output = "stdout" # "stdout" | "stderr" | "/path/to/gobetween.log"
 
+#
+# Contains REST API server configuration
+#
+[api]
+
+enabled = true  # true | false
+bind = ":8888"  # bind host:port
 
 #
 # Contains defaults that could be overriden in servers sections.
