@@ -74,3 +74,11 @@ dist:
 		-build-ldflags=${LDFLAGS}
 	rm ./debian -rf
 	@echo Done.
+
+build-container-latest: build 
+	@echo Building docker container LATEST
+	docker build -t yyyar/gobetween .
+
+build-container-tagged: build 
+	@echo Building docker container ${VERSION}
+	docker build -t yyyar/gobetween:${VERSION} .
