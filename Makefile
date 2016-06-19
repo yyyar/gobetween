@@ -12,7 +12,6 @@ export GOBIN := ${PWD}/vendor/bin
 
 NAME := gobetween
 VERSION := $(shell cat VERSION)
-CONTAINER_VERSION:=$(shell cat VERSION |cut -f1 -d"+")
 LDFLAGS := "-X main.version=${VERSION}"
 
 default: build
@@ -76,7 +75,10 @@ dist:
 	rm ./debian -rf
 	@echo Done.
 
-build-container: deps build 
-	@echo building container  
-	@echo ${CONTAINER_VERSION}
-	docker build -t gobetween:${CONTAINER_VERSION} .
+build-container-latest: build 
+	@echo Building docker container LATEST
+	docker build -t yyyar/gobetween .
+
+build-container-tagged: build 
+	@echo Building docker container ${VERSION}
+	docker build -t yyyar/gobetween:${VERSION} .
