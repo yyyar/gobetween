@@ -6,6 +6,7 @@
 [![Docs](https://img.shields.io/badge/docs-current-brightgreen.svg)](https://github.com/yyyar/gobetween/wiki)
 [![Docker](https://img.shields.io/docker/pulls/yyyar/gobetween.svg)](https://hub.docker.com/r/yyyar/gobetween/)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](/LICENSE)
+[![Gitter](https://badges.gitter.im/yyyar/gobetween.svg)](https://gitter.im/yyyar/gobetween?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge)
 
 **gobetween** -  modern & minimalistic proxy server for the :cloud: Cloud era.
 
