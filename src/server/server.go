@@ -77,10 +77,14 @@ func New(name string, cfg config.Server) *Server {
 	return server
 }
 
+func (this *Server) Cfg() config.Server {
+	return this.cfg
+}
+
 /**
  * Start server
  */
-func (this *Server) Start() {
+func (this *Server) Start() error {
 
 	go func() {
 
@@ -93,9 +97,12 @@ func (this *Server) Start() {
 				this.HandleClientConnect(client)
 
 			case <-this.stop:
-				this.listener.Close()
-				for _, conn := range this.clients {
-					conn.Close()
+				this.scheduler.Stop()
+				if this.listener != nil {
+					this.listener.Close()
+					for _, conn := range this.clients {
+						conn.Close()
+					}
 				}
 				this.clients = make(map[string]net.Conn)
 				return
@@ -107,8 +114,12 @@ func (this *Server) Start() {
 	this.scheduler.start()
 
 	// Start listening
-	this.Listen()
+	if err := this.Listen(); err != nil {
+		this.Stop()
+		return err
+	}
 
+	return nil
 }
 
 /**
@@ -143,6 +154,10 @@ func (this *Server) HandleClientConnect(client net.Conn) {
  * Stop, dropping all connections
  */
 func (this *Server) Stop() {
+
+	log := logging.For("server.Listen")
+	log.Info("Stopping ", this.name)
+
 	this.stop <- true
 }
 
@@ -154,18 +169,23 @@ func (this *Server) Listen() (err error) {
 	log := logging.For("server.Listen")
 
 	if this.listener, err = net.Listen("tcp", this.cfg.Bind); err != nil {
-		log.Fatal("Error starting TCP server: ", err)
+		log.Error("Error starting TCP server: ", err)
+		return err
 	}
 
-	for {
-		conn, err := this.listener.Accept()
-		if err != nil {
-			log.Error(err)
-			return err
+	go func() {
+		for {
+			conn, err := this.listener.Accept()
+			if err != nil {
+				log.Error(err)
+				return
+			}
+
+			this.connect <- conn
 		}
+	}()
 
-		this.connect <- conn
-	}
+	return nil
 }
 
 /**

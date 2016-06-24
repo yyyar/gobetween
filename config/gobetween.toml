@@ -7,7 +7,7 @@
 #
 [logging]
 
-level = "warn"    # "debug" | "info" | "warn" | "error"
+level = "info"    # "debug" | "info" | "warn" | "error"
 output = "stdout" # "stdout" | "stderr" | "/path/to/gobetween.log"
 
 #

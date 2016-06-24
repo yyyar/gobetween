@@ -7,24 +7,30 @@ package api
 
 import (
 	"../config"
+	"../info"
 	"../logging"
-	"github.com/go-zoo/bone"
-	"io"
+	"../manager"
+	"github.com/gin-gonic/gin"
 	"net/http"
 	"os"
+	"syscall"
 	"time"
 )
 
+/* gin app */
+var app *gin.Engine
+
 /**
- * Time when server was started.
- * TODO: Probably move to better place.
+ * Initialize module
  */
-var startTime time.Time = time.Now()
+func init() {
+	gin.SetMode(gin.ReleaseMode)
+}
 
 /**
  * Starts REST API server
  */
-func Start(cfg config.ApiConfig, servers interface{}) {
+func Start(cfg config.ApiConfig) {
 
 	var log = logging.For("api")
 
@@ -35,41 +41,70 @@ func Start(cfg config.ApiConfig, servers interface{}) {
 
 	log.Info("Starting up API")
 
-	mux := bone.New()
+	app = gin.New()
 
-	mux.GetFunc("/", func(w http.ResponseWriter, req *http.Request) {
+	/* -------------------- handlers --------------------- */
 
-		io.WriteString(w, Marshal(map[string]interface{}{
-			"pid":       os.Getpid(),
-			"time":      time.Now(),
-			"startedAt": startTime,
-			"uptime":    time.Now().Sub(startTime).String(),
-		}))
-	})
+	/* ----- globals ----- */
 
 	/**
-	 * Servers list
+	 * Global stats
 	 */
-	mux.GetFunc("/servers", func(w http.ResponseWriter, req *http.Request) {
-		io.WriteString(w, Marshal(servers))
+	app.GET("/", func(c *gin.Context) {
+
+		rusage := syscall.Rusage{}
+		syscall.Getrusage(syscall.RUSAGE_SELF, &rusage)
+
+		c.IndentedJSON(http.StatusOK, gin.H{
+			"rss":        rusage.Maxrss,
+			"pid":        os.Getpid(),
+			"time":       time.Now(),
+			"startTime":  info.StartTime,
+			"uptime":     time.Now().Sub(info.StartTime).String(),
+			"version":    info.Version,
+			"configPath": info.ConfigPath,
+		})
 	})
 
-	/**
-	 * Server by name
-	 */
-	mux.GetFunc("/servers/:name", func(w http.ResponseWriter, req *http.Request) {
-		name := bone.GetValue(req, "name")
-		io.WriteString(w, Marshal(servers.(map[string]interface{})[name]))
+	/* ----- servers ----- */
+
+	app.GET("/servers", func(c *gin.Context) {
+		c.IndentedJSON(http.StatusOK, manager.All())
 	})
 
-	/**
-	 * Server stats
-	 */
-	mux.GetFunc("/servers/:name/stats", func(w http.ResponseWriter, req *http.Request) {
-		name := bone.GetValue(req, "name")
-		io.WriteString(w, Marshal(name))
+	app.GET("/servers/:name", func(c *gin.Context) {
+		name := c.Param("name")
+		c.IndentedJSON(http.StatusOK, manager.Get(name))
 	})
 
-	/* Go listen! */
-	http.ListenAndServe(cfg.Bind, mux)
+	app.DELETE("/servers/:name", func(c *gin.Context) {
+		name := c.Param("name")
+		manager.Delete(name)
+		c.IndentedJSON(http.StatusOK, nil)
+	})
+
+	app.POST("/servers/:name", func(c *gin.Context) {
+
+		name := c.Param("name")
+
+		cfg := config.Server{}
+		if err := c.BindJSON(&cfg); err != nil {
+			c.IndentedJSON(http.StatusBadRequest, err.Error())
+			return
+		}
+
+		if err := manager.Create(name, cfg); err != nil {
+			c.IndentedJSON(http.StatusConflict, err.Error())
+			return
+		}
+
+		c.IndentedJSON(http.StatusOK, nil)
+	})
+
+	app.GET("/servers/:name/stats", func(c *gin.Context) {
+		name := c.Param("name")
+		c.IndentedJSON(http.StatusOK, manager.Stats(name))
+	})
+
+	app.Run(cfg.Bind)
 }

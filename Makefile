@@ -58,7 +58,7 @@ deps: clean-deps
 	github.com/fsouza/go-dockerclient \
 	github.com/Sirupsen/logrus \
 	github.com/elgs/gojq \
-	github.com/go-zoo/bone \
+	github.com/gin-gonic/gin \
 	github.com/laher/goxc
 
 clean-dist:
