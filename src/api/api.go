@@ -13,7 +13,6 @@ import (
 	"github.com/gin-gonic/gin"
 	"net/http"
 	"os"
-	"syscall"
 	"time"
 )
 
@@ -52,11 +51,7 @@ func Start(cfg config.ApiConfig) {
 	 */
 	app.GET("/", func(c *gin.Context) {
 
-		rusage := syscall.Rusage{}
-		syscall.Getrusage(syscall.RUSAGE_SELF, &rusage)
-
 		c.IndentedJSON(http.StatusOK, gin.H{
-			"rss":        rusage.Maxrss,
 			"pid":        os.Getpid(),
 			"time":       time.Now(),
 			"startTime":  info.StartTime,

@@ -10,10 +10,14 @@ import (
 	"../logging"
 	"../server"
 	"errors"
+	"sync"
 )
 
 /* Map of app current servers */
-var servers = map[string]*server.Server{}
+var servers = struct {
+	sync.RWMutex
+	m map[string]*server.Server
+}{m: make(map[string]*server.Server)}
 
 /* default configuration for server */
 var defaults config.ConnectionOptions
@@ -45,9 +49,13 @@ func Initialize(cfg config.Config) {
  */
 func All() map[string]config.Server {
 	result := map[string]config.Server{}
-	for name, server := range servers {
+
+	servers.RLock()
+	for name, server := range servers.m {
 		result[name] = server.Cfg()
 	}
+	servers.RUnlock()
+
 	return result
 }
 
@@ -56,7 +64,10 @@ func All() map[string]config.Server {
  */
 func Get(name string) interface{} {
 
-	server, ok := servers[name]
+	servers.RLock()
+	server, ok := servers.m[name]
+	servers.RUnlock()
+
 	if !ok {
 		return nil
 	}
@@ -68,12 +79,18 @@ func Get(name string) interface{} {
  * Create new server and launch it
  */
 func Create(name string, cfg config.Server) error {
+
+	servers.Lock()
+	defer servers.Unlock()
+
 	c, err := prepareConfig(name, cfg, defaults)
 	if err != nil {
 		return err
 	}
+
 	server := server.New(name, c)
-	servers[name] = server
+	servers.m[name] = server
+
 	return server.Start()
 }
 
@@ -82,13 +99,16 @@ func Create(name string, cfg config.Server) error {
  */
 func Delete(name string) error {
 
-	server, ok := servers[name]
+	servers.Lock()
+	defer servers.Unlock()
+
+	server, ok := servers.m[name]
 	if !ok {
 		return errors.New("Server not found")
 	}
 
 	server.Stop()
-	delete(servers, name)
+	delete(servers.m, name)
 
 	return nil
 }
@@ -104,7 +124,11 @@ func Reconfigure(serverName string, cfg config.Server) {
  * Returns stats for the server
  */
 func Stats(name string) interface{} {
-	server := servers[name]
+
+	servers.Lock()
+	server := servers.m[name]
+	servers.Unlock()
+
 	return server
 }
 
