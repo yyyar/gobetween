@@ -9,8 +9,11 @@ import (
 	"../config"
 	"../logging"
 	"../server"
+	"bytes"
 	"errors"
+	"github.com/BurntSushi/toml"
 	"sync"
+	"time"
 )
 
 /* Map of app current servers */
@@ -22,6 +25,9 @@ var servers = struct {
 /* default configuration for server */
 var defaults config.ConnectionOptions
 
+/* original cfg read from the file */
+var originalCfg config.Config
+
 /**
  * Initialize manager from the initial/default configuration
  */
@@ -29,6 +35,8 @@ func Initialize(cfg config.Config) {
 
 	log := logging.For("manager")
 	log.Info("Initializing...")
+
+	originalCfg = cfg
 
 	// save defaults for futher reuse
 	defaults = cfg.Defaults
@@ -42,6 +50,28 @@ func Initialize(cfg config.Config) {
 	}
 
 	log.Info("Initialized")
+}
+
+/**
+ * Dumps current [servers] section to
+ * the config file
+ */
+func DumpConfig() (string, error) {
+
+	originalCfg.Servers = map[string]config.Server{}
+
+	servers.RLock()
+	for name, server := range servers.m {
+		originalCfg.Servers[name] = server.Cfg()
+	}
+	servers.RUnlock()
+
+	buf := new(bytes.Buffer)
+	if err := toml.NewEncoder(buf).Encode(originalCfg); err != nil {
+		return "", err
+	}
+
+	return "# dumped on " + time.Now().String() + "\n\n" + buf.String(), nil
 }
 
 /**

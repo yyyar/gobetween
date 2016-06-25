@@ -1,5 +1,5 @@
 #
-# gobetween.toml - config file
+# gobetween.toml - sample config file
 #
 
 #
@@ -7,7 +7,7 @@
 #
 [logging]
 
-level = "info"    # "debug" | "info" | "warn" | "error"
+level = "debug"   # "debug" | "info" | "warn" | "error"
 output = "stdout" # "stdout" | "stderr" | "/path/to/gobetween.log"
 
 #
@@ -44,7 +44,32 @@ backend_connection_timeout = "0"
 #
 [servers]
 
-# ------------------------------------------------- #
+[servers.sample]
+bind = "localhost:3000"
+protocol = "tcp"
+balance = "weight"
+
+max_connections = 10
+client_idle_timeout = "5s"
+backend_idle_timeout = "5s"
+backend_connection_timeout = "2s"
+
+  [servers.sample.healthcheck]
+  kind = "ping"
+  interval = "1s"
+  timeout = "500ms"
+  fails = 3
+  passes = 3
+
+  [servers.sample.discovery]
+  kind = "static"
+  static_list = [
+    "localhost:8000 weight=1",
+    "localhost:8001 weight=2"
+  ]
+
+
+# -------------------- documentation ----------------------------- #
 
 ##
 ## Example server section.
@@ -141,33 +166,4 @@ backend_connection_timeout = "0"
 #  plaintext_endpoint = "http://some.url.com"   # (required) Url to plain text discovery
 #  plaintext_regex_pattern = ""                 # (optional) Regex with named capturing groups
 #
-
-
-# ------------------------------------------------- #
-
-
-[servers.sample]
-bind = "localhost:3000"
-protocol = "tcp"
-balance = "weight"
-
-max_connections = 10
-client_idle_timeout = "5s"
-backend_idle_timeout = "5s"
-backend_connection_timeout = "2s"
-
-  [servers.sample.healthcheck]
-  kind = "ping"
-  interval = "1s"
-  timeout = "500ms"
-  fails = 3
-  passes = 3
-
-  [servers.sample.discovery]
-  kind = "static"
-  static_list = [
-    "localhost:8000 weight=1",
-    "localhost:8001 weight=2"
-  ]
-
 

@@ -61,6 +61,15 @@ func Start(cfg config.ApiConfig) {
 		})
 	})
 
+	app.GET("/dump", func(c *gin.Context) {
+		txt, err := manager.DumpConfig()
+		if err != nil {
+			c.IndentedJSON(http.StatusInternalServerError, err)
+			return
+		}
+		c.String(http.StatusOK, txt)
+	})
+
 	/* ----- servers ----- */
 
 	app.GET("/servers", func(c *gin.Context) {
