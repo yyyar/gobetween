@@ -144,13 +144,6 @@ func Delete(name string) error {
 }
 
 /**
- * Reconfigure existing server on-the-fly
- */
-func Reconfigure(serverName string, cfg config.Server) {
-	// TODO
-}
-
-/**
  * Returns stats for the server
  */
 func Stats(name string) interface{} {

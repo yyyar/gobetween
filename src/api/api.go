@@ -7,13 +7,8 @@ package api
 
 import (
 	"../config"
-	"../info"
 	"../logging"
-	"../manager"
 	"github.com/gin-gonic/gin"
-	"net/http"
-	"os"
-	"time"
 )
 
 /* gin app */
@@ -42,73 +37,12 @@ func Start(cfg config.ApiConfig) {
 
 	app = gin.New()
 
-	/* -------------------- handlers --------------------- */
+	/* attach endpoints */
+	attachRoot(app)
+	attachServers(app)
 
-	/* ----- globals ----- */
-
-	/**
-	 * Global stats
-	 */
-	app.GET("/", func(c *gin.Context) {
-
-		c.IndentedJSON(http.StatusOK, gin.H{
-			"pid":        os.Getpid(),
-			"time":       time.Now(),
-			"startTime":  info.StartTime,
-			"uptime":     time.Now().Sub(info.StartTime).String(),
-			"version":    info.Version,
-			"configPath": info.ConfigPath,
-		})
-	})
-
-	app.GET("/dump", func(c *gin.Context) {
-		txt, err := manager.DumpConfig()
-		if err != nil {
-			c.IndentedJSON(http.StatusInternalServerError, err)
-			return
-		}
-		c.String(http.StatusOK, txt)
-	})
-
-	/* ----- servers ----- */
-
-	app.GET("/servers", func(c *gin.Context) {
-		c.IndentedJSON(http.StatusOK, manager.All())
-	})
-
-	app.GET("/servers/:name", func(c *gin.Context) {
-		name := c.Param("name")
-		c.IndentedJSON(http.StatusOK, manager.Get(name))
-	})
-
-	app.DELETE("/servers/:name", func(c *gin.Context) {
-		name := c.Param("name")
-		manager.Delete(name)
-		c.IndentedJSON(http.StatusOK, nil)
-	})
-
-	app.POST("/servers/:name", func(c *gin.Context) {
-
-		name := c.Param("name")
-
-		cfg := config.Server{}
-		if err := c.BindJSON(&cfg); err != nil {
-			c.IndentedJSON(http.StatusBadRequest, err.Error())
-			return
-		}
-
-		if err := manager.Create(name, cfg); err != nil {
-			c.IndentedJSON(http.StatusConflict, err.Error())
-			return
-		}
-
-		c.IndentedJSON(http.StatusOK, nil)
-	})
-
-	app.GET("/servers/:name/stats", func(c *gin.Context) {
-		name := c.Param("name")
-		c.IndentedJSON(http.StatusOK, manager.Stats(name))
-	})
-
+	/* start rest api server */
 	app.Run(cfg.Bind)
+
+	log.Info("Started API")
 }

@@ -1,58 +1,43 @@
 #
 # gobetween.toml - sample config file
 #
+# Website: http://gobetween.io
+# Documentation: https://github.com/yyyar/gobetween/wiki/Configuration
+#
 
 #
-# Contains logging configuration
+# Logging configuration
 #
 [logging]
-
-level = "debug"   # "debug" | "info" | "warn" | "error"
+level = "info"    # "debug" | "info" | "warn" | "error"
 output = "stdout" # "stdout" | "stderr" | "/path/to/gobetween.log"
 
 #
-# Contains REST API server configuration
+# REST API server configuration
 #
 [api]
-
 enabled = true  # true | false
-bind = ":8888"  # bind host:port
+bind = ":8888"  # "host:port"
 
 #
-# Contains defaults that could be overriden in servers sections.
-# All *_timeout values have the following format:
-# <int><duration> where duration can be 'ms', 's', 'm', 'h'
-# Example: backend_connection_timeout = "5s"
-# 0 - means no limit
+# Default values for server configuration, may be overriden in [servers] sections.
+# All "duration" fields (for examole, postfixed with '_timeout') have the following format:
+# <int><duration> where duration can be one of 'ms', 's', 'm', 'h'.
+# Examples: "5s", "1m", "500ms", etc. "0" value means no limit
 #
 [defaults] 
-
-# Maximum simultaneous connections to the server
-max_connections = 0
-
-# Client inactivity duration till connection drop
-client_idle_timeout = "0"
-
-# Backend inactivity duration till connection drop
-backend_idle_timeout = "0"
-
-# Backend connection timeout
-backend_connection_timeout = "0"
+max_connections = 0              # Maximum simultaneous connections to the server
+client_idle_timeout = "0"        # Client inactivity duration before forced connection drop
+backend_idle_timeout = "0"       # Backend inactivity duration before forced connection drop
+backend_connection_timeout = "0" # Backend connection timeout
 
 #
-# Contains as many servers sections as needed
+# Servers contains as many [server.<name>] sections as needed.
 #
 [servers]
 
 [servers.sample]
 bind = "localhost:3000"
-protocol = "tcp"
-balance = "weight"
-
-max_connections = 10
-client_idle_timeout = "5s"
-backend_idle_timeout = "5s"
-backend_connection_timeout = "2s"
 
   [servers.sample.healthcheck]
   kind = "ping"
@@ -69,7 +54,7 @@ backend_connection_timeout = "2s"
   ]
 
 
-# -------------------- documentation ----------------------------- #
+# -------------------- example ----------------------------- #
 
 ##
 ## Example server section.
@@ -81,7 +66,6 @@ backend_connection_timeout = "2s"
 #protocol = "tcp"            #  (required) "tcp"
 #balance = "weight"          #  (optional [weight]) "weight" | "leastconn" | "roundrobin" | "iphash"
 #
-## -------------------- defaults overrides ------------------- #
 #max_connections = 0
 #client_idle_timeout = "10m"
 #backend_idle_timeout = "10m"
@@ -132,37 +116,19 @@ backend_connection_timeout = "2s"
 #  docker_container_private_port = 80        # (required) Private port of container to use
 #
 #  # -- json -- #
-#  # JSON discovery will be in format [{...}, ...] and path to host, port and other options you can describe in
-#  # keys like json_port_pattern. By default this options set on first level of object, so you can dicsover from json
-#  # like this [{"host": "0.0.0.0", "port": "1231", "weight": 1, "priority": 1},... ] without any additional settings
 #  kind = "json"
-#  json_endpoint = "http://localhost:8080"         # (required) JSON discovery Url
-#  json_host_pattern = "some.level.host"           # (optional) path to host value in JSON object, by default "host"
-#  json_port_pattern = "some.level.port"           # (optional) path to port value in JSON object, by default "port"
-#  json_weight_pattern = "some.level.weight"       # (optional) path to weight value in JSON object, by default "weight"
-#  json_priority_pattern = "some.level.priority"   # (optional) path to priority value in JSON object, by default "priority"
+#  json_endpoint = "http://some.url.com"   # (required) JSON discovery Url
+#  json_host_pattern = "host"              # (optional) path to host value in JSON object, by default "host"
+#  json_port_pattern = "port"              # (optional) path to port value in JSON object, by default "port"
+#  json_weight_pattern = "weight"          # (optional) path to weight value in JSON object, by default "weight"
+#  json_priority_pattern = "priority"      # (optional) path to priority value in JSON object, by default "priority"
 #
 #  # -- exec -- #
-#  # Exec discovery will run external script every 'exec_cache_ttl' interval, reading it's
-#  # stdout and parsing it. Expected stdout of the script (\n is needed after each line):
-#  # host1:port1 weight=N    (weight is optional)
-#  # host2:port2 weight=N
-#  # ...
 #  kind = "exec"
 #  exec_command = ["/path/to/script", "arg1", "arg2"] # (required) command to exec and variable-length arguments
 #
 #  # -- plaintext -- #
-#  # Plain text discovery works on regexp. It parce strings separated by \n(new line symbol)
-#  # All necessary values like host, port etc will get from named captured groups
-#  # There are next captured groups must be used in regexp:
-#  # (?P<host>...),
-#  # (?P<port>...),
-#  # (?P<weight>...),
-#  # (?P<priority>...)
-#  # All another captured groups will be ignored
-#  # As default regexp plain discovery use (?P<host>\S+):(?P<port>\d+)(\sweight=(?P<weight>\d+))?(\spriority=(?P<priority>\d+)),
-#  # so you can use responce like "0.0.0.0:1234, weight=0, priority=1/n0.0.0.0:4321 weight=1 priority=0"
-#  kind = "plain"
+#  kind = "plaintext"
 #  plaintext_endpoint = "http://some.url.com"   # (required) Url to plain text discovery
 #  plaintext_regex_pattern = ""                 # (optional) Regex with named capturing groups
 #

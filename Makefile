@@ -71,7 +71,7 @@ dist:
 		-arch="386 amd64" \
 		-pv="${VERSION}" \
 		-os="linux windows" \
-		-include="README.md,LICENSE,CHANGELOG,VERSION,config/gobetween.toml" \
+		-include="README.md,LICENSE,CHANGELOG,VERSION,config/gobetween.toml,share" \
 		-build-ldflags=${LDFLAGS}
 	rm ./debian -rf
 	@echo Done.
