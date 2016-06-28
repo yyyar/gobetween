@@ -84,6 +84,7 @@ func (this *Scheduler) start() {
 
 	this.ops = make(chan Op)
 	this.elect = make(chan ElectRequest)
+	this.stop = make(chan bool)
 
 	this.discovery.Start()
 	this.healthcheck.Start()
@@ -114,7 +115,7 @@ func (this *Scheduler) start() {
 
 			// handle scheduler stop
 			case <-this.stop:
-				log.Debug("Stopping scheduler")
+				log.Info("Stopping scheduler")
 				this.discovery.Stop()
 				this.healthcheck.Stop()
 				return

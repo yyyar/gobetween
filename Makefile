@@ -58,6 +58,7 @@ deps: clean-deps
 	github.com/fsouza/go-dockerclient \
 	github.com/Sirupsen/logrus \
 	github.com/elgs/gojq \
+	github.com/gin-gonic/gin \
 	github.com/laher/goxc
 
 clean-dist:
@@ -70,7 +71,7 @@ dist:
 		-arch="386 amd64" \
 		-pv="${VERSION}" \
 		-os="linux windows" \
-		-include="README.md,LICENSE,CHANGELOG,VERSION,config/gobetween.toml" \
+		-include="README.md,LICENSE,CHANGELOG,VERSION,config/gobetween.toml,share" \
 		-build-ldflags=${LDFLAGS}
 	rm ./debian -rf
 	@echo Done.

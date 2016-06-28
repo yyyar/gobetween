@@ -6,8 +6,11 @@
 package main
 
 import (
+	"./api"
 	"./config"
+	"./info"
 	"./logging"
+	"./manager"
 	"flag"
 	"github.com/BurntSushi/toml"
 	"math/rand"
@@ -28,6 +31,7 @@ const (
  * using ldflags (see Makefile)
  */
 var version string
+
 var configPath string
 
 /**
@@ -45,6 +49,11 @@ func init() {
 
 	// Init command-line flags
 	flag.StringVar(&configPath, "c", defaultConfigPath, "Path to config file")
+
+	// Set info to be used in another parts of the program
+	info.Version = version
+	info.ConfigPath = configPath
+	info.StartTime = time.Now()
 }
 
 /**
@@ -58,13 +67,21 @@ func main() {
 	log.Info("gobetween v", version)
 	log.Info("Using config file ", configPath)
 
+	// Parse config
 	var cfg config.Config
 	if _, err := toml.DecodeFile(configPath, &cfg); err != nil {
 		log.Fatal(err)
 	}
 
+	// Configure logging
 	logging.Configure(cfg.Logging.Output, cfg.Logging.Level)
 
-	// Begin work
-	Start(cfg)
+	// Start API
+	go api.Start(cfg.Api)
+
+	// Start manager
+	go manager.Initialize(cfg)
+
+	// block forever
+	<-(chan string)(nil)
 }
