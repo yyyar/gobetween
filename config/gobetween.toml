@@ -111,14 +111,14 @@ bind = "localhost:3000"
 #
 #  # -- docker -- #
 #  kind = "docker"
-#  secure = true # false by default for backward compatibility
-#
-#  cert_path = '/path/to/cert.pem'           # (required if secure=true)
-#  key_path = '/path/to/key.pem'             # (required if secure=true)
-#  cacert_path = '/path/to/cacert.pem'       # (required if secure=true)
 #  docker_endpoint = "http://localhost:2375" # (required) Endpoint to docker API
 #  docker_container_label = "proxied=true"   # (optional) Label to filter containers
 #  docker_container_private_port = 80        # (required) Private port of container to use
+#
+#  docker_tls_enabled = false                # (optional) enable client tls auth
+#  docker_tls_cert_path = '/path/to/cert.pem'
+#  docker_tls_key_path = '/path/to/key.pem'
+#  docker_tls_cacert_path = '/path/to/cacert.pem'
 #
 #  # -- json -- #
 #  kind = "json"
