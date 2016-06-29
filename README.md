@@ -14,15 +14,15 @@
 
 ## Features
 
-* TCP Load Balancing
+* [TCP Load Balancing](https://github.com/yyyar/gobetween/wiki)
 
-* Clear and beautiful TOML config file.
+* [Clear and beautiful TOML config file](config/gobetween.toml)
+
+* [Management REST API] (https://github.com/yyyar/gobetween/wiki/REST-API) (work in progress)
  
 * Integrates seamlessly with Docker and with any custom system (thanks to Exec discovery and healtchecks)
 
-* Single binary distribution (only one gobetween binary + TOML config file)
-
-* Backends Discovery
+* [Discovery](https://github.com/yyyar/gobetween/wiki/Discovery)
   * **Static** - hardcode backends list in config file
   * **Docker** - query backends from Docker / Swarm API filtered by label
   * **Exec** - execte arbitrary program and get backends from it's stdout
@@ -30,15 +30,17 @@
   * **Plaintext** - query arbitrary http and parse backends from response text with customized regexp
   * **SRV** - query DNS server and get backends from SRV records
 
-* Backends Healthchecks
+* [Healthchecks](https://github.com/yyyar/gobetween/wiki/Healthchecks)
   * **Ping** - simple TCP ping healtcheck
   * **Exec** - execute arbitrary program passing host & port as options, and read healtcheck status from the stdout
 
-* Balancing Strategies
+* [Balancing Strategies](https://github.com/yyyar/gobetween/wiki/Balancing)
   * **Iphash**
   * **Leastconn**
   * **Roundrobin**
   * **Weight**
+
+* Single binary distribution (only one gobetween binary + TOML config file)
 
 
 ## Architecture
