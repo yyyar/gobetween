@@ -27,6 +27,11 @@ build:
 	go build -v -o ./bin/$(NAME) -ldflags ${LDFLAGS} ./src/*.go
 	@echo Done.
 
+build-static:
+	@echo Building...
+	CGO_ENABLED=0 go build -v -o ./bin/$(NAME) -ldflags '-s -w --extldflags "-static”  ${LDFLAGS}' ./src/*.go
+	@echo Done.
+
 run: build
 	./bin/$(NAME) -c ./config/${NAME}.toml
 
