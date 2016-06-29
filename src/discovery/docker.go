@@ -14,6 +14,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/fsouza/go-dockerclient"
+	"regexp"
 	"time"
 )
 
@@ -91,9 +92,12 @@ func dockerFetch(cfg config.DiscoveryConfig) (*[]core.Backend, error) {
 				continue
 			}
 
+			containerHost := dockerDetermineContainerHost(client, container.ID, cfg, port.IP)
+			log.Warn(containerHost)
+
 			backends = append(backends, core.Backend{
 				Target: core.Target{
-					Host: port.IP,
+					Host: containerHost,
 					Port: fmt.Sprintf("%v", port.PublicPort),
 				},
 				Priority: 1,
@@ -104,4 +108,56 @@ func dockerFetch(cfg config.DiscoveryConfig) (*[]core.Backend, error) {
 	}
 
 	return &backends, nil
+}
+
+/**
+ * Determines container host
+ */
+func dockerDetermineContainerHost(client *docker.Client, id string, cfg config.DiscoveryConfig, portHost string) string {
+
+	/* If host env var specified, try to get it from container vars */
+
+	if cfg.DockerContainerHostEnvVar != "" {
+
+		container, err := client.InspectContainer(id)
+
+		if err != nil {
+			var e docker.Env = container.Config.Env
+			h := e.Get(cfg.DockerContainerHostEnvVar)
+			if h != "" {
+				return h
+			}
+		}
+	}
+
+	/* If container portHost is not 'all interfaces', return it since it's good enough */
+
+	if portHost != "0.0.0.0" {
+		return portHost
+	}
+
+	/* Last chance, try to parse docker host from endpoint string */
+
+	var reg = regexp.MustCompile("(.*?)://(?P<host>[-.A-Za-z0-9]+)/?(.*)")
+	match := reg.FindStringSubmatch(cfg.DockerEndpoint)
+
+	if len(match) == 0 {
+		return portHost
+	}
+
+	result := make(map[string]string)
+
+	// get named capturing groups
+	for i, name := range reg.SubexpNames() {
+		if name != "" {
+			result[name] = match[i]
+		}
+	}
+
+	h, ok := result["host"]
+	if !ok {
+		return portHost
+	}
+
+	return h
 }

@@ -112,6 +112,7 @@ type DockerDiscoveryConfig struct {
 	DockerEndpoint             string `toml:"docker_endpoint" json:"docker_endpoint"`
 	DockerContainerLabel       string `toml:"docker_container_label" json:"docker_container_label"`
 	DockerContainerPrivatePort int64  `toml:"docker_container_private_port" json:"docker_container_private_port"`
+	DockerContainerHostEnvVar  string `toml:"docker_container_host_env_var" json:"docker_container_host_env_var"`
 
 	DockerTlsEnabled    bool   `toml:"docker_tls" json:"docker_tls"`
 	DockerTlsCertPath   string `toml:"docker_tls_cert_path" json:"docker_tls_cert_path"`

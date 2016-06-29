@@ -48,10 +48,15 @@ bind = "localhost:3000"
 
   [servers.sample.discovery]
   kind = "static"
-  static_list = [
-    "localhost:8000 weight=1",
-    "localhost:8001 weight=2"
+  static_list = [                  #  (required)  [
+      "localhost:8000 weight=5",   #    "<host>:<port> weight=<int>" weight=1 by default
+      "localhost:8001"             #  ]
   ]
+
+  #kind = "docker"
+  #docker_endpoint = "unix:///var/run/docker.sock" # (required) Endpoint to docker API
+  #docker_container_private_port = 80        # (required) Private port of container to use
+  #docker_container_host_env_var = ""        # (optional) Take container host from container env variable
 
 
 # -------------------- example ----------------------------- #
@@ -112,8 +117,9 @@ bind = "localhost:3000"
 #  # -- docker -- #
 #  kind = "docker"
 #  docker_endpoint = "http://localhost:2375" # (required) Endpoint to docker API
-#  docker_container_label = "proxied=true"   # (optional) Label to filter containers
 #  docker_container_private_port = 80        # (required) Private port of container to use
+#  docker_container_label = "proxied=true"   # (optional) Label to filter containers
+#  docker_container_host_env_var = ""        # (optional) Take container host from container env variable
 #
 #  docker_tls_enabled = false                # (optional) enable client tls auth
 #  docker_tls_cert_path = '/path/to/cert.pem'
