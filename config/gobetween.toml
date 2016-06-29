@@ -115,6 +115,11 @@ bind = "localhost:3000"
 #  docker_container_label = "proxied=true"   # (optional) Label to filter containers
 #  docker_container_private_port = 80        # (required) Private port of container to use
 #
+#  docker_tls_enabled = false                # (optional) enable client tls auth
+#  docker_tls_cert_path = '/path/to/cert.pem'
+#  docker_tls_key_path = '/path/to/key.pem'
+#  docker_tls_cacert_path = '/path/to/cacert.pem'
+#
 #  # -- json -- #
 #  kind = "json"
 #  json_endpoint = "http://some.url.com"   # (required) JSON discovery Url

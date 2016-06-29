@@ -112,6 +112,11 @@ type DockerDiscoveryConfig struct {
 	DockerEndpoint             string `toml:"docker_endpoint" json:"docker_endpoint"`
 	DockerContainerLabel       string `toml:"docker_container_label" json:"docker_container_label"`
 	DockerContainerPrivatePort int64  `toml:"docker_container_private_port" json:"docker_container_private_port"`
+
+	DockerTlsEnabled    bool   `toml:"docker_tls" json:"docker_tls"`
+	DockerTlsCertPath   string `toml:"docker_tls_cert_path" json:"docker_tls_cert_path"`
+	DockerTlsKeyPath    string `toml:"docker_tls_key_path" json:"docker_tls_key_path"`
+	DockerTlsCacertPath string `toml:"docker_ts_cacert_path" json:"docker_tls_cacert_path"`
 }
 
 /**

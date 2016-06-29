@@ -11,6 +11,7 @@ import (
 	"../core"
 	"../logging"
 	"../utils"
+	"errors"
 	"fmt"
 	"github.com/fsouza/go-dockerclient"
 	"time"
@@ -44,8 +45,22 @@ func dockerFetch(cfg config.DiscoveryConfig) (*[]core.Backend, error) {
 
 	log.Info("Fetching ", cfg.DockerEndpoint, " ", cfg.DockerContainerLabel, " ", cfg.DockerContainerPrivatePort)
 
-	/* Creare docke client */
-	client, err := docker.NewClient(cfg.DockerEndpoint)
+	var client *docker.Client
+	var err error
+
+	if cfg.DockerTlsEnabled {
+
+		// Added because docker client error very scant
+		if cfg.DockerTlsCacertPath == "" || cfg.DockerTlsCertPath == "" || cfg.DockerTlsKeyPath == "" {
+			return nil, errors.New("Missing keys or certificates required for TLS")
+		}
+
+		client, err = docker.NewTLSClient(cfg.DockerEndpoint, cfg.DockerTlsCertPath, cfg.DockerTlsKeyPath, cfg.DockerTlsCacertPath)
+
+	} else {
+		client, err = docker.NewClient(cfg.DockerEndpoint)
+	}
+
 	if err != nil {
 		return nil, err
 	}
