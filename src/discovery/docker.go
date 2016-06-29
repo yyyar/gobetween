@@ -93,7 +93,6 @@ func dockerFetch(cfg config.DiscoveryConfig) (*[]core.Backend, error) {
 			}
 
 			containerHost := dockerDetermineContainerHost(client, container.ID, cfg, port.IP)
-			log.Warn(containerHost)
 
 			backends = append(backends, core.Backend{
 				Target: core.Target{
@@ -115,6 +114,8 @@ func dockerFetch(cfg config.DiscoveryConfig) (*[]core.Backend, error) {
  */
 func dockerDetermineContainerHost(client *docker.Client, id string, cfg config.DiscoveryConfig, portHost string) string {
 
+	log := logging.For("dockerDetermineContainerHost")
+
 	/* If host env var specified, try to get it from container vars */
 
 	if cfg.DockerContainerHostEnvVar != "" {
@@ -122,6 +123,8 @@ func dockerDetermineContainerHost(client *docker.Client, id string, cfg config.D
 		container, err := client.InspectContainer(id)
 
 		if err != nil {
+			log.Warn(err)
+		} else {
 			var e docker.Env = container.Config.Env
 			h := e.Get(cfg.DockerContainerHostEnvVar)
 			if h != "" {
