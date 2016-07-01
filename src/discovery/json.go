@@ -13,6 +13,7 @@ import (
 	"../logging"
 	"../utils"
 	"errors"
+	"fmt"
 	"github.com/elgs/gojq"
 	"io/ioutil"
 	"net/http"
@@ -114,9 +115,14 @@ func jsonFetch(cfg config.DiscoveryConfig) (*[]core.Backend, error) {
 			return nil, err
 		}
 
-		if backend.Port, err = parsed.QueryToString(key + cfg.JsonPortPattern); err != nil {
+		// workaround to allow string or number port value
+		port, err := parsed.Query(key + cfg.JsonPortPattern)
+		if err != nil {
 			return nil, err
 		}
+
+		// convert port to string (if not)
+		backend.Port = fmt.Sprintf("%v", port)
 
 		if weight, err := parsed.QueryToInt64(key + cfg.JsonWeightPattern); err == nil {
 			backend.Weight = int(weight)
