@@ -69,7 +69,9 @@ func srvFetch(cfg config.DiscoveryConfig) (*[]core.Backend, error) {
 			},
 			Priority: int(record.Priority),
 			Weight:   int(record.Weight),
-			Live:     true,
+			Stats: core.BackendStats{
+				Live: true,
+			},
 		}
 	}
 

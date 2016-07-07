@@ -13,6 +13,7 @@ import (
 	"../discovery"
 	"../healthcheck"
 	"../logging"
+	"../stats"
 	"../utils"
 	"net"
 )
@@ -38,6 +39,9 @@ type Server struct {
 	/* Current clients connection */
 	clients map[string]net.Conn
 
+	/* Stats handler */
+	statsHandler *stats.Handler
+
 	/* ----- channels ----- */
 
 	/* Channel for new connections */
@@ -59,12 +63,13 @@ func New(name string, cfg config.Server) *Server {
 
 	// Create server
 	server := &Server{
-		name:       name,
-		cfg:        cfg,
-		stop:       make(chan bool),
-		disconnect: make(chan net.Conn),
-		connect:    make(chan net.Conn),
-		clients:    make(map[string]net.Conn),
+		name:         name,
+		cfg:          cfg,
+		stop:         make(chan bool),
+		disconnect:   make(chan net.Conn),
+		connect:      make(chan net.Conn),
+		clients:      make(map[string]net.Conn),
+		statsHandler: stats.NewHandler(name),
 		scheduler: Scheduler{
 			balancer:    balance.New(cfg.Balance),
 			discovery:   discovery.New(cfg.Discovery.Kind, *cfg.Discovery),
@@ -72,11 +77,17 @@ func New(name string, cfg config.Server) *Server {
 		},
 	}
 
+	// TODO: refatror
+	server.scheduler.statsHandler = server.statsHandler
+
 	log.Info("Creating '", name, "': ", cfg.Bind, " ", cfg.Balance, " ", cfg.Discovery.Kind, " ", cfg.Healthcheck.Kind)
 
 	return server
 }
 
+/**
+ * Returns current server configuration
+ */
 func (this *Server) Cfg() config.Server {
 	return this.cfg
 }
@@ -98,6 +109,7 @@ func (this *Server) Start() error {
 
 			case <-this.stop:
 				this.scheduler.Stop()
+				this.statsHandler.Stop()
 				if this.listener != nil {
 					this.listener.Close()
 					for _, conn := range this.clients {
@@ -109,6 +121,9 @@ func (this *Server) Start() error {
 			}
 		}
 	}()
+
+	// Start stats handler
+	this.statsHandler.Start()
 
 	// Start scheduler
 	this.scheduler.start()
@@ -128,6 +143,7 @@ func (this *Server) Start() error {
 func (this *Server) HandleClientDisconnect(client net.Conn) {
 	client.Close()
 	delete(this.clients, client.RemoteAddr().String())
+	this.statsHandler.Connections <- len(this.clients)
 }
 
 /**
@@ -144,6 +160,7 @@ func (this *Server) HandleClientConnect(client net.Conn) {
 	}
 
 	this.clients[client.RemoteAddr().String()] = client
+	this.statsHandler.Connections <- len(this.clients)
 	go func() {
 		this.handle(client)
 		this.disconnect <- client
@@ -216,13 +233,26 @@ func (this *Server) handle(clientConn net.Conn) {
 
 	/* Stat proxying */
 	log.Debug("Begin ", clientConn.RemoteAddr(), " -> ", this.listener.Addr(), " -> ", backendConn.RemoteAddr())
-	clientStatsChan := proxy(clientConn, backendConn, utils.ParseDurationOrDefault(*this.cfg.ClientIdleTimeout, 0))
-	backendStatsChan := proxy(backendConn, clientConn, utils.ParseDurationOrDefault(*this.cfg.BackendIdleTimeout, 0))
+	cs := proxy(clientConn, backendConn, utils.ParseDurationOrDefault(*this.cfg.ClientIdleTimeout, 0))
+	bs := proxy(backendConn, clientConn, utils.ParseDurationOrDefault(*this.cfg.BackendIdleTimeout, 0))
 
-	/* Wait proxies to finish */
-	writtenClient := <-clientStatsChan
-	writtenBackend := <-backendStatsChan
+	//totalRx, totalTx := 0, 0
+	isTx, isRx := true, true
+	for isTx || isRx {
+		select {
+		case s, ok := <-cs:
+			isRx = ok
+			this.scheduler.IncrementRx(*backend, s.CountWrite)
+			this.statsHandler.Traffic <- core.ReadWriteCount{CountRead: s.CountWrite}
+			//totalRx += s.CountWrite
+		case s, ok := <-bs:
+			isTx = ok
+			this.scheduler.IncrementTx(*backend, s.CountWrite)
+			this.statsHandler.Traffic <- core.ReadWriteCount{CountWrite: s.CountWrite}
+			//totalTx += s.CountWrite
+		}
+	}
 
-	log.Info("Written to client: ", writtenClient, ", backend: ", writtenBackend)
+	//log.Info("Backend ", *backend, " tx/rx ", totalTx, totalRx)
 	log.Debug("End ", clientConn.RemoteAddr(), " -> ", this.listener.Addr(), " -> ", backendConn.RemoteAddr())
 }

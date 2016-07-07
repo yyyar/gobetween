@@ -101,7 +101,9 @@ func dockerFetch(cfg config.DiscoveryConfig) (*[]core.Backend, error) {
 				},
 				Priority: 1,
 				Weight:   1,
-				Live:     true,
+				Stats: core.BackendStats{
+					Live: true,
+				},
 			})
 		}
 	}

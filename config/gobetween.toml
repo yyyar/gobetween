@@ -60,9 +60,9 @@ bind = "localhost:3000"
 
   [servers.sample.discovery]
   kind = "static"
-  static_list = [                  #  (required)  [
-      "localhost:8000 weight=5",   #    "<host>:<port> weight=<int>" weight=1 by default
-      "localhost:8001"             #  ]
+  static_list = [
+      "localhost:8000",
+      "localhost:8001"
   ]
 
   #kind = "docker"

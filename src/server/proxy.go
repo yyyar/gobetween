@@ -7,9 +7,9 @@
 package server
 
 import (
+	"../core"
 	"../logging"
 	"io"
-	"math/big"
 	"net"
 	"time"
 )
@@ -21,29 +21,15 @@ const (
 )
 
 /**
- * Next r/w operation data counters
- */
-type ReadWriteCount struct {
-
-	/* Read bytes count */
-	CountRead int
-
-	/* Write bytes count */
-	CountWrite int
-}
-
-/**
  * Perform copy/proxy data from 'from' to 'to' socket, counting r/w stats and
  * dropping connection if timeout exceeded
  */
-func proxy(to net.Conn, from net.Conn, timeout time.Duration) <-chan *big.Int {
+func proxy(to net.Conn, from net.Conn, timeout time.Duration) <-chan core.ReadWriteCount {
 
 	log := logging.For("proxy")
 
-	stats := make(chan ReadWriteCount)
-	done := make(chan *big.Int)
-
-	total := big.NewInt(0)
+	stats := make(chan core.ReadWriteCount)
+	outStats := make(chan core.ReadWriteCount)
 
 	// Stats collecting goroutine
 	go func() {
@@ -57,7 +43,7 @@ func proxy(to net.Conn, from net.Conn, timeout time.Duration) <-chan *big.Int {
 			case rwc, ok := <-stats:
 
 				if !ok {
-					done <- total
+					close(outStats)
 					return
 				}
 
@@ -65,7 +51,8 @@ func proxy(to net.Conn, from net.Conn, timeout time.Duration) <-chan *big.Int {
 					to.SetReadDeadline(time.Now().Add(timeout))
 				}
 
-				total.Add(total, big.NewInt(int64(rwc.CountRead)))
+				// Remove non blocking
+				outStats <- rwc
 			}
 		}
 	}()
@@ -84,13 +71,13 @@ func proxy(to net.Conn, from net.Conn, timeout time.Duration) <-chan *big.Int {
 		close(stats)
 	}()
 
-	return done
+	return outStats
 }
 
 /**
  * It's build by analogy of io.Copy
  */
-func Copy(to io.Writer, from io.Reader, ch chan<- ReadWriteCount) error {
+func Copy(to io.Writer, from io.Reader, ch chan<- core.ReadWriteCount) error {
 
 	buf := make([]byte, BUFFER_SIZE)
 	var err error = nil
@@ -100,14 +87,16 @@ func Copy(to io.Writer, from io.Reader, ch chan<- ReadWriteCount) error {
 
 		if readN > 0 {
 
-			// send read bytes count
-			ch <- ReadWriteCount{CountRead: readN}
-
 			writeN, writeErr := to.Write(buf[0:readN])
-			if writeN > 0 {
-				// send write bytes count
-				ch <- ReadWriteCount{CountWrite: writeN}
-			}
+
+			// non-blocking stats send
+			// may produce innacurate counters because receiving
+			// part may miss them. NOTE. Remove non-blocking if will be needed
+			//select {
+			//case ch <- core.ReadWriteCount{CountRead: readN, CountWrite: writeN}:
+			//default:
+			//	}
+			ch <- core.ReadWriteCount{CountRead: readN, CountWrite: writeN}
 
 			if writeErr != nil {
 				err = writeErr

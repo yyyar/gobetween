@@ -12,6 +12,9 @@ import (
 	"../discovery"
 	"../healthcheck"
 	"../logging"
+	"../stats"
+	"math/big"
+	"time"
 )
 
 /**
@@ -25,6 +28,8 @@ type OpAction int
 const (
 	IncrementConnection OpAction = iota
 	DecrementConnection
+	IncrementTx
+	IncrementRx
 )
 
 /**
@@ -33,6 +38,7 @@ const (
 type Op struct {
 	target core.Target
 	op     OpAction
+	param  interface{}
 }
 
 /**
@@ -60,6 +66,8 @@ type Scheduler struct {
 
 	/* Current cached backends map */
 	backends map[core.Target]*core.Backend
+
+	statsHandler *stats.Handler
 
 	/* ----- channels ----- */
 
@@ -89,12 +97,19 @@ func (this *Scheduler) start() {
 	this.discovery.Start()
 	this.healthcheck.Start()
 
+	// backends stats pusher ticker
+	ticker := time.NewTicker(2 * time.Second)
+
 	/**
 	 * Goroutine updates and manages backends
 	 */
 	go func() {
 		for {
 			select {
+
+			// TODO: Review. Periodically push backends to stats
+			case <-ticker.C:
+				this.statsHandler.Backends <- this.Backends()
 
 			// handle newly discovered backends
 			case backends := <-this.discovery.Discover():
@@ -116,6 +131,7 @@ func (this *Scheduler) start() {
 			// handle scheduler stop
 			case <-this.stop:
 				log.Info("Stopping scheduler")
+				ticker.Stop()
 				this.discovery.Stop()
 				this.healthcheck.Stop()
 				return
@@ -138,6 +154,19 @@ func (this *Scheduler) Targets() []core.Target {
 }
 
 /**
+ * Return current backends
+ */
+func (this *Scheduler) Backends() []core.Backend {
+
+	backends := make([]core.Backend, 0, len(this.backends))
+	for _, b := range this.backends {
+		backends = append(backends, *b)
+	}
+
+	return backends
+}
+
+/**
  * Updated backend live status
  */
 func (this *Scheduler) HandleBackendLiveChange(target core.Target, live bool) {
@@ -150,7 +179,7 @@ func (this *Scheduler) HandleBackendLiveChange(target core.Target, live bool) {
 		return
 	}
 
-	backend.Live = live
+	backend.Stats.Live = live
 }
 
 /**
@@ -182,7 +211,7 @@ func (this *Scheduler) HandleBackendElect(req ElectRequest) {
 	// Filter only live backends
 	var backends []core.Backend
 	for _, b := range this.backends {
-		if b.Live {
+		if b.Stats.Live {
 			backends = append(backends, *b)
 		}
 	}
@@ -215,9 +244,14 @@ func (this *Scheduler) HandleOp(op Op) {
 		backend.Stats.ActiveConnections++
 	case DecrementConnection:
 		backend.Stats.ActiveConnections--
+	case IncrementTx:
+		backend.Stats.TxBytes.Add(&backend.Stats.TxBytes, big.NewInt(int64(op.param.(int))))
+	case IncrementRx:
+		backend.Stats.RxBytes.Add(&backend.Stats.RxBytes, big.NewInt(int64(op.param.(int))))
 	default:
 		log.Warn("Don't know how to handle op ", op.op)
 	}
+
 }
 
 /**
@@ -245,12 +279,20 @@ func (this *Scheduler) TakeBackend(context *core.Context) (*core.Backend, error)
  * Increment backend connection counter
  */
 func (this *Scheduler) IncrementConnection(backend core.Backend) {
-	this.ops <- Op{backend.Target, IncrementConnection}
+	this.ops <- Op{backend.Target, IncrementConnection, nil}
 }
 
 /**
  * Decrement backends connection counter
  */
 func (this *Scheduler) DecrementConnection(backend core.Backend) {
-	this.ops <- Op{backend.Target, DecrementConnection}
+	this.ops <- Op{backend.Target, DecrementConnection, nil}
+}
+
+func (this *Scheduler) IncrementRx(backend core.Backend, c int) {
+	this.ops <- Op{backend.Target, IncrementRx, c}
+}
+
+func (this *Scheduler) IncrementTx(backend core.Backend, c int) {
+	this.ops <- Op{backend.Target, IncrementTx, c}
 }

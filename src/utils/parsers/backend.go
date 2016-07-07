@@ -68,7 +68,9 @@ func ParseBackend(line string, pattern string) (*core.Backend, error) {
 		},
 		Weight:   weight,
 		Priority: priority,
-		Live:     true,
+		Stats: core.BackendStats{
+			Live: true,
+		},
 	}
 
 	return &backend, nil

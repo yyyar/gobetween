@@ -9,8 +9,8 @@ package core
  * Target host and port
  */
 type Target struct {
-	Host string
-	Port string
+	Host string `json:"host"`
+	Port string `json:"port"`
 }
 
 /**

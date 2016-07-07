@@ -108,7 +108,9 @@ func jsonFetch(cfg config.DiscoveryConfig) (*[]core.Backend, error) {
 		backend := core.Backend{
 			Weight:   1,
 			Priority: 1,
-			Live:     true,
+			Stats: core.BackendStats{
+				Live: true,
+			},
 		}
 
 		if backend.Host, err = parsed.QueryToString(key + cfg.JsonHostPattern); err != nil {
