@@ -9,6 +9,7 @@ package stats
 import (
 	"../core"
 	"math/big"
+	"sync"
 	"time"
 )
 
@@ -17,19 +18,27 @@ const (
 	INTERVAL = 2 * time.Second
 )
 
-// TODO: Add sync here and to other places in thgis file
-var Store = make(map[string]*Handler)
+/**
+ * Handlers Store
+ */
+var Store = struct {
+	sync.RWMutex
+	handlers map[string]*Handler
+}{handlers: make(map[string]*Handler)}
 
 /**
  * Get stats for the server
- * TODO: Sync it!
  */
 func GetStats(name string) interface{} {
-	handler, ok := Store[name]
+
+	Store.RLock()
+	defer Store.RUnlock()
+
+	handler, ok := Store.handlers[name]
 	if !ok {
 		return nil
 	}
-	return handler.stats
+	return handler.stats // TODO: syncronize?
 }
 
 /**
@@ -83,7 +92,10 @@ func NewHandler(name string) *Handler {
 		},
 	}
 
-	Store[name] = handler
+	Store.Lock()
+	Store.handlers[name] = handler
+	Store.Unlock()
+
 	return handler
 }
 
@@ -101,8 +113,6 @@ func (this *Handler) Start() {
 
 	go func() {
 
-		//collector := NewCollector(this.name)
-
 		lastRxTotal := big.NewInt(0)
 		lastTxTotal := big.NewInt(0)
 
@@ -114,7 +124,9 @@ func (this *Handler) Start() {
 			case <-this.stopChan:
 				this.ticker.Stop()
 				// remove from store
-				delete(Store, this.name)
+				Store.Lock()
+				delete(Store.handlers, this.name)
+				Store.Unlock()
 				close(this.Traffic)
 				close(this.Connections)
 				return
