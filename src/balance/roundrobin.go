@@ -23,7 +23,7 @@ type RoundrobinBalancer struct {
 /**
  * Elect backend using roundrobin strategy
  */
-func (b *RoundrobinBalancer) ElectBackend(context *core.Context, backends []core.Backend) (*core.Backend, error) {
+func (b *RoundrobinBalancer) Elect(context *core.Context, backends []core.Backend) (*core.Backend, error) {
 
 	if len(backends) == 0 {
 		return nil, errors.New("Can't elect backend, Backends empty")
