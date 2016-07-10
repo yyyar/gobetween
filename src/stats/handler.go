@@ -49,8 +49,8 @@ type Handler struct {
 	/* Server's name */
 	name string
 
-	/* Ticker for periodic pushing stats results */
-	ticker *time.Ticker
+	/* Bandwidth counter */
+	bandwidthCounter *BandwidthCounter
 
 	/* Current stats */
 	stats Stats
@@ -77,12 +77,12 @@ type Handler struct {
 func NewHandler(name string) *Handler {
 
 	handler := &Handler{
-		name:        name,
-		ticker:      time.NewTicker(INTERVAL),
-		Traffic:     make(chan core.ReadWriteCount),
-		Connections: make(chan int),
-		Backends:    make(chan []core.Backend),
-		stopChan:    make(chan bool),
+		name:             name,
+		bandwidthCounter: NewBandwidthCounter(INTERVAL),
+		Traffic:          make(chan core.ReadWriteCount),
+		Connections:      make(chan int),
+		Backends:         make(chan []core.Backend),
+		stopChan:         make(chan bool),
 		stats: Stats{
 			RxTotal:  big.NewInt(0),
 			TxTotal:  big.NewInt(0),
@@ -111,19 +111,16 @@ func (this *Handler) Stop() {
  */
 func (this *Handler) Start() {
 
+	this.bandwidthCounter.Start()
+
 	go func() {
 
-		lastRxTotal := big.NewInt(0)
-		lastTxTotal := big.NewInt(0)
-
-		newTxRx := false
 		for {
 			select {
 
 			/* stop stats processor requested */
 			case <-this.stopChan:
-				this.ticker.Stop()
-				// remove from store
+				this.bandwidthCounter.Stop()
 				Store.Lock()
 				delete(Store.handlers, this.name)
 				Store.Unlock()
@@ -131,31 +128,15 @@ func (this *Handler) Start() {
 				close(this.Connections)
 				return
 
-			/* prepare and push next stats update */
-			case <-this.ticker.C:
-
-				if !newTxRx {
-					this.stats.RxSecond = big.NewInt(0)
-					this.stats.TxSecond = big.NewInt(0)
-				} else {
-
-					dRx := big.NewInt(0).Sub(this.stats.RxTotal, lastRxTotal)
-					dTx := big.NewInt(0).Sub(this.stats.TxTotal, lastTxTotal)
-
-					this.stats.RxSecond.Div(dRx, big.NewInt(int64(INTERVAL.Seconds())))
-					this.stats.TxSecond.Div(dTx, big.NewInt(int64(INTERVAL.Seconds())))
-
-					lastRxTotal.Set(this.stats.RxTotal)
-					lastTxTotal.Set(this.stats.TxTotal)
-
-					newTxRx = false
-				}
+			case b := <-this.bandwidthCounter.Out:
+				this.stats.RxTotal.Set(&b.RxTotal)
+				this.stats.TxTotal.Set(&b.TxTotal)
+				this.stats.RxSecond.Set(&b.RxSecond)
+				this.stats.TxSecond.Set(&b.TxSecond)
 
 			/* New traffic stats available */
 			case rwc := <-this.Traffic:
-				newTxRx = true
-				this.stats.RxTotal.Add(this.stats.RxTotal, big.NewInt(int64(rwc.CountRead)))
-				this.stats.TxTotal.Add(this.stats.TxTotal, big.NewInt(int64(rwc.CountWrite)))
+				this.bandwidthCounter.Traffic <- rwc
 
 			/* New backends available */
 			case backends := <-this.Backends:
