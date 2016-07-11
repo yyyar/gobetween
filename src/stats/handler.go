@@ -68,6 +68,8 @@ type Handler struct {
 
 	/* Channel for indicating stop request */
 	stopChan chan bool
+
+	Stats chan BandwidthStats
 }
 
 /**
@@ -79,6 +81,7 @@ func NewHandler(name string) *Handler {
 	handler := &Handler{
 		name:             name,
 		bandwidthCounter: NewBandwidthCounter(INTERVAL),
+		Stats:            make(chan BandwidthStats),
 		Traffic:          make(chan core.ReadWriteCount),
 		Connections:      make(chan int),
 		Backends:         make(chan []core.Backend),
@@ -111,7 +114,7 @@ func (this *Handler) Stop() {
  */
 func (this *Handler) Start() {
 
-	this.bandwidthCounter.Start()
+	this.bandwidthCounter.Start(this.Stats)
 
 	go func() {
 
@@ -124,11 +127,12 @@ func (this *Handler) Start() {
 				Store.Lock()
 				delete(Store.handlers, this.name)
 				Store.Unlock()
+				close(this.Stats)
 				close(this.Traffic)
 				close(this.Connections)
 				return
 
-			case b := <-this.bandwidthCounter.Out:
+			case b := <-this.Stats:
 				this.stats.RxTotal.Set(&b.RxTotal)
 				this.stats.TxTotal.Set(&b.TxTotal)
 				this.stats.RxSecond.Set(&b.RxSecond)

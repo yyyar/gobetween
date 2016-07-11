@@ -28,6 +28,8 @@ type BandwidthStats struct {
 
 	// Transmitted bytes per second
 	TxSecond big.Int
+
+	Target core.Target
 }
 
 /**
@@ -50,14 +52,14 @@ type BandwidthCounter struct {
 
 	/* ----- channels ----- */
 
-	// Output channel for bandwidth stats
-	Out chan BandwidthStats
-
 	// Input channel for bandwidth deltas
 	Traffic chan core.ReadWriteCount
 
 	// Stop indicator
 	stop chan bool
+
+	// optional
+	Target core.Target
 }
 
 /**
@@ -74,7 +76,6 @@ func NewBandwidthCounter(interval time.Duration) *BandwidthCounter {
 		lastTx:      big.NewInt(0),
 		totalRx:     big.NewInt(0),
 		totalTx:     big.NewInt(0),
-		Out:         make(chan BandwidthStats),
 		Traffic:     make(chan core.ReadWriteCount),
 		stop:        make(chan bool),
 	}
@@ -83,7 +84,7 @@ func NewBandwidthCounter(interval time.Duration) *BandwidthCounter {
 /**
  * Starts bandwidth counter
  */
-func (this *BandwidthCounter) Start() {
+func (this *BandwidthCounter) Start(out chan BandwidthStats) {
 
 	go func() {
 		for {
@@ -93,7 +94,6 @@ func (this *BandwidthCounter) Start() {
 			case <-this.stop:
 				this.ticker.Stop()
 				close(this.Traffic)
-				close(this.Out)
 				return
 
 			// New counting cycle
@@ -117,11 +117,12 @@ func (this *BandwidthCounter) Start() {
 				}
 
 				// Send results to out
-				this.Out <- BandwidthStats{
+				out <- BandwidthStats{
 					RxTotal:  *this.totalRx,
 					TxTotal:  *this.totalTx,
 					RxSecond: *this.perSecondRx,
 					TxSecond: *this.perSecondTx,
+					Target:   this.Target,
 				}
 
 			// New traffic deltas available

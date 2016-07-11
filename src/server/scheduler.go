@@ -13,7 +13,6 @@ import (
 	"../healthcheck"
 	"../logging"
 	"../stats"
-	"math/big"
 	"time"
 )
 
@@ -67,7 +66,8 @@ type Scheduler struct {
 	/* Current cached backends map */
 	backends map[core.Target]*core.Backend
 
-	statsHandler *stats.Handler
+	statsHandler    *stats.Handler
+	backendsCounter *stats.BackendsBandwidthCounter
 
 	/* ----- channels ----- */
 
@@ -94,6 +94,9 @@ func (this *Scheduler) start() {
 	this.elect = make(chan ElectRequest)
 	this.stop = make(chan bool)
 
+	this.backendsCounter = stats.NewBackendsBandwidthCounter()
+	this.backendsCounter.Start()
+
 	this.discovery.Start()
 	this.healthcheck.Start()
 
@@ -111,10 +114,18 @@ func (this *Scheduler) start() {
 			case <-ticker.C:
 				this.statsHandler.Backends <- this.Backends()
 
+			case bs := <-this.backendsCounter.Out:
+				backend := this.backends[bs.Target]
+				backend.Stats.RxBytes = bs.RxTotal
+				backend.Stats.TxBytes = bs.TxTotal
+				backend.Stats.RxSecond = bs.RxSecond
+				backend.Stats.TxSecond = bs.TxSecond
+
 			// handle newly discovered backends
 			case backends := <-this.discovery.Discover():
 				this.HandleBackendsUpdate(backends)
 				this.healthcheck.In <- this.Targets()
+				this.backendsCounter.In <- this.Targets()
 
 			// handle backend healthcheck result
 			case checkResult := <-this.healthcheck.Out:
@@ -131,6 +142,7 @@ func (this *Scheduler) start() {
 			// handle scheduler stop
 			case <-this.stop:
 				log.Info("Stopping scheduler")
+				this.backendsCounter.Stop()
 				ticker.Stop()
 				this.discovery.Stop()
 				this.healthcheck.Stop()
@@ -245,9 +257,11 @@ func (this *Scheduler) HandleOp(op Op) {
 	case DecrementConnection:
 		backend.Stats.ActiveConnections--
 	case IncrementTx:
-		backend.Stats.TxBytes.Add(&backend.Stats.TxBytes, big.NewInt(int64(op.param.(int))))
+		this.backendsCounter.InTraffic <- core.ReadWriteCount{0, op.param.(int), backend.Target}
+		//backend.Stats.TxBytes.Add(&backend.Stats.TxBytes, big.NewInt(int64(op.param.(int))))
 	case IncrementRx:
-		backend.Stats.RxBytes.Add(&backend.Stats.RxBytes, big.NewInt(int64(op.param.(int))))
+		this.backendsCounter.InTraffic <- core.ReadWriteCount{op.param.(int), 0, backend.Target}
+		//backend.Stats.RxBytes.Add(&backend.Stats.RxBytes, big.NewInt(int64(op.param.(int))))
 	default:
 		log.Warn("Don't know how to handle op ", op.op)
 	}

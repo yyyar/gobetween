@@ -50,6 +50,7 @@ backend_connection_timeout = "0" # Backend connection timeout
 
 [servers.sample]
 bind = "localhost:3000"
+balance="weight"
 
   [servers.sample.healthcheck]
   kind = "ping"
@@ -61,7 +62,7 @@ bind = "localhost:3000"
   [servers.sample.discovery]
   kind = "static"
   static_list = [
-      "localhost:8000",
+      "localhost:8000 weight=2",
       "localhost:8001"
   ]
 

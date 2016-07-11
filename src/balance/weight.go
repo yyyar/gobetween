@@ -19,6 +19,7 @@ type WeightBalancer struct{}
 
 /**
  * Elect backend based on weight strategy
+ * TODO: Ensure backends are sorted in the same way (not it's not bacause of map in scheduler)
  */
 func (b *WeightBalancer) Elect(context *core.Context, backends []core.Backend) (*core.Backend, error) {
 

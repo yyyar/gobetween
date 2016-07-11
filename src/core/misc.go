@@ -16,4 +16,6 @@ type ReadWriteCount struct {
 
 	/* Write bytes count */
 	CountWrite int
+
+	Target Target
 }

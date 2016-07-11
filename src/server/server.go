@@ -236,7 +236,6 @@ func (this *Server) handle(clientConn net.Conn) {
 	cs := proxy(clientConn, backendConn, utils.ParseDurationOrDefault(*this.cfg.ClientIdleTimeout, 0))
 	bs := proxy(backendConn, clientConn, utils.ParseDurationOrDefault(*this.cfg.BackendIdleTimeout, 0))
 
-	//totalRx, totalTx := 0, 0
 	isTx, isRx := true, true
 	for isTx || isRx {
 		select {
@@ -244,15 +243,12 @@ func (this *Server) handle(clientConn net.Conn) {
 			isRx = ok
 			this.scheduler.IncrementRx(*backend, s.CountWrite)
 			this.statsHandler.Traffic <- core.ReadWriteCount{CountRead: s.CountWrite}
-			//totalRx += s.CountWrite
 		case s, ok := <-bs:
 			isTx = ok
 			this.scheduler.IncrementTx(*backend, s.CountWrite)
 			this.statsHandler.Traffic <- core.ReadWriteCount{CountWrite: s.CountWrite}
-			//totalTx += s.CountWrite
 		}
 	}
 
-	//log.Info("Backend ", *backend, " tx/rx ", totalTx, totalRx)
 	log.Debug("End ", clientConn.RemoteAddr(), " -> ", this.listener.Addr(), " -> ", backendConn.RemoteAddr())
 }

@@ -30,6 +30,8 @@ type BackendStats struct {
 	ActiveConnections int     `json:"active_connections"`
 	RxBytes           big.Int `json:"rx"`
 	TxBytes           big.Int `json:"tx"`
+	RxSecond          big.Int `json:"rx_second"`
+	TxSecond          big.Int `json:"tx_second"`
 }
 
 /**
