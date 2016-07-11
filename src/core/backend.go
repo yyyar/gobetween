@@ -27,6 +27,7 @@ type Backend struct {
  */
 type BackendStats struct {
 	Live              bool    `json:"live"`
+	TotalConnections  int64   `json:"total_connections"`
 	ActiveConnections int     `json:"active_connections"`
 	RxBytes           big.Int `json:"rx"`
 	TxBytes           big.Int `json:"tx"`

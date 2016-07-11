@@ -254,6 +254,7 @@ func (this *Scheduler) HandleOp(op Op) {
 	switch op.op {
 	case IncrementConnection:
 		backend.Stats.ActiveConnections++
+		backend.Stats.TotalConnections++
 	case DecrementConnection:
 		backend.Stats.ActiveConnections--
 	case IncrementTx:
