@@ -60,12 +60,14 @@ type BandwidthCounter struct {
 
 	// optional
 	Target core.Target
+
+	Out chan BandwidthStats
 }
 
 /**
  * Create new BandwidthCounter
  */
-func NewBandwidthCounter(interval time.Duration) *BandwidthCounter {
+func NewBandwidthCounter(interval time.Duration, out chan BandwidthStats) *BandwidthCounter {
 
 	return &BandwidthCounter{
 		interval:    interval,
@@ -77,6 +79,7 @@ func NewBandwidthCounter(interval time.Duration) *BandwidthCounter {
 		totalRx:     big.NewInt(0),
 		totalTx:     big.NewInt(0),
 		Traffic:     make(chan core.ReadWriteCount),
+		Out:         out,
 		stop:        make(chan bool),
 	}
 }
@@ -84,9 +87,10 @@ func NewBandwidthCounter(interval time.Duration) *BandwidthCounter {
 /**
  * Starts bandwidth counter
  */
-func (this *BandwidthCounter) Start(out chan BandwidthStats) {
+func (this *BandwidthCounter) Start() {
 
 	go func() {
+
 		for {
 			select {
 
@@ -96,7 +100,7 @@ func (this *BandwidthCounter) Start(out chan BandwidthStats) {
 				close(this.Traffic)
 				return
 
-			// New counting cycle
+				// New counting cycle
 			case <-this.ticker.C:
 
 				if !this.newTxRx {
@@ -117,7 +121,7 @@ func (this *BandwidthCounter) Start(out chan BandwidthStats) {
 				}
 
 				// Send results to out
-				out <- BandwidthStats{
+				this.Out <- BandwidthStats{
 					RxTotal:  *this.totalRx,
 					TxTotal:  *this.totalTx,
 					RxSecond: *this.perSecondRx,
@@ -125,7 +129,7 @@ func (this *BandwidthCounter) Start(out chan BandwidthStats) {
 					Target:   this.Target,
 				}
 
-			// New traffic deltas available
+				// New traffic deltas available
 			case rwc := <-this.Traffic:
 				this.newTxRx = true
 				this.totalRx.Add(this.totalRx, big.NewInt(int64(rwc.CountRead)))

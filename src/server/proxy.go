@@ -18,6 +18,9 @@ const (
 
 	/* Buffer size to handle data from socket */
 	BUFFER_SIZE = 16 * 1024
+
+	/* Interval of pushing aggregated read/write stats */
+	PROXY_STATS_PUSH_INTERVAL = 1 * time.Second
 )
 
 /**
@@ -31,6 +34,10 @@ func proxy(to net.Conn, from net.Conn, timeout time.Duration) <-chan core.ReadWr
 	stats := make(chan core.ReadWriteCount)
 	outStats := make(chan core.ReadWriteCount)
 
+	rwcBuffer := core.ReadWriteCount{}
+	ticker := time.NewTicker(PROXY_STATS_PUSH_INTERVAL)
+	flushed := false
+
 	// Stats collecting goroutine
 	go func() {
 
@@ -40,9 +47,16 @@ func proxy(to net.Conn, from net.Conn, timeout time.Duration) <-chan core.ReadWr
 
 		for {
 			select {
+			case <-ticker.C:
+				outStats <- rwcBuffer
+				flushed = true
 			case rwc, ok := <-stats:
 
 				if !ok {
+					ticker.Stop()
+					if !flushed {
+						outStats <- rwcBuffer
+					}
 					close(outStats)
 					return
 				}
@@ -52,7 +66,14 @@ func proxy(to net.Conn, from net.Conn, timeout time.Duration) <-chan core.ReadWr
 				}
 
 				// Remove non blocking
-				outStats <- rwc
+				if flushed {
+					rwcBuffer = rwc
+				} else {
+					rwcBuffer.CountWrite += rwc.CountWrite
+					rwcBuffer.CountRead = rwc.CountRead
+				}
+
+				flushed = false
 			}
 		}
 	}()
@@ -60,8 +81,9 @@ func proxy(to net.Conn, from net.Conn, timeout time.Duration) <-chan core.ReadWr
 	// Run proxy copier
 	go func() {
 		err := Copy(to, from, stats)
-		if err != nil {
-			log.Info(err)
+		// hack to determine normal close. TODO: fix when it will be exposed in golang
+		if err != nil && err.(*net.OpError).Err.Error() != "use of closed network connection" {
+			log.Warn(err)
 		}
 
 		to.Close()
@@ -96,6 +118,7 @@ func Copy(to io.Writer, from io.Reader, ch chan<- core.ReadWriteCount) error {
 			//case ch <- core.ReadWriteCount{CountRead: readN, CountWrite: writeN}:
 			//default:
 			//	}
+
 			ch <- core.ReadWriteCount{CountRead: readN, CountWrite: writeN}
 
 			if writeErr != nil {

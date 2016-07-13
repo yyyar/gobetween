@@ -258,11 +258,13 @@ func (this *Scheduler) HandleOp(op Op) {
 	case DecrementConnection:
 		backend.Stats.ActiveConnections--
 	case IncrementTx:
-		this.backendsCounter.InTraffic <- core.ReadWriteCount{0, op.param.(int), backend.Target}
-		//backend.Stats.TxBytes.Add(&backend.Stats.TxBytes, big.NewInt(int64(op.param.(int))))
+		go func() {
+			this.backendsCounter.InTraffic <- core.ReadWriteCount{0, op.param.(int), backend.Target}
+		}()
 	case IncrementRx:
-		this.backendsCounter.InTraffic <- core.ReadWriteCount{op.param.(int), 0, backend.Target}
-		//backend.Stats.RxBytes.Add(&backend.Stats.RxBytes, big.NewInt(int64(op.param.(int))))
+		go func() {
+			this.backendsCounter.InTraffic <- core.ReadWriteCount{op.param.(int), 0, backend.Target}
+		}()
 	default:
 		log.Warn("Don't know how to handle op ", op.op)
 	}

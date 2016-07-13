@@ -37,7 +37,6 @@ func (this *BackendsBandwidthCounter) Start() {
 				// new traffic available
 			case rwc := <-this.InTraffic:
 				this.counters[rwc.Target].Traffic <- rwc
-
 			}
 
 		}
@@ -52,9 +51,9 @@ func (this *BackendsBandwidthCounter) UpdateCounters(targets []core.Target) {
 	for _, t := range targets {
 		c, ok := this.counters[t]
 		if !ok {
-			c = NewBandwidthCounter(INTERVAL)
+			c = NewBandwidthCounter(INTERVAL, this.Out)
 			c.Target = t
-			c.Start(this.Out)
+			c.Start()
 		}
 		result[t] = c
 	}

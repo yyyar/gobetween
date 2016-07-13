@@ -79,13 +79,12 @@ type Handler struct {
 func NewHandler(name string) *Handler {
 
 	handler := &Handler{
-		name:             name,
-		bandwidthCounter: NewBandwidthCounter(INTERVAL),
-		Stats:            make(chan BandwidthStats),
-		Traffic:          make(chan core.ReadWriteCount),
-		Connections:      make(chan int),
-		Backends:         make(chan []core.Backend),
-		stopChan:         make(chan bool),
+		name:        name,
+		Stats:       make(chan BandwidthStats, 1),
+		Traffic:     make(chan core.ReadWriteCount),
+		Connections: make(chan int),
+		Backends:    make(chan []core.Backend),
+		stopChan:    make(chan bool),
 		stats: Stats{
 			RxTotal:  big.NewInt(0),
 			TxTotal:  big.NewInt(0),
@@ -94,6 +93,8 @@ func NewHandler(name string) *Handler {
 			Backends: []core.Backend{},
 		},
 	}
+
+	handler.bandwidthCounter = NewBandwidthCounter(INTERVAL, handler.Stats)
 
 	Store.Lock()
 	Store.handlers[name] = handler
@@ -114,8 +115,7 @@ func (this *Handler) Stop() {
  */
 func (this *Handler) Start() {
 
-	this.bandwidthCounter.Start(this.Stats)
-
+	this.bandwidthCounter.Start()
 	go func() {
 
 		for {
@@ -123,6 +123,7 @@ func (this *Handler) Start() {
 
 			/* stop stats processor requested */
 			case <-this.stopChan:
+
 				this.bandwidthCounter.Stop()
 				Store.Lock()
 				delete(Store.handlers, this.name)
@@ -138,7 +139,7 @@ func (this *Handler) Start() {
 				this.stats.RxSecond.Set(&b.RxSecond)
 				this.stats.TxSecond.Set(&b.TxSecond)
 
-			/* New traffic stats available */
+				/* New traffic stats available */
 			case rwc := <-this.Traffic:
 				this.bandwidthCounter.Traffic <- rwc
 
