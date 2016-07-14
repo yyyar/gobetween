@@ -27,8 +27,17 @@ type LoggingConfig struct {
  * Api config section
  */
 type ApiConfig struct {
-	Enabled bool   `toml:"enabled"`
-	Bind    string `toml:"bind"`
+	Enabled   bool                `toml:"enabled"`
+	Bind      string              `toml:"bind"`
+	BasicAuth *ApiBasicAuthConfig `toml:"basic_auth"`
+}
+
+/**
+ * Api Basic Auth Config
+ */
+type ApiBasicAuthConfig struct {
+	Login    string `toml:"login"`
+	Password string `toml:"password"`
 }
 
 /**

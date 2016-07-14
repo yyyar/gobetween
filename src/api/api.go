@@ -36,10 +36,18 @@ func Start(cfg config.ApiConfig) {
 	log.Info("Starting up API")
 
 	app = gin.New()
+	r := app.Group("/")
+
+	if cfg.BasicAuth != nil {
+		log.Info("Using HTTP Basic Auth")
+		r.Use(gin.BasicAuth(gin.Accounts{
+			cfg.BasicAuth.Login: cfg.BasicAuth.Password,
+		}))
+	}
 
 	/* attach endpoints */
-	attachRoot(app)
-	attachServers(app)
+	attachRoot(r)
+	attachServers(r)
 
 	/* start rest api server */
 	app.Run(cfg.Bind)

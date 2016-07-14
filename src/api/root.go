@@ -17,7 +17,7 @@ import (
 /**
  * Attaches / handlers
  */
-func attachRoot(app *gin.Engine) {
+func attachRoot(app *gin.RouterGroup) {
 
 	/**
 	 * Global stats

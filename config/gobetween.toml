@@ -5,6 +5,7 @@
 # Documentation: https://github.com/yyyar/gobetween/wiki/Configuration
 #
 
+
 #
 # Logging configuration
 #
@@ -12,12 +13,18 @@
 level = "info"    # "debug" | "info" | "warn" | "error"
 output = "stdout" # "stdout" | "stderr" | "/path/to/gobetween.log"
 
+
 #
 # REST API server configuration
 #
 [api]
 enabled = true  # true | false
 bind = ":8888"  # "host:port"
+
+#  [api.basic_auth]   # (optional) Enable HTTP Basic Auth
+#  login = "admin"    # HTTP Auth Login
+#  password = "1111"  # HTTP Auth Password
+
 
 #
 # Default values for server configuration, may be overriden in [servers] sections.
@@ -30,6 +37,7 @@ max_connections = 0              # Maximum simultaneous connections to the serve
 client_idle_timeout = "0"        # Client inactivity duration before forced connection drop
 backend_idle_timeout = "0"       # Backend inactivity duration before forced connection drop
 backend_connection_timeout = "0" # Backend connection timeout
+
 
 #
 # Servers contains as many [server.<name>] sections as needed.

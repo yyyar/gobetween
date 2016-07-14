@@ -15,7 +15,7 @@ import (
 /**
  * Attaches /servers handlers
  */
-func attachServers(app *gin.Engine) {
+func attachServers(app *gin.RouterGroup) {
 
 	/**
 	 * Find all current configured servers
