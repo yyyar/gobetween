@@ -19,16 +19,36 @@ type BackendsBandwidthCounter struct {
 	In        chan []core.Target
 	InTraffic chan core.ReadWriteCount
 	Out       chan BandwidthStats
+	stop      chan bool
 }
 
+/**
+ * Stop backends counter
+ */
 func (this *BackendsBandwidthCounter) Stop() {
+	this.stop <- true
 }
 
+/**
+ * Start backends counter
+ */
 func (this *BackendsBandwidthCounter) Start() {
 
 	go func() {
 		for {
 			select {
+
+			// stop
+			case <-this.stop:
+				// Stop all counters
+				for i := range this.counters {
+					this.counters[i].Stop()
+				}
+				this.counters = nil
+				close(this.In)
+				close(this.InTraffic)
+				close(this.Out)
+				return
 
 			// new backends available
 			case targets := <-this.In:
@@ -83,5 +103,6 @@ func NewBackendsBandwidthCounter() *BackendsBandwidthCounter {
 		In:        make(chan []core.Target),
 		InTraffic: make(chan core.ReadWriteCount),
 		Out:       make(chan BandwidthStats),
+		stop:      make(chan bool),
 	}
 }
