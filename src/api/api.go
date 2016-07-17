@@ -49,8 +49,18 @@ func Start(cfg config.ApiConfig) {
 	attachRoot(r)
 	attachServers(r)
 
+	var err error
 	/* start rest api server */
-	app.Run(cfg.Bind)
+	if cfg.Tls != nil {
+		log.Info("Starting HTTPS server ", cfg.Bind)
+		err = app.RunTLS(cfg.Bind, cfg.Tls.CertPath, cfg.Tls.KeyPath)
+	} else {
+		log.Info("Starting HTTP server ", cfg.Bind)
+		err = app.Run(cfg.Bind)
+	}
 
-	log.Info("Started API")
+	if err != nil {
+		log.Fatal(err)
+	}
+
 }

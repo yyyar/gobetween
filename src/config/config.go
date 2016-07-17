@@ -30,6 +30,7 @@ type ApiConfig struct {
 	Enabled   bool                `toml:"enabled"`
 	Bind      string              `toml:"bind"`
 	BasicAuth *ApiBasicAuthConfig `toml:"basic_auth"`
+	Tls       *ApiTlsConfig       `toml:"tls"`
 }
 
 /**
@@ -38,6 +39,14 @@ type ApiConfig struct {
 type ApiBasicAuthConfig struct {
 	Login    string `toml:"login"`
 	Password string `toml:"password"`
+}
+
+/**
+ * Api TLS server Config
+ */
+type ApiTlsConfig struct {
+	CertPath string `toml:"cert_path"`
+	KeyPath  string `toml:"key_path"`
 }
 
 /**

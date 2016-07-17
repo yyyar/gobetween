@@ -25,6 +25,10 @@ bind = ":8888"  # "host:port"
 #  login = "admin"    # HTTP Auth Login
 #  password = "1111"  # HTTP Auth Password
 
+#  [api.tls]                        # (optional) Enable HTTPS
+#  cert_path = "/path/to/cert.pem"  # Path to certificate
+#  key_path = "/path/to/key.pem"    # Path to key
+
 
 #
 # Default values for server configuration, may be overriden in [servers] sections.
