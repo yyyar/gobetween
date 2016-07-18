@@ -23,8 +23,10 @@ func ExecTimeout(timeout time.Duration, params ...string) (string, error) {
 	cmd := exec.Command(params[0], params[1:]...)
 
 	timer := time.AfterFunc(timeout, func() {
-		log.Info("Responce from exec ", params, " is timed out. Killing process...")
-		cmd.Process.Kill()
+		if cmd.Process != nil {
+			log.Info("Responce from exec ", params, " is timed out. Killing process...")
+			cmd.Process.Kill()
+		}
 	})
 
 	out, err := cmd.Output()
