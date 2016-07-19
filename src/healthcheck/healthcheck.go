@@ -65,6 +65,7 @@ var registry = make(map[string]CheckFunc)
 func init() {
 	registry["ping"] = ping
 	registry["exec"] = exec
+	registry["none"] = nil
 }
 
 /**
@@ -73,16 +74,6 @@ func init() {
 func New(strategy string, cfg config.HealthcheckConfig) *Healthcheck {
 
 	check := registry[strategy]
-
-	/* Set defauls */
-
-	if cfg.Fails == 0 {
-		cfg.Fails = 1
-	}
-
-	if cfg.Passes == 0 {
-		cfg.Fails = 1
-	}
 
 	/* Create healthcheck */
 
