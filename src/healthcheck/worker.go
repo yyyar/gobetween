@@ -73,7 +73,7 @@ func (this *Worker) Start() {
 			/* request to stop worker */
 			case <-this.stop:
 				ticker.Stop()
-				close(c)
+				//close(c) // TODO: Check!
 				return
 			}
 		}

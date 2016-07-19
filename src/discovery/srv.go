@@ -19,6 +19,7 @@ import (
 const (
 	srvRetryWaitDuration  = 2 * time.Second
 	srvDefaultWaitTimeout = 5 * time.Second
+	srvUdpSize            = 4096
 )
 
 func NewSrvDiscovery(cfg config.DiscoveryConfig) interface{} {
@@ -42,10 +43,11 @@ func srvFetch(cfg config.DiscoveryConfig) (*[]core.Backend, error) {
 	log.Info("Fetching ", cfg.SrvLookupServer, " ", cfg.SrvLookupPattern)
 
 	timeout := utils.ParseDurationOrDefault(cfg.Timeout, srvDefaultWaitTimeout)
-	c := dns.Client{Timeout: timeout}
+	c := dns.Client{Net: "udp", Timeout: timeout}
 	m := dns.Msg{}
 
 	m.SetQuestion(cfg.SrvLookupPattern, dns.TypeSRV)
+	m.SetEdns0(srvUdpSize, true)
 	r, _, err := c.Exchange(&m, cfg.SrvLookupServer)
 
 	if err != nil {
@@ -57,34 +59,27 @@ func srvFetch(cfg config.DiscoveryConfig) (*[]core.Backend, error) {
 		return &[]core.Backend{}, nil
 	}
 
-	// Results for combined SRV + A results
-	result := make(map[string]core.Backend)
+	// Get hosts from A section
+	hosts := make(map[string]string)
+	for _, ans := range r.Extra {
+		record := ans.(*dns.A)
+		hosts[record.Header().Name] = record.A.String()
+	}
 
+	// Results for combined SRV + A
+	results := []core.Backend{}
 	for _, ans := range r.Answer {
 		record := ans.(*dns.SRV)
-		result[record.Target] = core.Backend{
+		results = append(results, core.Backend{
 			Target: core.Target{
-				Host: record.Target,
+				Host: hosts[record.Target],
 				Port: fmt.Sprintf("%v", record.Port),
 			},
 			Priority: int(record.Priority),
 			Weight:   int(record.Weight),
 			Live:     true,
-		}
+		})
 	}
 
-	for _, ans := range r.Extra {
-		record := ans.(*dns.A)
-		b := result[record.Hdr.Name]
-		b.Host = record.A.String()
-		result[record.Hdr.Name] = b
-	}
-
-	// Make list of backends from results map
-	var values []core.Backend
-	for _, value := range result {
-		values = append(values, value)
-	}
-
-	return &values, nil
+	return &results, nil
 }
