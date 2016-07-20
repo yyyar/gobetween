@@ -8,6 +8,7 @@ package api
 import (
 	"../config"
 	"../manager"
+	"../stats"
 	"github.com/gin-gonic/gin"
 	"net/http"
 )
@@ -67,7 +68,7 @@ func attachServers(app *gin.RouterGroup) {
 	 */
 	app.GET("/servers/:name/stats", func(c *gin.Context) {
 		name := c.Param("name")
-		c.IndentedJSON(http.StatusOK, manager.Stats(name))
+		c.IndentedJSON(http.StatusOK, stats.GetStats(name))
 	})
 
 }

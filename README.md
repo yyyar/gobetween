@@ -18,7 +18,11 @@
 
 * [Clear and beautiful TOML config file](config/gobetween.toml)
 
-* [Management REST API] (https://github.com/yyyar/gobetween/wiki/REST-API) (work in progress)
+* [Management REST API] (https://github.com/yyyar/gobetween/wiki/REST-API)
+  * System Information
+  * Configuration Dump
+  * Servers List / Create / Delete
+  * Servers and Backends rx/tx, Status, Active Connections, etc.
  
 * Integrates seamlessly with Docker and with any custom system (thanks to Exec discovery and healtchecks)
 

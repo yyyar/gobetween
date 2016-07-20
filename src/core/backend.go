@@ -17,19 +17,22 @@ import (
  */
 type Backend struct {
 	Target
-	Priority int
-	Weight   int
-	Live     bool
-	Stats    BackendStats
+	Priority int          `json:"priority"`
+	Weight   int          `json:"weight"`
+	Stats    BackendStats `json:"stats"`
 }
 
 /**
  * Backend status
  */
 type BackendStats struct {
-	ActiveConnections int
-	RxBytes           big.Int
-	TxBytes           big.Int
+	Live              bool    `json:"live"`
+	TotalConnections  int64   `json:"total_connections"`
+	ActiveConnections int     `json:"active_connections"`
+	RxBytes           big.Int `json:"rx"`
+	TxBytes           big.Int `json:"tx"`
+	RxSecond          big.Int `json:"rx_second"`
+	TxSecond          big.Int `json:"tx_second"`
 }
 
 /**
@@ -62,5 +65,5 @@ func (this *Backend) Address() string {
  */
 func (this Backend) String() string {
 	return fmt.Sprintf("{%s p=%d,w=%d,l=%t,a=%d}",
-		this.Address(), this.Priority, this.Weight, this.Live, this.Stats.ActiveConnections)
+		this.Address(), this.Priority, this.Weight, this.Stats.Live, this.Stats.ActiveConnections)
 }
