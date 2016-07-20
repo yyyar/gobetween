@@ -51,6 +51,12 @@ type Worker struct {
 func (this *Worker) Start() {
 
 	log := logging.For("healthcheck/worker")
+
+	// Special case for no healthcheck, don't actually start worker
+	if this.cfg.Kind == "none" {
+		return
+	}
+
 	interval, _ := time.ParseDuration(this.cfg.Interval)
 
 	ticker := time.NewTicker(interval)

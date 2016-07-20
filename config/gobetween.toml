@@ -51,25 +51,12 @@ backend_connection_timeout = "0" # Backend connection timeout
 [servers.sample]
 bind = "localhost:3000"
 
-  [servers.sample.healthcheck]
-  kind = "ping"
-  interval = "1s"
-  timeout = "500ms"
-  fails = 3
-  passes = 3
-
   [servers.sample.discovery]
   kind = "static"
-  static_list = [                  #  (required)  [
-      "localhost:8000 weight=5",   #    "<host>:<port> weight=<int>" weight=1 by default
-      "localhost:8001"             #  ]
+  static_list = [
+      "localhost:8000 weight=5",
+      "localhost:8001"
   ]
-
-  #kind = "docker"
-  #docker_endpoint = "unix:///var/run/docker.sock" # (required) Endpoint to docker API
-  #docker_container_private_port = 80        # (required) Private port of container to use
-  #docker_container_host_env_var = ""        # (optional) Take container host from container env variable
-
 
 # -------------------- example ----------------------------- #
 

@@ -172,7 +172,44 @@ func prepareConfig(name string, server config.Server, defaults config.Connection
 	}
 
 	if server.Healthcheck == nil {
-		return config.Server{}, errors.New("No .healthcheck specified. Will allow it later :-)")
+		server.Healthcheck = &config.HealthcheckConfig{
+			Kind:     "none",
+			Interval: "0",
+			Timeout:  "0",
+		}
+	}
+
+	switch server.Healthcheck.Kind {
+	case
+		"ping",
+		"exec",
+		"none":
+	default:
+		return config.Server{}, errors.New("Not supported healthcheck type " + server.Healthcheck.Kind)
+	}
+
+	if server.Healthcheck.Interval == "" {
+		server.Healthcheck.Interval = "0"
+	}
+
+	if server.Healthcheck.Timeout == "" {
+		server.Healthcheck.Timeout = "0"
+	}
+
+	if server.Healthcheck.Fails <= 0 {
+		server.Healthcheck.Fails = 1
+	}
+
+	if server.Healthcheck.Passes <= 0 {
+		server.Healthcheck.Passes = 1
+	}
+
+	if _, err := time.ParseDuration(server.Healthcheck.Timeout); err != nil {
+		return config.Server{}, errors.New("timeout parsing error")
+	}
+
+	if _, err := time.ParseDuration(server.Healthcheck.Interval); err != nil {
+		return config.Server{}, errors.New("interval parsing error")
 	}
 
 	/* ----- Connections params and overrides ----- */
