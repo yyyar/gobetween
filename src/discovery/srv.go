@@ -43,7 +43,7 @@ func srvFetch(cfg config.DiscoveryConfig) (*[]core.Backend, error) {
 	log.Info("Fetching ", cfg.SrvLookupServer, " ", cfg.SrvLookupPattern)
 
 	timeout := utils.ParseDurationOrDefault(cfg.Timeout, srvDefaultWaitTimeout)
-	c := dns.Client{Net: "udp", Timeout: timeout}
+	c := dns.Client{Net: cfg.SrvDnsProtocol, Timeout: timeout}
 	m := dns.Msg{}
 
 	m.SetQuestion(cfg.SrvLookupPattern, dns.TypeSRV)

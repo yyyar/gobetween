@@ -256,6 +256,19 @@ func prepareConfig(name string, server config.Server, defaults config.Connection
 		server.Discovery.Timeout = "0"
 	}
 
+	/* SRV Discovery */
+	if server.Discovery.Kind == "srv" {
+		switch server.Discovery.SrvDnsProtocol {
+		case
+			"udp",
+			"tcp":
+		case "":
+			server.Discovery.Failpolicy = "udp"
+		default:
+			return config.Server{}, errors.New("Not supported srv_dns_protocol " + server.Discovery.SrvDnsProtocol)
+		}
+	}
+
 	/* TODO: Still need to decide how to get rid of this */
 
 	if defaults.MaxConnections == nil {

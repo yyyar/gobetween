@@ -113,6 +113,7 @@ balance="weight"
 #  kind = "srv"
 #  srv_lookup_server = "some.server:53"   # (required) "<host:port>"
 #  srv_lookup_pattern = "some.service."   # (required) lookup service
+#  srv_dns_protocol = "udp"               # (optional) protocol to use for dns lookup
 #
 #  # -- docker -- #
 #  kind = "docker"

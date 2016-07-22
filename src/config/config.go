@@ -107,6 +107,7 @@ type StaticDiscoveryConfig struct {
 type SrvDiscoveryConfig struct {
 	SrvLookupServer  string `toml:"srv_lookup_server" json:"srv_lookup_server"`
 	SrvLookupPattern string `toml:"srv_lookup_pattern" json:"srv_lookup_pattern"`
+	SrvDnsProtocol   string `toml:"srv_dns_protocol" json:"srv_dns_protocol"`
 }
 
 type ExecDiscoveryConfig struct {
