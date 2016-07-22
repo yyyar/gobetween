@@ -75,7 +75,7 @@ dist:
 		-tasks=xc,archive \
 		-arch="386 amd64" \
 		-pv="${VERSION}" \
-		-os="linux windows" \
+		-os="linux windows darwin" \
 		-include="README.md,LICENSE,CHANGELOG,VERSION,config/gobetween.toml,share" \
 		-build-ldflags=${LDFLAGS}
 	rm ./debian -rf
