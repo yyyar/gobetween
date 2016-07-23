@@ -64,6 +64,7 @@ deps: clean-deps
 	github.com/Sirupsen/logrus \
 	github.com/elgs/gojq \
 	github.com/gin-gonic/gin \
+	github.com/hashicorp/consul/api \
 	github.com/laher/goxc
 
 clean-dist:
