@@ -98,6 +98,7 @@ type DiscoveryConfig struct {
 	*JsonDiscoveryConfig
 	*ExecDiscoveryConfig
 	*PlaintextDiscoveryConfig
+	*ConsulDiscoveryConfig
 }
 
 type StaticDiscoveryConfig struct {
@@ -137,6 +138,13 @@ type DockerDiscoveryConfig struct {
 	DockerTlsCertPath   string `toml:"docker_tls_cert_path" json:"docker_tls_cert_path"`
 	DockerTlsKeyPath    string `toml:"docker_tls_key_path" json:"docker_tls_key_path"`
 	DockerTlsCacertPath string `toml:"docker_ts_cacert_path" json:"docker_tls_cacert_path"`
+}
+
+type ConsulDiscoveryConfig struct {
+	ConsulHost               string `toml:"consul_host" json:"consul_host"`
+	ConsulServiceName        string `toml:"consul_service_name" json:"consul_service_name"`
+	ConsulServiceTag         string `toml:"consul_service_tag" json:"consul_service_tag"`
+	ConsulServicePassingOnly bool   `toml:"consul_service_passing_only" json:"consul_service_passing_only"`
 }
 
 /**

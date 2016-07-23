@@ -28,6 +28,7 @@ func init() {
 	registry["json"] = NewJsonDiscovery
 	registry["exec"] = NewExecDiscovery
 	registry["plaintext"] = NewPlaintextDiscovery
+	registry["consul"] = NewConsulDiscovery
 }
 
 /**
