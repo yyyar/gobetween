@@ -10,13 +10,16 @@ import (
 	"../config"
 	"../core"
 	"../logging"
+	"../utils"
 	"fmt"
 	consul "github.com/hashicorp/consul/api"
+	"net/http"
 	"time"
 )
 
 const (
 	consulRetryWaitDuration = 2 * time.Second
+	consulTimeout           = 2 * time.Second
 )
 
 /**
@@ -42,16 +45,43 @@ func consulFetch(cfg config.DiscoveryConfig) (*[]core.Backend, error) {
 
 	log.Info("Fetching ", cfg)
 
-	c, _ := consul.NewClient(&consul.Config{
-		Address: cfg.ConsulHost,
+	// Prepare vars for http client
+	scheme := "http"
+	transport := &http.Transport{}
+
+	// Enable tls if needed
+	if cfg.ConsulTlsEnabled {
+		tlsConfig := &consul.TLSConfig{
+			Address:  cfg.ConsulHost,
+			CertFile: cfg.ConsulTlsCertPath,
+			KeyFile:  cfg.ConsulTlsKeyPath,
+			CAFile:   cfg.ConsulTlsCacertPath,
+		}
+		tlsClientConfig, err := consul.SetupTLSConfig(tlsConfig)
+		if err != nil {
+			return nil, err
+		}
+		transport.TLSClientConfig = tlsClientConfig
+		scheme = "https"
+	}
+
+	// Parse http timeout
+	timeout := utils.ParseDurationOrDefault(cfg.Timeout, consulTimeout)
+
+	// Create consul client
+	client, _ := consul.NewClient(&consul.Config{
+		Scheme:     scheme,
+		Address:    cfg.ConsulHost,
+		HttpClient: &http.Client{Timeout: timeout, Transport: transport},
 	})
 
-	service, _, err := c.Health().Service(cfg.ConsulServiceName, cfg.ConsulServiceTag, cfg.ConsulServicePassingOnly, nil)
-
+	// Query service
+	service, _, err := client.Health().Service(cfg.ConsulServiceName, cfg.ConsulServiceTag, cfg.ConsulServicePassingOnly, nil)
 	if err != nil {
 		return nil, err
 	}
 
+	// Gather backends
 	backends := []core.Backend{}
 	for _, entry := range service {
 		s := entry.Service

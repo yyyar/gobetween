@@ -145,6 +145,11 @@ type ConsulDiscoveryConfig struct {
 	ConsulServiceName        string `toml:"consul_service_name" json:"consul_service_name"`
 	ConsulServiceTag         string `toml:"consul_service_tag" json:"consul_service_tag"`
 	ConsulServicePassingOnly bool   `toml:"consul_service_passing_only" json:"consul_service_passing_only"`
+
+	ConsulTlsEnabled    bool   `toml:"consul_tls_enabled" json:"consul_tls_enabled"`
+	ConsulTlsCertPath   string `toml:"consul_tls_cert_path" json:"consul_tls_cert_path"`
+	ConsulTlsKeyPath    string `toml:"consul_tls_key_path" json:"consul_tls_key_path"`
+	ConsulTlsCacertPath string `toml:"consul_tls_cacert_path" json:"consul_tls_cacert_path"`
 }
 
 /**
