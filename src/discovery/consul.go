@@ -72,6 +72,11 @@ func consulFetch(cfg config.DiscoveryConfig) (*[]core.Backend, error) {
 	client, _ := consul.NewClient(&consul.Config{
 		Scheme:     scheme,
 		Address:    cfg.ConsulHost,
+		Datacenter: cfg.ConsulDatacenter,
+		HttpAuth: &consul.HttpBasicAuth{
+			Username: cfg.ConsulAuthUsername,
+			Password: cfg.ConsulAuthPassword,
+		},
 		HttpClient: &http.Client{Timeout: timeout, Transport: transport},
 	})
 

@@ -145,6 +145,10 @@ type ConsulDiscoveryConfig struct {
 	ConsulServiceName        string `toml:"consul_service_name" json:"consul_service_name"`
 	ConsulServiceTag         string `toml:"consul_service_tag" json:"consul_service_tag"`
 	ConsulServicePassingOnly bool   `toml:"consul_service_passing_only" json:"consul_service_passing_only"`
+	ConsulDatacenter         string `toml:"consul_datacenter" json:"consul_datacenter"`
+
+	ConsulAuthUsername string `toml:"consul_auth_username" json:"consul_auth_username"`
+	ConsulAuthPassword string `toml:"consul_auth_password" json:"consul_auth_password"`
 
 	ConsulTlsEnabled    bool   `toml:"consul_tls_enabled" json:"consul_tls_enabled"`
 	ConsulTlsCertPath   string `toml:"consul_tls_cert_path" json:"consul_tls_cert_path"`
