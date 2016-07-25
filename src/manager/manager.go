@@ -279,6 +279,7 @@ func prepareConfig(name string, server config.Server, defaults config.Connection
 	}
 
 	if defaults.ClientIdleTimeout == nil {
+		defaults.ClientIdleTimeout = new(string)
 		*defaults.ClientIdleTimeout = "0"
 	}
 	if server.ClientIdleTimeout == nil {
@@ -287,6 +288,7 @@ func prepareConfig(name string, server config.Server, defaults config.Connection
 	}
 
 	if defaults.BackendIdleTimeout == nil {
+		defaults.BackendIdleTimeout = new(string)
 		*defaults.BackendIdleTimeout = "0"
 	}
 	if server.BackendIdleTimeout == nil {
@@ -295,6 +297,7 @@ func prepareConfig(name string, server config.Server, defaults config.Connection
 	}
 
 	if defaults.BackendConnectionTimeout == nil {
+		defaults.BackendConnectionTimeout = new(string)
 		*defaults.BackendConnectionTimeout = "0"
 	}
 	if server.BackendConnectionTimeout == nil {
