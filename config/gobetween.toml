@@ -53,11 +53,11 @@ bind = "localhost:3000"
 balance="weight"
 
   [servers.sample.discovery]
-  kind = "consul"
-  consul_host = "localhost:8500"
-  consul_service_name = "service"
-  consul_service_tag = ""
-  consul_service_passing_only = true
+  kind = "static"
+  static_list = [
+      "localhost:8000 weight=5",
+      "localhost:8001"
+  ]
 
 # -------------------- example ----------------------------- #
 

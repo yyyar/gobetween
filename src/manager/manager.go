@@ -113,6 +113,10 @@ func Create(name string, cfg config.Server) error {
 	servers.Lock()
 	defer servers.Unlock()
 
+	if _, ok := servers.m[name]; ok {
+		return errors.New("Server with this name already exists: " + name)
+	}
+
 	c, err := prepareConfig(name, cfg, defaults)
 	if err != nil {
 		return err
