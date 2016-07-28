@@ -1,0 +1,17 @@
+[Unit]
+Description=Gobetween - modern LB for cloud era
+Documentation=https://github.com/yyyar/gobetween/wiki
+After=network.target remote-fs.target nss-lookup.target
+
+[Service]
+Type=simple
+PIDFile=/run/gobetween.pid
+#ExecStartPre=prestart some command
+ExecStart=/usr/sbin/gobetween -c /etc/gobetween.toml
+ExecReload=/bin/kill -s HUP $MAINPID
+ExecStop=/bin/kill -s QUIT $MAINPID
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target
+
