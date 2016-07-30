@@ -65,6 +65,7 @@ deps: clean-deps
 	github.com/elgs/gojq \
 	github.com/gin-gonic/gin \
 	github.com/hashicorp/consul/api \
+	github.com/spf13/cobra \
 	github.com/laher/goxc
 
 clean-dist:
