@@ -7,6 +7,7 @@ package cmd
 
 import (
 	"../config"
+	"../info"
 	"../utils/codec"
 	consul "github.com/hashicorp/consul/api"
 	"github.com/spf13/cobra"
@@ -14,16 +15,16 @@ import (
 )
 
 /* Parsed options */
-var consulHost string
 var consulKey string
+var consulConfig consul.Config = consul.Config{}
 
 /**
  * Add command
  */
 func init() {
 
-	FromConsulCmd.Flags().StringVarP(&consulHost, "host", "", "localhost", "Consul host")
-	FromConsulCmd.Flags().StringVarP(&consulKey, "key", "", "gobetween", "Consul Key to pull config from")
+	FromConsulCmd.Flags().StringVarP(&consulKey, "key", "k", "gobetween", "Consul Key to pull config from")
+	FromConsulCmd.Flags().StringVarP(&consulConfig.Scheme, "scheme", "s", "http", "http or https")
 
 	RootCmd.AddCommand(FromConsulCmd)
 }
@@ -32,14 +33,17 @@ func init() {
  * FromConsul command
  */
 var FromConsulCmd = &cobra.Command{
-	Use:   "from-consul",
-	Short: "Pull config from Consul",
-	Long:  `Pull config from the Consul Key-Value storage`,
+	Use:   "from-consul <host:port>",
+	Short: "Start using config from Consul",
+	Long:  `Start using config from the Consul key-value storage`,
 	Run: func(cmd *cobra.Command, args []string) {
 
-		client, err := consul.NewClient(&consul.Config{
-			Address: consulHost,
-		})
+		if len(args) == 0 {
+			log.Fatal("Consul host:port not provided")
+		}
+
+		consulConfig.Address = args[0]
+		client, err := consul.NewClient(&consulConfig)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -57,6 +61,12 @@ var FromConsulCmd = &cobra.Command{
 		if err := codec.Decode(string(pair.Value), &cfg, format); err != nil {
 			log.Fatal(err)
 		}
+
+		info.Configuration = struct {
+			Kind string `json:"kind"`
+			Host string `json:"host"`
+			Key  string `json:"key"`
+		}{"consul", consulConfig.Address, consulKey}
 
 		start(&cfg)
 	},

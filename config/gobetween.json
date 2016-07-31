@@ -1,4 +1,8 @@
 {
+    "api": {
+        "enabled": true,
+        "bind": "0.0.0.0:8888"
+    },
     "servers": {
         "sample":{
             "bind":"localhost:3000",

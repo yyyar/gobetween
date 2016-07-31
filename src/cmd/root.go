@@ -12,12 +12,15 @@ import (
 /* Persistent parsed options */
 var format string
 
+/* Parsed options */
+var configPath string
+
 /**
  * Add Root Command
  */
 func init() {
-	RootCmd.Flags().StringVarP(&configPath, "config", "c", "./gobetween.toml", "Path to configuration file")
-	RootCmd.PersistentFlags().StringVarP(&format, "format", "f", "toml", "Configuration file format: toml or json")
+	RootCmd.Flags().StringVarP(&configPath, "config", "c", "", "Path to configuration file")
+	RootCmd.PersistentFlags().StringVarP(&format, "format", "f", "toml", "Configuration file format: \"toml\" or \"json\"")
 }
 
 /**
@@ -27,7 +30,12 @@ var RootCmd = &cobra.Command{
 	Use:   "gobetween",
 	Short: "Modern & minimalistic load balancer for the Cload era",
 	Run: func(cmd *cobra.Command, args []string) {
-		// TODO: Remove when times will come to break backward-compatibility
-		FromFileCmd.Run(cmd, args)
+
+		if configPath == "" {
+			cmd.Help()
+			return
+		}
+
+		FromFileCmd.Run(cmd, []string{configPath})
 	},
 }

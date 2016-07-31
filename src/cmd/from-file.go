@@ -7,20 +7,17 @@ package cmd
 
 import (
 	"../config"
+	"../info"
 	"../utils/codec"
 	"github.com/spf13/cobra"
 	"io/ioutil"
 	"log"
 )
 
-/* Parsed options */
-var configPath string
-
 /**
  * Add Root Command
  */
 func init() {
-	FromFileCmd.Flags().StringVarP(&configPath, "config", "c", "./gobetween.toml", "Path to configuration file")
 	RootCmd.AddCommand(FromFileCmd)
 }
 
@@ -28,11 +25,15 @@ func init() {
  * FromFile Command
  */
 var FromFileCmd = &cobra.Command{
-	Use:   "from-file",
-	Short: "Use config from file",
+	Use:   "from-file <path>",
+	Short: "Start using config from file",
 	Run: func(cmd *cobra.Command, args []string) {
 
-		data, err := ioutil.ReadFile(configPath)
+		if len(args) == 0 {
+			log.Fatal("Path to config is not provided")
+		}
+
+		data, err := ioutil.ReadFile(args[0])
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -41,6 +42,11 @@ var FromFileCmd = &cobra.Command{
 		if err = codec.Decode(string(data), &cfg, format); err != nil {
 			log.Fatal(err)
 		}
+
+		info.Configuration = struct {
+			Kind string `json:"kind"`
+			Path string `json:"path"`
+		}{"file", args[0]}
 
 		start(&cfg)
 	},
