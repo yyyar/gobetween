@@ -225,6 +225,7 @@ func (this *Server) handle(clientConn net.Conn) {
 	/* Connect to backend */
 	backendConn, err := net.DialTimeout(this.cfg.Protocol, backend.Address(), utils.ParseDurationOrDefault(*this.cfg.BackendConnectionTimeout, 0))
 	if err != nil {
+		this.scheduler.IncrementRefused(*backend)
 		log.Error(err)
 		return
 	}

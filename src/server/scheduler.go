@@ -27,6 +27,7 @@ type OpAction int
 const (
 	IncrementConnection OpAction = iota
 	DecrementConnection
+	IncrementRefused
 	IncrementTx
 	IncrementRx
 )
@@ -252,6 +253,8 @@ func (this *Scheduler) HandleOp(op Op) {
 	}
 
 	switch op.op {
+	case IncrementRefused:
+		backend.Stats.RefusedConnections++
 	case IncrementConnection:
 		backend.Stats.ActiveConnections++
 		backend.Stats.TotalConnections++
@@ -293,6 +296,13 @@ func (this *Scheduler) TakeBackend(context *core.Context) (*core.Backend, error)
 }
 
 /**
+ * Increment connection refused count for backend
+ */
+func (this *Scheduler) IncrementRefused(backend core.Backend) {
+	this.ops <- Op{backend.Target, IncrementRefused, nil}
+}
+
+/**
  * Increment backend connection counter
  */
 func (this *Scheduler) IncrementConnection(backend core.Backend) {
@@ -306,10 +316,16 @@ func (this *Scheduler) DecrementConnection(backend core.Backend) {
 	this.ops <- Op{backend.Target, DecrementConnection, nil}
 }
 
+/**
+ * Increment Rx stats for backend
+ */
 func (this *Scheduler) IncrementRx(backend core.Backend, c int) {
 	this.ops <- Op{backend.Target, IncrementRx, c}
 }
 
+/**
+ * Increment Tx stats for backends
+ */
 func (this *Scheduler) IncrementTx(backend core.Backend, c int) {
 	this.ops <- Op{backend.Target, IncrementTx, c}
 }
