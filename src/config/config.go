@@ -9,44 +9,44 @@ package config
  * Config file top-level object
  */
 type Config struct {
-	Logging  LoggingConfig     `toml:"logging"`
-	Api      ApiConfig         `toml:"api"`
-	Defaults ConnectionOptions `toml:"defaults"`
-	Servers  map[string]Server `toml:"servers"`
+	Logging  LoggingConfig     `toml:"logging" json:"logging"`
+	Api      ApiConfig         `toml:"api" json:"api"`
+	Defaults ConnectionOptions `toml:"defaults" json:"defaults"`
+	Servers  map[string]Server `toml:"servers" json:"servers"`
 }
 
 /**
  * Logging config section
  */
 type LoggingConfig struct {
-	Level  string `toml:"level"`
-	Output string `toml:"output"`
+	Level  string `toml:"level" json:"level"`
+	Output string `toml:"output" json:"output"`
 }
 
 /**
  * Api config section
  */
 type ApiConfig struct {
-	Enabled   bool                `toml:"enabled"`
-	Bind      string              `toml:"bind"`
-	BasicAuth *ApiBasicAuthConfig `toml:"basic_auth"`
-	Tls       *ApiTlsConfig       `toml:"tls"`
+	Enabled   bool                `toml:"enabled" json:"enabled"`
+	Bind      string              `toml:"bind" json:"bind"`
+	BasicAuth *ApiBasicAuthConfig `toml:"basic_auth" json:"basic_auth"`
+	Tls       *ApiTlsConfig       `toml:"tls" json:"tls"`
 }
 
 /**
  * Api Basic Auth Config
  */
 type ApiBasicAuthConfig struct {
-	Login    string `toml:"login"`
-	Password string `toml:"password"`
+	Login    string `toml:"login" json:"login"`
+	Password string `toml:"password" json:"password"`
 }
 
 /**
  * Api TLS server Config
  */
 type ApiTlsConfig struct {
-	CertPath string `toml:"cert_path"`
-	KeyPath  string `toml:"key_path"`
+	CertPath string `toml:"cert_path" json:"cert_path"`
+	KeyPath  string `toml:"key_path" json:"key_path"`
 }
 
 /**

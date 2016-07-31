@@ -9,9 +9,8 @@ import (
 	"../config"
 	"../logging"
 	"../server"
-	"bytes"
+	"../utils/codec"
 	"errors"
-	"github.com/BurntSushi/toml"
 	"sync"
 	"time"
 )
@@ -56,7 +55,7 @@ func Initialize(cfg config.Config) {
  * Dumps current [servers] section to
  * the config file
  */
-func DumpConfig() (string, error) {
+func DumpConfig(format string) (string, error) {
 
 	originalCfg.Servers = map[string]config.Server{}
 
@@ -66,12 +65,12 @@ func DumpConfig() (string, error) {
 	}
 	servers.RUnlock()
 
-	buf := new(bytes.Buffer)
-	if err := toml.NewEncoder(buf).Encode(originalCfg); err != nil {
+	var out *string = new(string)
+	if err := codec.Encode(originalCfg, out, format); err != nil {
 		return "", err
 	}
 
-	return "# dumped on " + time.Now().String() + "\n\n" + buf.String(), nil
+	return *out, nil
 }
 
 /**

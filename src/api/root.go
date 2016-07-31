@@ -38,11 +38,14 @@ func attachRoot(app *gin.RouterGroup) {
 	 * Dump current config as TOML
 	 */
 	app.GET("/dump", func(c *gin.Context) {
-		txt, err := manager.DumpConfig()
+		format := c.DefaultQuery("format", "toml")
+
+		data, err := manager.DumpConfig(format)
 		if err != nil {
-			c.IndentedJSON(http.StatusInternalServerError, err)
+			c.IndentedJSON(http.StatusInternalServerError, err.Error())
 			return
 		}
-		c.String(http.StatusOK, txt)
+
+		c.String(http.StatusOK, data)
 	})
 }
