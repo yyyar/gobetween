@@ -22,10 +22,10 @@
   * **Consul** - get configuration from Consul key-value storage value
 
 * [Management REST API] (https://github.com/yyyar/gobetween/wiki/REST-API)
-  * System Information
-  * Configuration Dump
-  * Servers List / Create / Delete
-  * Servers and Backends rx/tx, Status, Active Connections, etc.
+  * **System Information** - general server info
+  * **Configuration** - dump current config 
+  * **Servers** - list, create & delete
+  * **Stats & Metrics** - for servers and backends including rx/tx, status, active connections & etc.
  
 * [Discovery](https://github.com/yyyar/gobetween/wiki/Discovery)
   * **Static** - hardcode backends list in config file
@@ -79,7 +79,7 @@ Put `localhost:8000` and `localhost:8001` to static_list of static discovery in 
 * `$ curl http://localhost:3000`
 
 ## Performance
-See [Performance Testing](https://github.com/yyyar/gobetween/wiki/Performance-tests)
+It's Fast! See [Performance Testing](https://github.com/yyyar/gobetween/wiki/Performance-tests)
 
 ## The Name
 It's play on words: gobetween ("go between"). 
@@ -91,8 +91,8 @@ MIT. See LICENSE file for more details.
 
 ## Authors & Contributors
 - [Yaroslav Pogrebnyak](http://pogrebnyak.info)
-- Nick Doikov
-- Ievgen Ponomarenko
+- [Nick Doikov](https://github.com/nickdoikov)
+- [Ievgen Ponomarenko](https://github.com/kikom)
 
 ## Logo
 Logo by [Max Demchenko](https://www.linkedin.com/in/max-demchenko-116170112)
