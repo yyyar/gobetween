@@ -31,8 +31,9 @@ var FromUrlCmd = &cobra.Command{
 	Short: "Start using config from URL",
 	Run: func(cmd *cobra.Command, args []string) {
 
-		if len(args) == 0 {
-			log.Fatal("url is not provided")
+		if len(args) != 1 {
+			cmd.Help()
+			return
 		}
 
 		client := http.Client{}

@@ -29,8 +29,9 @@ var FromFileCmd = &cobra.Command{
 	Short: "Start using config from file",
 	Run: func(cmd *cobra.Command, args []string) {
 
-		if len(args) == 0 {
-			log.Fatal("Path to config is not provided")
+		if len(args) != 1 {
+			cmd.Help()
+			return
 		}
 
 		data, err := ioutil.ReadFile(args[0])
