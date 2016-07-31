@@ -5,5 +5,5 @@ import (
 )
 
 var Version string
-var ConfigPath string
 var StartTime time.Time
+var Configuration interface{}
