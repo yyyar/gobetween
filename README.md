@@ -16,7 +16,10 @@
 
 * [TCP Load Balancing](https://github.com/yyyar/gobetween/wiki)
 
-* [Clear and beautiful TOML config file](config/gobetween.toml)
+* [Clear Configuration](https://github.com/yyyar/gobetween/wiki/Configuration) with [TOML](config/gobetween.toml) or [JSON](config/gobetween.json)
+  * File
+  * URL
+  * Consul Key-Value 
 
 * [Management REST API] (https://github.com/yyyar/gobetween/wiki/REST-API)
   * System Information
@@ -70,6 +73,8 @@ Run several web servers for tests in different terminals:
 * `$ python -m SimpleHTTPServer 8001`
 
 Put `localhost:8000` and `localhost:8001` to static_list of static discovery in config file, then try it:
+
+* `$ gobetween -c gobetween.toml`
 
 * `$ curl http://localhost:3000`
 
