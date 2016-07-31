@@ -27,8 +27,6 @@
   * Servers List / Create / Delete
   * Servers and Backends rx/tx, Status, Active Connections, etc.
  
-* Integrates seamlessly with Docker and with any custom system (thanks to Exec discovery and healtchecks)
-
 * [Discovery](https://github.com/yyyar/gobetween/wiki/Discovery)
   * **Static** - hardcode backends list in config file
   * **Docker** - query backends from Docker / Swarm API filtered by label
@@ -47,7 +45,9 @@
   * **Roundrobin**
   * **Weight**
 
-* Single binary distribution (only one gobetween binary + TOML config file)
+* Integrates seamlessly with Docker and with any custom system (thanks to Exec discovery and healtchecks)
+
+* Single binary distribution
 
 
 ## Architecture
