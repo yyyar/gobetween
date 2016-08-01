@@ -11,6 +11,8 @@ import (
 	"./info"
 	"./logging"
 	"./manager"
+	"./utils/codec"
+	"log"
 	"math/rand"
 	"os"
 	"runtime"
@@ -45,6 +47,21 @@ func init() {
  * Entry point
  */
 func main() {
+
+	env := os.Getenv("GOBETWEEN")
+	if env != "" && len(os.Args) > 1 {
+		log.Fatal("Passed GOBETWEEN env var and command-line arguments: only one allowed")
+	}
+
+	// Try parse env var to args
+	if env != "" {
+		a := []string{}
+		if err := codec.Decode(env, &a, "json"); err != nil {
+			log.Fatal("Error converting env var to parameters: ", err, " ", env)
+		}
+		os.Args = append([]string{""}, a...)
+		log.Println("Using parameters from env var: ", os.Args)
+	}
 
 	// Process flags and start
 	cmd.Execute(func(cfg *config.Config) {
