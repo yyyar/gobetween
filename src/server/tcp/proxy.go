@@ -4,11 +4,11 @@
  * @author Yaroslav Pogrebnyak <yyyaroslav@gmail.com>
  */
 
-package server
+package tcp
 
 import (
-	"../core"
-	"../logging"
+	"../../core"
+	"../../logging"
 	"io"
 	"net"
 	"time"

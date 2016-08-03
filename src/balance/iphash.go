@@ -30,7 +30,8 @@ func (b *IphashBalancer) Elect(context *core.Context, backends []core.Backend) (
 	}
 
 	// TODO: Replace using byte IP addr instead of string
-	ip := context.Conn.RemoteAddr().String()
+
+	ip := (*context).String()
 
 	hash := 11
 	for c := range ip {

@@ -58,6 +58,26 @@ bind = "localhost:3000"
       "localhost:8001"
   ]
 
+[servers.udpsample]
+bind = "localhost:5443"
+protocol = "udp"
+
+  [servers.udpsample.access]
+  default = "allow"
+  rules = [
+    "allow 127.0.0.1",
+    "deny 192.168.0.1",
+    "allow 192.168.0.1/24",
+  ]
+
+  [servers.udpsample.discovery]
+  kind = "static"
+  static_list = [
+      "8.8.8.8:53",
+      "8.8.4.4:53",
+      "91.239.100.100:53"
+  ]
+
 
 # -------------------- example ----------------------------- #
 
