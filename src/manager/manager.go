@@ -121,7 +121,10 @@ func Create(name string, cfg config.Server) error {
 		return err
 	}
 
-	server := server.New(name, c)
+	server, err := server.New(name, c)
+	if err != nil {
+		return err
+	}
 	servers.m[name] = server
 
 	return server.Start()

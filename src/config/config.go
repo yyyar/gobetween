@@ -74,11 +74,22 @@ type Server struct {
 	// weight | leastconn | roundrobin
 	Balance string `toml:"balance" json:"balance"`
 
+	// Access configuration
+	Access *AccessConfig `toml:"access" json:"access"`
+
 	// Discovery configuration
 	Discovery *DiscoveryConfig `toml:"discovery" json:"discovery"`
 
 	// Healthcheck configuration
 	Healthcheck *HealthcheckConfig `toml:"healthcheck" json:"healthcheck"`
+}
+
+/**
+ * Access configuration
+ */
+type AccessConfig struct {
+	Default string   `toml:"default" json:"default"`
+	Rules   []string `toml:"rules" json:"rules"`
 }
 
 /**

@@ -15,6 +15,7 @@ import (
 	"../logging"
 	"../stats"
 	"../utils"
+	"./modules/access"
 	"net"
 )
 
@@ -52,14 +53,21 @@ type Server struct {
 
 	/* Stop channel */
 	stop chan bool
+
+	/* ----- modules ----- */
+
+	/* Access module checks if client is allowed to connect */
+	access *access.Access
 }
 
 /**
  * Creates new server instance
  */
-func New(name string, cfg config.Server) *Server {
+func New(name string, cfg config.Server) (*Server, error) {
 
 	log := logging.For("server")
+
+	var err error = nil
 
 	// Create server
 	server := &Server{
@@ -77,12 +85,20 @@ func New(name string, cfg config.Server) *Server {
 		},
 	}
 
+	/* Add access if needed */
+	if cfg.Access != nil {
+		server.access, err = access.NewAccess(cfg.Access)
+		if err != nil {
+			return nil, err
+		}
+	}
+
 	// TODO: refatror
 	server.scheduler.statsHandler = server.statsHandler
 
 	log.Info("Creating '", name, "': ", cfg.Bind, " ", cfg.Balance, " ", cfg.Discovery.Kind, " ", cfg.Healthcheck.Kind)
 
-	return server
+	return server, nil
 }
 
 /**
@@ -211,6 +227,15 @@ func (this *Server) Listen() (err error) {
 func (this *Server) handle(clientConn net.Conn) {
 
 	log := logging.For("server.handle")
+
+	/* Check access if needed */
+	if this.access != nil {
+		if !this.access.Allows(&clientConn.RemoteAddr().(*net.TCPAddr).IP) {
+			log.Debug("Client disallowed to connect ", clientConn.RemoteAddr())
+			clientConn.Close()
+			return
+		}
+	}
 
 	log.Debug("Accepted ", clientConn.RemoteAddr(), " -> ", this.listener.Addr())
 

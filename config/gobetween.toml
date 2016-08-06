@@ -10,7 +10,7 @@
 # Logging configuration
 #
 [logging]
-level = "info"    # "debug" | "info" | "warn" | "error"
+level = "debug"   # "debug" | "info" | "warn" | "error"
 output = "stdout" # "stdout" | "stderr" | "/path/to/gobetween.log"
 
 
@@ -52,6 +52,14 @@ backend_connection_timeout = "0" # Backend connection timeout
 bind = "localhost:3000"
 balance="weight"
 
+  [servers.sample.access]
+  default = "allow"
+  rules = [
+    "allow 127.0.0.1",
+    "deny 192.168.0.1",
+    "allow 192.168.0.1/24",
+  ]
+
   [servers.sample.discovery]
   kind = "static"
   static_list = [
@@ -76,6 +84,15 @@ balance="weight"
 #backend_idle_timeout = "10m"
 #backend_connection_timeout = "5s"
 #
+## -------------------- access management -------------------- #
+#
+#  [servers.sample.access]   # (optional)
+#  default = "allow"         # (required) default access order
+#  rules = [                 # (required) list of access rules in
+#    "deny 127.0.0.1",       #   the following format: <deny|allow> <ip|network>
+#    "deny 192.168.0.1",     #   are checked in sequence until match,
+#    "allow 192.168.0.1/24"  #   if no match, use 'default' order. ipv4 and ipv6 are supported
+#  ]
 #
 ## -------------------- healthchecks ------------------------- #
 #
