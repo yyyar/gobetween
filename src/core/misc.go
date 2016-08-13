@@ -12,10 +12,14 @@ package core
 type ReadWriteCount struct {
 
 	/* Read bytes count */
-	CountRead int
+	CountRead uint
 
 	/* Write bytes count */
-	CountWrite int
+	CountWrite uint
 
 	Target Target
+}
+
+func (this ReadWriteCount) IsZero() bool {
+	return this.CountRead == 0 && this.CountWrite == 0
 }

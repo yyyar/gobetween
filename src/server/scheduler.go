@@ -13,6 +13,7 @@ import (
 	"../healthcheck"
 	"../logging"
 	"../stats"
+	"../stats/counters"
 	"time"
 )
 
@@ -67,8 +68,7 @@ type Scheduler struct {
 	/* Current cached backends map */
 	backends map[core.Target]*core.Backend
 
-	statsHandler    *stats.Handler
-	backendsCounter *stats.BackendsBandwidthCounter
+	statsHandler *stats.Handler
 
 	/* ----- channels ----- */
 
@@ -95,14 +95,11 @@ func (this *Scheduler) start() {
 	this.elect = make(chan ElectRequest)
 	this.stop = make(chan bool)
 
-	this.backendsCounter = stats.NewBackendsBandwidthCounter()
-	this.backendsCounter.Start()
-
 	this.discovery.Start()
 	this.healthcheck.Start()
 
 	// backends stats pusher ticker
-	ticker := time.NewTicker(2 * time.Second)
+	backendsPushTicker := time.NewTicker(2 * time.Second)
 
 	/**
 	 * Goroutine updates and manages backends
@@ -111,26 +108,31 @@ func (this *Scheduler) start() {
 		for {
 			select {
 
-			// TODO: Review. Periodically push backends to stats
-			case <-ticker.C:
-				this.statsHandler.Backends <- this.Backends()
-
-			case bs := <-this.backendsCounter.Out:
-				backend := this.backends[bs.Target]
-				backend.Stats.RxBytes = bs.RxTotal
-				backend.Stats.TxBytes = bs.TxTotal
-				backend.Stats.RxSecond = bs.RxSecond
-				backend.Stats.TxSecond = bs.TxSecond
+			/* ----- discovery ----- */
 
 			// handle newly discovered backends
 			case backends := <-this.discovery.Discover():
 				this.HandleBackendsUpdate(backends)
 				this.healthcheck.In <- this.Targets()
-				this.backendsCounter.In <- this.Targets()
+				this.statsHandler.BackendsCounter.In <- this.Targets()
+
+			/* ------ healthcheck ----- */
 
 			// handle backend healthcheck result
 			case checkResult := <-this.healthcheck.Out:
 				this.HandleBackendLiveChange(checkResult.Target, checkResult.Live)
+
+			/* ----- stats ----- */
+
+			// push current backends to stats handler
+			case <-backendsPushTicker.C:
+				this.statsHandler.Backends <- this.Backends()
+
+			// handle new bandwidth stats of a backend
+			case bs := <-this.statsHandler.BackendsCounter.Out:
+				this.HandleBackendStatsChange(bs.Target, &bs)
+
+			/* ----- operations ----- */
 
 			// handle backend operation
 			case op := <-this.ops:
@@ -140,11 +142,12 @@ func (this *Scheduler) start() {
 			case electReq := <-this.elect:
 				this.HandleBackendElect(electReq)
 
+			/* ----- stop ----- */
+
 			// handle scheduler stop
 			case <-this.stop:
 				log.Info("Stopping scheduler")
-				this.backendsCounter.Stop()
-				ticker.Stop()
+				backendsPushTicker.Stop()
 				this.discovery.Stop()
 				this.healthcheck.Stop()
 				return
@@ -180,15 +183,30 @@ func (this *Scheduler) Backends() []core.Backend {
 }
 
 /**
+ * Updated backend stats
+ */
+func (this *Scheduler) HandleBackendStatsChange(target core.Target, bs *counters.BandwidthStats) {
+
+	backend, ok := this.backends[target]
+	if !ok {
+		logging.For("scheduler").Warn("No backends for checkResult ", target)
+		return
+	}
+
+	backend.Stats.RxBytes = bs.RxTotal
+	backend.Stats.TxBytes = bs.TxTotal
+	backend.Stats.RxSecond = bs.RxSecond
+	backend.Stats.TxSecond = bs.TxSecond
+}
+
+/**
  * Updated backend live status
  */
 func (this *Scheduler) HandleBackendLiveChange(target core.Target, live bool) {
 
-	log := logging.For("scheduler")
-
 	backend, ok := this.backends[target]
 	if !ok {
-		log.Warn("No backends for checkResult ", target)
+		logging.For("scheduler").Warn("No backends for checkResult ", target)
 		return
 	}
 
@@ -199,6 +217,7 @@ func (this *Scheduler) HandleBackendLiveChange(target core.Target, live bool) {
  * Update backends map
  */
 func (this *Scheduler) HandleBackendsUpdate(backends []core.Backend) {
+
 	updated := map[core.Target]*core.Backend{}
 
 	for i := range backends {
@@ -244,6 +263,17 @@ func (this *Scheduler) HandleBackendElect(req ElectRequest) {
  */
 func (this *Scheduler) HandleOp(op Op) {
 
+	// Increment global counter, even if
+	// backend for this count may be out of discovery pool
+	switch op.op {
+	case IncrementTx:
+		this.statsHandler.Traffic <- core.ReadWriteCount{CountWrite: op.param.(uint), Target: op.target}
+		return
+	case IncrementRx:
+		this.statsHandler.Traffic <- core.ReadWriteCount{CountRead: op.param.(uint), Target: op.target}
+		return
+	}
+
 	log := logging.For("scheduler")
 
 	backend, ok := this.backends[op.target]
@@ -260,14 +290,6 @@ func (this *Scheduler) HandleOp(op Op) {
 		backend.Stats.TotalConnections++
 	case DecrementConnection:
 		backend.Stats.ActiveConnections--
-	case IncrementTx:
-		go func() {
-			this.backendsCounter.InTraffic <- core.ReadWriteCount{0, op.param.(int), backend.Target}
-		}()
-	case IncrementRx:
-		go func() {
-			this.backendsCounter.InTraffic <- core.ReadWriteCount{op.param.(int), 0, backend.Target}
-		}()
 	default:
 		log.Warn("Don't know how to handle op ", op.op)
 	}
@@ -319,13 +341,13 @@ func (this *Scheduler) DecrementConnection(backend core.Backend) {
 /**
  * Increment Rx stats for backend
  */
-func (this *Scheduler) IncrementRx(backend core.Backend, c int) {
+func (this *Scheduler) IncrementRx(backend core.Backend, c uint) {
 	this.ops <- Op{backend.Target, IncrementRx, c}
 }
 
 /**
  * Increment Tx stats for backends
  */
-func (this *Scheduler) IncrementTx(backend core.Backend, c int) {
+func (this *Scheduler) IncrementTx(backend core.Backend, c uint) {
 	this.ops <- Op{backend.Target, IncrementTx, c}
 }

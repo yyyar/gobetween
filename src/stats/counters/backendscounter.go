@@ -4,29 +4,52 @@
  * @author Yaroslav Pogrebnyak <yyyaroslav@gmail.com>
  */
 
-package stats
+package counters
 
 import (
-	"../core"
+	"../../core"
+	"time"
+)
+
+const (
+	/* Stats update interval */
+	INTERVAL = 2 * time.Second
 )
 
 /**
  * Bandwidth counter for backends pool
  */
 type BackendsBandwidthCounter struct {
+
+	/* Map of counters of specific targets */
 	counters map[core.Target]*BandwidthCounter
 
-	In        chan []core.Target
-	InTraffic chan core.ReadWriteCount
-	Out       chan BandwidthStats
-	stop      chan bool
+	/* ----- channels ------ */
+
+	/* Input channel of updated targets */
+	In chan []core.Target
+
+	/* Input channel of traffic deltas */
+	Traffic chan core.ReadWriteCount
+
+	/* Output channel for counted stats */
+	Out chan BandwidthStats
+
+	/* Stop channel */
+	stop chan bool
 }
 
 /**
- * Stop backends counter
+ * Creates new backends bandwidth counter
  */
-func (this *BackendsBandwidthCounter) Stop() {
-	this.stop <- true
+func NewBackendsBandwidthCounter() *BackendsBandwidthCounter {
+	return &BackendsBandwidthCounter{
+		counters: make(map[core.Target]*BandwidthCounter),
+		In:       make(chan []core.Target),
+		Traffic:  make(chan core.ReadWriteCount),
+		Out:      make(chan BandwidthStats),
+		stop:     make(chan bool),
+	}
 }
 
 /**
@@ -40,13 +63,16 @@ func (this *BackendsBandwidthCounter) Start() {
 
 			// stop
 			case <-this.stop:
+
 				// Stop all counters
 				for i := range this.counters {
 					this.counters[i].Stop()
 				}
 				this.counters = nil
+
+				// close channels
 				close(this.In)
-				close(this.InTraffic)
+				close(this.Traffic)
 				close(this.Out)
 				return
 
@@ -54,15 +80,24 @@ func (this *BackendsBandwidthCounter) Start() {
 			case targets := <-this.In:
 				this.UpdateCounters(targets)
 
-				// new traffic available
-			case rwc := <-this.InTraffic:
-				this.counters[rwc.Target].Traffic <- rwc
+			// new traffic available
+			// route to appropriated counter
+			case rwc := <-this.Traffic:
+				counter, ok := this.counters[rwc.Target]
+				// ignore stats for backend that is not is list
+				if ok {
+					counter.Traffic <- rwc
+				}
 			}
 
 		}
 	}()
 }
 
+/**
+ * Update counters to match targets, optionally creating new
+ * and deleting old counters
+ */
 func (this *BackendsBandwidthCounter) UpdateCounters(targets []core.Target) {
 
 	result := map[core.Target]*BandwidthCounter{}
@@ -94,15 +129,11 @@ func (this *BackendsBandwidthCounter) UpdateCounters(targets []core.Target) {
 	}
 
 	this.counters = result
-
 }
 
-func NewBackendsBandwidthCounter() *BackendsBandwidthCounter {
-	return &BackendsBandwidthCounter{
-		counters:  make(map[core.Target]*BandwidthCounter),
-		In:        make(chan []core.Target),
-		InTraffic: make(chan core.ReadWriteCount),
-		Out:       make(chan BandwidthStats),
-		stop:      make(chan bool),
-	}
+/**
+ * Stop backends counter
+ */
+func (this *BackendsBandwidthCounter) Stop() {
+	this.stop <- true
 }

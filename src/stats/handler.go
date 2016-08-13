@@ -8,8 +8,7 @@ package stats
 
 import (
 	"../core"
-	"math/big"
-	"sync"
+	"./counters"
 	"time"
 )
 
@@ -19,29 +18,6 @@ const (
 )
 
 /**
- * Handlers Store
- */
-var Store = struct {
-	sync.RWMutex
-	handlers map[string]*Handler
-}{handlers: make(map[string]*Handler)}
-
-/**
- * Get stats for the server
- */
-func GetStats(name string) interface{} {
-
-	Store.RLock()
-	defer Store.RUnlock()
-
-	handler, ok := Store.handlers[name]
-	if !ok {
-		return nil
-	}
-	return handler.stats // TODO: syncronize?
-}
-
-/**
  * Handler processess data from server
  */
 type Handler struct {
@@ -49,11 +25,13 @@ type Handler struct {
 	/* Server's name */
 	name string
 
-	/* Bandwidth counter */
-	bandwidthCounter *BandwidthCounter
+	/* Server counter */
+	serverCounter *counters.BandwidthCounter
+	/* Backends counters */
+	BackendsCounter *counters.BackendsBandwidthCounter
 
 	/* Current stats */
-	stats Stats
+	latestStats Stats
 
 	/* ----- channels ----- */
 
@@ -61,7 +39,7 @@ type Handler struct {
 	Traffic chan core.ReadWriteCount
 
 	/* Server current connections count */
-	Connections chan int
+	Connections chan uint
 
 	/* Current backends pool */
 	Backends chan []core.Backend
@@ -69,7 +47,8 @@ type Handler struct {
 	/* Channel for indicating stop request */
 	stopChan chan bool
 
-	Stats chan BandwidthStats
+	/* Input channel for latest stats */
+	ServerStats chan counters.BandwidthStats
 }
 
 /**
@@ -80,21 +59,22 @@ func NewHandler(name string) *Handler {
 
 	handler := &Handler{
 		name:        name,
-		Stats:       make(chan BandwidthStats, 1),
+		ServerStats: make(chan counters.BandwidthStats, 1),
 		Traffic:     make(chan core.ReadWriteCount),
-		Connections: make(chan int),
+		Connections: make(chan uint),
 		Backends:    make(chan []core.Backend),
 		stopChan:    make(chan bool),
-		stats: Stats{
-			RxTotal:  big.NewInt(0),
-			TxTotal:  big.NewInt(0),
-			RxSecond: big.NewInt(0),
-			TxSecond: big.NewInt(0),
+		latestStats: Stats{
+			RxTotal:  0,
+			TxTotal:  0,
+			RxSecond: 0,
+			TxSecond: 0,
 			Backends: []core.Backend{},
 		},
 	}
 
-	handler.bandwidthCounter = NewBandwidthCounter(INTERVAL, handler.Stats)
+	handler.serverCounter = counters.NewBandwidthCounter(INTERVAL, handler.ServerStats)
+	handler.BackendsCounter = counters.NewBackendsBandwidthCounter()
 
 	Store.Lock()
 	Store.handlers[name] = handler
@@ -104,18 +84,13 @@ func NewHandler(name string) *Handler {
 }
 
 /**
- * Request handler stop and clear resources
- */
-func (this *Handler) Stop() {
-	this.stopChan <- true
-}
-
-/**
  * Start handler work asynchroniously
  */
 func (this *Handler) Start() {
 
-	this.bandwidthCounter.Start()
+	this.serverCounter.Start()
+	this.BackendsCounter.Start()
+
 	go func() {
 
 		for {
@@ -124,34 +99,50 @@ func (this *Handler) Start() {
 			/* stop stats processor requested */
 			case <-this.stopChan:
 
-				this.bandwidthCounter.Stop()
+				this.serverCounter.Stop()
+				this.BackendsCounter.Stop()
+
 				Store.Lock()
 				delete(Store.handlers, this.name)
 				Store.Unlock()
-				close(this.Stats)
+
+				// close channels
+				close(this.ServerStats)
 				close(this.Traffic)
 				close(this.Connections)
 				return
 
-			case b := <-this.Stats:
-				this.stats.RxTotal.Set(&b.RxTotal)
-				this.stats.TxTotal.Set(&b.TxTotal)
-				this.stats.RxSecond.Set(&b.RxSecond)
-				this.stats.TxSecond.Set(&b.TxSecond)
+			/* New server stats available */
+			case b := <-this.ServerStats:
+				this.latestStats.RxTotal = b.RxTotal
+				this.latestStats.TxTotal = b.TxTotal
+				this.latestStats.RxSecond = b.RxSecond
+				this.latestStats.TxSecond = b.TxSecond
 
-				/* New traffic stats available */
-			case rwc := <-this.Traffic:
-				this.bandwidthCounter.Traffic <- rwc
-
-			/* New backends available */
+			/* New server backends with stats available */
 			case backends := <-this.Backends:
-				this.stats.Backends = backends
+				this.latestStats.Backends = backends
 
-			/* New connections count available */
+			/* New sever connections count available */
 			case connections := <-this.Connections:
-				this.stats.ActiveConnections = connections
+				this.latestStats.ActiveConnections = connections
+
+			/* New traffic stats available */
+			case rwc := <-this.Traffic:
+				// forward to counters
+				go func() {
+					this.serverCounter.Traffic <- rwc
+					this.BackendsCounter.Traffic <- rwc
+				}()
 			}
 		}
 	}()
 
+}
+
+/**
+ * Request handler stop and clear resources
+ */
+func (this *Handler) Stop() {
+	this.stopChan <- true
 }

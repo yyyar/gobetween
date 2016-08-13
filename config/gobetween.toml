@@ -10,7 +10,7 @@
 # Logging configuration
 #
 [logging]
-level = "debug"   # "debug" | "info" | "warn" | "error"
+level = "info"   # "debug" | "info" | "warn" | "error"
 output = "stdout" # "stdout" | "stderr" | "/path/to/gobetween.log"
 
 
@@ -63,9 +63,10 @@ balance="weight"
   [servers.sample.discovery]
   kind = "static"
   static_list = [
-      "localhost:8000 weight=5",
+      "localhost:8000",
       "localhost:8001"
   ]
+
 
 # -------------------- example ----------------------------- #
 

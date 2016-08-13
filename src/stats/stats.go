@@ -8,7 +8,6 @@ package stats
 
 import (
 	"../core"
-	"math/big"
 )
 
 /**
@@ -17,19 +16,19 @@ import (
 type Stats struct {
 
 	/* Current active client connections */
-	ActiveConnections int `json:"active_connections"`
+	ActiveConnections uint `json:"active_connections"`
 
 	/* Total received bytes from backend */
-	RxTotal *big.Int `json:"rx_total"`
+	RxTotal uint64 `json:"rx_total"`
 
 	/* Total transmitter bytes to backend */
-	TxTotal *big.Int `json:"tx_total"`
+	TxTotal uint64 `json:"tx_total"`
 
 	/* Received bytes to backend / second */
-	RxSecond *big.Int `json:"rx_second"`
+	RxSecond uint `json:"rx_second"`
 
 	/* Transmitted bytes to backend / second */
-	TxSecond *big.Int `json:"tx_second"`
+	TxSecond uint `json:"tx_second"`
 
 	/* Current backends pool */
 	Backends []core.Backend `json:"backends"`

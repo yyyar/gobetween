@@ -11,5 +11,4 @@
 #
 
 echo localhost:8000 weight=1
-sleep 1
 echo localhost:8001 weight=2

@@ -48,13 +48,15 @@ func proxy(to net.Conn, from net.Conn, timeout time.Duration) <-chan core.ReadWr
 		for {
 			select {
 			case <-ticker.C:
-				outStats <- rwcBuffer
+				if !rwcBuffer.IsZero() {
+					outStats <- rwcBuffer
+				}
 				flushed = true
 			case rwc, ok := <-stats:
 
 				if !ok {
 					ticker.Stop()
-					if !flushed {
+					if !flushed && !rwcBuffer.IsZero() {
 						outStats <- rwcBuffer
 					}
 					close(outStats)
@@ -111,15 +113,9 @@ func Copy(to io.Writer, from io.Reader, ch chan<- core.ReadWriteCount) error {
 
 			writeN, writeErr := to.Write(buf[0:readN])
 
-			// non-blocking stats send
-			// may produce innacurate counters because receiving
-			// part may miss them. NOTE. Remove non-blocking if will be needed
-			//select {
-			//case ch <- core.ReadWriteCount{CountRead: readN, CountWrite: writeN}:
-			//default:
-			//	}
-
-			ch <- core.ReadWriteCount{CountRead: readN, CountWrite: writeN}
+			if writeN > 0 {
+				ch <- core.ReadWriteCount{CountRead: uint(readN), CountWrite: uint(writeN)}
+			}
 
 			if writeErr != nil {
 				err = writeErr

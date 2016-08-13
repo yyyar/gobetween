@@ -8,7 +8,6 @@ package core
 
 import (
 	"fmt"
-	"math/big"
 )
 
 /**
@@ -26,14 +25,14 @@ type Backend struct {
  * Backend status
  */
 type BackendStats struct {
-	Live               bool    `json:"live"`
-	TotalConnections   int64   `json:"total_connections"`
-	ActiveConnections  int     `json:"active_connections"`
-	RefusedConnections int64   `json:"refused_connections"`
-	RxBytes            big.Int `json:"rx"`
-	TxBytes            big.Int `json:"tx"`
-	RxSecond           big.Int `json:"rx_second"`
-	TxSecond           big.Int `json:"tx_second"`
+	Live               bool   `json:"live"`
+	TotalConnections   int64  `json:"total_connections"`
+	ActiveConnections  uint   `json:"active_connections"`
+	RefusedConnections uint64 `json:"refused_connections"`
+	RxBytes            uint64 `json:"rx"`
+	TxBytes            uint64 `json:"tx"`
+	RxSecond           uint   `json:"rx_second"`
+	TxSecond           uint   `json:"tx_second"`
 }
 
 /**

@@ -159,7 +159,7 @@ func (this *Server) Start() error {
 func (this *Server) HandleClientDisconnect(client net.Conn) {
 	client.Close()
 	delete(this.clients, client.RemoteAddr().String())
-	this.statsHandler.Connections <- len(this.clients)
+	this.statsHandler.Connections <- uint(len(this.clients))
 }
 
 /**
@@ -176,7 +176,7 @@ func (this *Server) HandleClientConnect(client net.Conn) {
 	}
 
 	this.clients[client.RemoteAddr().String()] = client
-	this.statsHandler.Connections <- len(this.clients)
+	this.statsHandler.Connections <- uint(len(this.clients))
 	go func() {
 		this.handle(client)
 		this.disconnect <- client
@@ -268,11 +268,9 @@ func (this *Server) handle(clientConn net.Conn) {
 		case s, ok := <-cs:
 			isRx = ok
 			this.scheduler.IncrementRx(*backend, s.CountWrite)
-			this.statsHandler.Traffic <- core.ReadWriteCount{CountRead: s.CountWrite}
 		case s, ok := <-bs:
 			isTx = ok
 			this.scheduler.IncrementTx(*backend, s.CountWrite)
-			this.statsHandler.Traffic <- core.ReadWriteCount{CountWrite: s.CountWrite}
 		}
 	}
 
