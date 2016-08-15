@@ -14,12 +14,12 @@
 
 ## Features
 
-* [L4 TCP Load Balancing](https://github.com/yyyar/gobetween/wiki)
+* [Fast L4 TCP Load Balancing](https://github.com/yyyar/gobetween/wiki)
 
-* [Clear Configuration](https://github.com/yyyar/gobetween/wiki/Configuration) with [TOML](config/gobetween.toml) or [JSON](config/gobetween.json)
+* [Clear & Flexible Configuration](https://github.com/yyyar/gobetween/wiki/Configuration) with [TOML](config/gobetween.toml) or [JSON](config/gobetween.json)
   * **File** - read configuration from the file
-  * **URL** - querying URL by HTTP and get configuration from response 
-  * **Consul** - get configuration from Consul key-value storage value
+  * **URL** - query URL by HTTP and get configuration from the response body 
+  * **Consul** - query Consul key-value storage API for configuration
 
 * [Management REST API] (https://github.com/yyyar/gobetween/wiki/REST-API)
   * **System Information** - general server info
@@ -34,16 +34,18 @@
   * **JSON** - query arbitrary http url and pick backends from response json (of any structure)
   * **Plaintext** - query arbitrary http and parse backends from response text with customized regexp
   * **SRV** - query DNS server and get backends from SRV records
+  * **Consul** - query Consul Services API for backends 
 
 * [Healthchecks](https://github.com/yyyar/gobetween/wiki/Healthchecks)
   * **Ping** - simple TCP ping healtcheck
   * **Exec** - execute arbitrary program passing host & port as options, and read healtcheck status from the stdout
 
 * [Balancing Strategies](https://github.com/yyyar/gobetween/wiki/Balancing)
-  * **Iphash**
-  * **Leastconn**
-  * **Roundrobin**
-  * **Weight**
+  * **Weight** - select backend from pool based relative weights of backends
+  * **Roundrobin** - simple elect backend from pool in circular order
+  * **Iphash** - route client to the same backend based on client ip hash
+  * **Leastconn** - select backend with least active connections
+  * **Leastbandwidth** - select backends with least bandwidth
 
 * Integrates seamlessly with Docker and with any custom system (thanks to Exec discovery and healtchecks)
 
@@ -56,7 +58,8 @@
 ## Usage
 
 * [Download and Install](https://github.com/yyyar/gobetween/wiki/Installation)
-* Consider [Configuration manual](https://github.com/yyyar/gobetween/wiki) and [config file](config/gobetween.toml)
+* [Read Configuration Reference](https://github.com/yyyar/gobetween/wiki)
+* Execute `gobetween --help` for full help on all available commands and options.
 
 
 ## Hacking
