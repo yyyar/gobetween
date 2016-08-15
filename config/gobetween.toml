@@ -50,7 +50,7 @@ backend_connection_timeout = "0" # Backend connection timeout
 
 [servers.sample]
 bind = "localhost:3000"
-balance="weight"
+balance="leastbandwidth"
 
   [servers.sample.access]
   default = "allow"
@@ -78,7 +78,7 @@ balance="weight"
 #
 #bind = "localhost:3000"     #  (required) "<host>:<port>"
 #protocol = "tcp"            #  (required) "tcp"
-#balance = "weight"          #  (optional [weight]) "weight" | "leastconn" | "roundrobin" | "iphash"
+#balance = "weight"          #  (optional [weight]) "weight" | "leastconn" | "roundrobin" | "iphash" | "leastbandwidth"
 #
 #max_connections = 0
 #client_idle_timeout = "10m"
