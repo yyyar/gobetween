@@ -8,7 +8,7 @@
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](/LICENSE)
 [![Gitter](https://badges.gitter.im/yyyar/gobetween.svg)](https://gitter.im/yyyar/gobetween?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge)
 
-**gobetween** -  modern & minimalistic proxy server for the :cloud: Cloud era.
+**gobetween** -  modern & minimalistic load balancer and reverse-proxy for the :cloud: Cloud era.
 
 **Current status**: *Under active development*. Currently in use in several highy loaded production environments.
 

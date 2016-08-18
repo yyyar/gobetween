@@ -50,15 +50,6 @@ backend_connection_timeout = "0" # Backend connection timeout
 
 [servers.sample]
 bind = "localhost:3000"
-balance="leastbandwidth"
-
-  [servers.sample.access]
-  default = "allow"
-  rules = [
-    "allow 127.0.0.1",
-    "deny 192.168.0.1",
-    "allow 192.168.0.1/24",
-  ]
 
   [servers.sample.discovery]
   kind = "static"
