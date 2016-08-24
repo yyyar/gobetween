@@ -15,6 +15,9 @@ import (
 	"errors"
 	"sync"
 	"time"
+	"encoding/hex"
+	"strings"
+	"regexp"
 )
 
 
@@ -205,6 +208,7 @@ func prepareConfig(name string, server config.Server, defaults config.Connection
 	case
 		"ping",
 		"exec",
+		"udp",
 		"none":
 	default:
 		return config.Server{}, errors.New("Not supported healthcheck type " + server.Healthcheck.Kind)
@@ -245,6 +249,35 @@ func prepareConfig(name string, server config.Server, defaults config.Connection
 		server.Protocol = "tcp"
 	default:
 		return config.Server{}, errors.New("Not supported protocol " + server.Protocol)
+	}
+
+	/* Healthcheck and protocol match */
+
+	if server.Healthcheck.Kind == "udp" && server.Protocol != "udp" {
+		return config.Server{}, errors.New("Not supported healthcheck kind by server protocol")
+	}
+
+	if server.Healthcheck.Kind == "ping" && server.Protocol == "udp" {
+		return config.Server{}, errors.New("Not supported healthcheck kind by server protocol")
+	}
+
+	/* UDP healthcheck */
+	if server.Healthcheck.Kind == "udp" {
+
+		if _, err := hex.DecodeString(strings.Replace(server.Healthcheck.SendPattern, " ", "", -1)); err != nil {
+			return config.Server{}, errors.New("send_pattern parsing error")
+		}
+
+		if server.Healthcheck.ExpectedPattern != nil {
+			pattern := strings.Replace(*server.Healthcheck.ExpectedPattern, " ", "", -1)
+
+			_, err := regexp.Compile(pattern)
+
+			if err != nil{
+				return config.Server{}, errors.New("invalid regexp in expected_pattern")
+			}
+		}
+
 	}
 
 	/* Balance */

@@ -75,8 +75,16 @@ protocol = "udp"
   static_list = [
       "8.8.8.8:53",
       "8.8.4.4:53",
-      "91.239.100.100:53"
+      "91.239.100.100:53",
+      "1.1.1.1:54"
   ]
+
+  [servers.udpsample.healthcheck]
+  kind = "udp"
+  interval = "2s"
+  timeout = "5s"
+  send_pattern =     "24 1a 01 00 00 01 00 00000000000377777706676f6f676c6503636f6d0000010001"
+  expected_pattern = "24 1a 81 80 00 01 00 (04|05)"
 
 
 # -------------------- example ----------------------------- #
@@ -115,7 +123,7 @@ protocol = "udp"
 #  passes = 1                      # (optional) successfull checks to mark backend as active
 #
 #  # -- ping -- #
-#  kind = "ping"
+#  kind = "ping"                   # Unavailable if server.protocol is udp
 #
 #  # -- exec -- #
 #  kind = "exec"
@@ -123,6 +131,11 @@ protocol = "udp"
 #  exec_expected_positive_output = "1"           # (required) expected output of command in case of success
 #  exec_expected_negative_output = "0"           # (required) expected output of command in case of failure
 #
+#  # -- udp -- #
+#  kind = "udp"                                 # Unavailableif server.protocol is tcp
+#  send_pattern =     "24 1a 01 00 00 01 00"    # (required) hex pattern to send.
+#  expected_pattern = "24 1a 81 00 (04|05)"     # (optional) regexp to check up to 1024 first bytes of the response
+#                                               # Default -- any response
 #
 ## -------------------- discovery ---------------------------- #
 #
