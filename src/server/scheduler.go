@@ -57,18 +57,18 @@ type ElectRequest struct {
 type Scheduler struct {
 
 	/* Balancer impl */
-	balancer balance.Balancer
+	Balancer balance.Balancer
 
 	/* Discovery impl */
-	discovery *discovery.Discovery
+	Discovery *discovery.Discovery
 
 	/* Healthcheck impl */
-	healthcheck *healthcheck.Healthcheck
+	Healthcheck *healthcheck.Healthcheck
 
 	/* Current cached backends map */
 	backends map[core.Target]*core.Backend
 
-	statsHandler *stats.Handler
+	StatsHandler *stats.Handler
 
 	/* ----- channels ----- */
 
@@ -85,7 +85,7 @@ type Scheduler struct {
 /**
  * Start scheduler
  */
-func (this *Scheduler) start() {
+func (this *Scheduler) Start() {
 
 	log := logging.For("scheduler")
 
@@ -95,8 +95,8 @@ func (this *Scheduler) start() {
 	this.elect = make(chan ElectRequest)
 	this.stop = make(chan bool)
 
-	this.discovery.Start()
-	this.healthcheck.Start()
+	this.Discovery.Start()
+	this.Healthcheck.Start()
 
 	// backends stats pusher ticker
 	backendsPushTicker := time.NewTicker(2 * time.Second)
@@ -111,25 +111,25 @@ func (this *Scheduler) start() {
 			/* ----- discovery ----- */
 
 			// handle newly discovered backends
-			case backends := <-this.discovery.Discover():
+			case backends := <-this.Discovery.Discover():
 				this.HandleBackendsUpdate(backends)
-				this.healthcheck.In <- this.Targets()
-				this.statsHandler.BackendsCounter.In <- this.Targets()
+				this.Healthcheck.In <- this.Targets()
+				this.StatsHandler.BackendsCounter.In <- this.Targets()
 
 			/* ------ healthcheck ----- */
 
 			// handle backend healthcheck result
-			case checkResult := <-this.healthcheck.Out:
+			case checkResult := <-this.Healthcheck.Out:
 				this.HandleBackendLiveChange(checkResult.Target, checkResult.Live)
 
 			/* ----- stats ----- */
 
 			// push current backends to stats handler
 			case <-backendsPushTicker.C:
-				this.statsHandler.Backends <- this.Backends()
+				this.StatsHandler.Backends <- this.Backends()
 
 			// handle new bandwidth stats of a backend
-			case bs := <-this.statsHandler.BackendsCounter.Out:
+			case bs := <-this.StatsHandler.BackendsCounter.Out:
 				this.HandleBackendStatsChange(bs.Target, &bs)
 
 			/* ----- operations ----- */
@@ -148,8 +148,8 @@ func (this *Scheduler) start() {
 			case <-this.stop:
 				log.Info("Stopping scheduler")
 				backendsPushTicker.Stop()
-				this.discovery.Stop()
-				this.healthcheck.Stop()
+				this.Discovery.Stop()
+				this.Healthcheck.Stop()
 				return
 			}
 		}
@@ -249,7 +249,7 @@ func (this *Scheduler) HandleBackendElect(req ElectRequest) {
 	}
 
 	// Elect backend
-	backend, err := this.balancer.Elect(&req.Context, backends)
+	backend, err := this.Balancer.Elect(&req.Context, backends)
 	if err != nil {
 		req.Err <- err
 		return
@@ -267,10 +267,10 @@ func (this *Scheduler) HandleOp(op Op) {
 	// backend for this count may be out of discovery pool
 	switch op.op {
 	case IncrementTx:
-		this.statsHandler.Traffic <- core.ReadWriteCount{CountWrite: op.param.(uint), Target: op.target}
+		this.StatsHandler.Traffic <- core.ReadWriteCount{CountWrite: op.param.(uint), Target: op.target}
 		return
 	case IncrementRx:
-		this.statsHandler.Traffic <- core.ReadWriteCount{CountRead: op.param.(uint), Target: op.target}
+		this.StatsHandler.Traffic <- core.ReadWriteCount{CountRead: op.param.(uint), Target: op.target}
 		return
 	}
 
@@ -306,8 +306,8 @@ func (this *Scheduler) Stop() {
 /**
  * Take elect backend for proxying
  */
-func (this *Scheduler) TakeBackend(context *core.Context) (*core.Backend, error) {
-	r := ElectRequest{*context, make(chan core.Backend), make(chan error)}
+func (this *Scheduler) TakeBackend(context core.Context) (*core.Backend, error) {
+	r := ElectRequest{context, make(chan core.Backend), make(chan error)}
 	this.elect <- r
 	select {
 	case err := <-r.Err:

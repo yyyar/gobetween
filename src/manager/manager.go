@@ -9,8 +9,13 @@ import (
 	"../config"
 	"../logging"
 	"../server"
+	"../server/tcp"
+	"../server/udp"
 	"../utils/codec"
+	"encoding/hex"
 	"errors"
+	"regexp"
+	"strings"
 	"sync"
 	"time"
 )
@@ -18,8 +23,8 @@ import (
 /* Map of app current servers */
 var servers = struct {
 	sync.RWMutex
-	m map[string]*server.Server
-}{m: make(map[string]*server.Server)}
+	m map[string]server.Server
+}{m: make(map[string]server.Server)}
 
 /* default configuration for server */
 var defaults config.ConnectionOptions
@@ -60,8 +65,8 @@ func DumpConfig(format string) (string, error) {
 	originalCfg.Servers = map[string]config.Server{}
 
 	servers.RLock()
-	for name, server := range servers.m {
-		originalCfg.Servers[name] = server.Cfg()
+	for name, srv := range servers.m {
+		originalCfg.Servers[name] = srv.Cfg()
 	}
 	servers.RUnlock()
 
@@ -80,8 +85,8 @@ func All() map[string]config.Server {
 	result := map[string]config.Server{}
 
 	servers.RLock()
-	for name, server := range servers.m {
-		result[name] = server.Cfg()
+	for name, srv := range servers.m {
+		result[name] = srv.Cfg()
 	}
 	servers.RUnlock()
 
@@ -94,14 +99,14 @@ func All() map[string]config.Server {
 func Get(name string) interface{} {
 
 	servers.RLock()
-	server, ok := servers.m[name]
+	srv, ok := servers.m[name]
 	servers.RUnlock()
 
 	if !ok {
 		return nil
 	}
 
-	return server.Cfg()
+	return srv.Cfg()
 }
 
 /**
@@ -121,13 +126,26 @@ func Create(name string, cfg config.Server) error {
 		return err
 	}
 
-	server, err := server.New(name, c)
-	if err != nil {
-		return err
-	}
-	servers.m[name] = server
+	{
+		var srv server.Server
+		var err error
 
-	return server.Start()
+		switch c.Protocol {
+		case "tcp":
+			srv, err = tcp.NewTCPServer(name, c)
+		case "udp":
+			srv, err = udp.NewUDPServer(name, c)
+		default:
+			return errors.New("Unknown server type for protocol" + c.Protocol)
+		}
+
+		if err != nil {
+			return err
+		}
+		servers.m[name] = srv
+
+		return srv.Start()
+	}
 }
 
 /**
@@ -189,6 +207,7 @@ func prepareConfig(name string, server config.Server, defaults config.Connection
 	case
 		"ping",
 		"exec",
+		"udp",
 		"none":
 	default:
 		return config.Server{}, errors.New("Not supported healthcheck type " + server.Healthcheck.Kind)
@@ -223,11 +242,41 @@ func prepareConfig(name string, server config.Server, defaults config.Connection
 	/* Balance */
 	switch server.Protocol {
 	case
-		"tcp":
+		"tcp",
+		"udp":
 	case "":
 		server.Protocol = "tcp"
 	default:
 		return config.Server{}, errors.New("Not supported protocol " + server.Protocol)
+	}
+
+	/* Healthcheck and protocol match */
+
+	if server.Healthcheck.Kind == "udp" && server.Protocol != "udp" {
+		return config.Server{}, errors.New("Not supported healthcheck kind by server protocol")
+	}
+
+	if server.Healthcheck.Kind == "ping" && server.Protocol == "udp" {
+		return config.Server{}, errors.New("Not supported healthcheck kind by server protocol")
+	}
+
+	/* UDP healthcheck */
+	if server.Healthcheck.Kind == "udp" {
+
+		if _, err := hex.DecodeString(strings.Replace(server.Healthcheck.SendPattern, " ", "", -1)); err != nil {
+			return config.Server{}, errors.New("send_pattern parsing error")
+		}
+
+		if server.Healthcheck.ExpectedPattern != nil {
+			pattern := strings.Replace(*server.Healthcheck.ExpectedPattern, " ", "", -1)
+
+			_, err := regexp.Compile(pattern)
+
+			if err != nil {
+				return config.Server{}, errors.New("invalid regexp in expected_pattern")
+			}
+		}
+
 	}
 
 	/* Balance */
