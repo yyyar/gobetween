@@ -82,8 +82,8 @@ type session struct {
 	backendConn  *net.UDPConn // Connection to backend created for this client
 	lastUpdated  time.Time
 
-	updC    chan bool
-	stopC   chan bool
+	updC  chan bool
+	stopC chan bool
 }
 
 func (c *session) start(serverConn *net.UDPConn, sessionManager *sessionManager, timeout time.Duration) {
@@ -126,7 +126,7 @@ func (c *session) start(serverConn *net.UDPConn, sessionManager *sessionManager,
 }
 
 func (c *session) markUpdated() {
-	go func(){
+	go func() {
 		c.updC <- true
 	}()
 }

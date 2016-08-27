@@ -57,29 +57,29 @@ type ElectRequest struct {
 type Scheduler struct {
 
 	/* Balancer impl */
-	Balancer     balance.Balancer
+	Balancer balance.Balancer
 
 	/* Discovery impl */
-	Discovery    *discovery.Discovery
+	Discovery *discovery.Discovery
 
 	/* Healthcheck impl */
-	Healthcheck  *healthcheck.Healthcheck
+	Healthcheck *healthcheck.Healthcheck
 
 	/* Current cached backends map */
-	backends     map[core.Target]*core.Backend
+	backends map[core.Target]*core.Backend
 
 	StatsHandler *stats.Handler
 
 	/* ----- channels ----- */
 
 	/* Backend operation channel */
-	ops          chan Op
+	ops chan Op
 
 	/* Stop channel */
-	stop         chan bool
+	stop chan bool
 
 	/* Elect backend channel */
-	elect        chan ElectRequest
+	elect chan ElectRequest
 }
 
 /**

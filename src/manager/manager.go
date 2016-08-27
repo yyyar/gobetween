@@ -12,14 +12,13 @@ import (
 	"../server/tcp"
 	"../server/udp"
 	"../utils/codec"
+	"encoding/hex"
 	"errors"
+	"regexp"
+	"strings"
 	"sync"
 	"time"
-	"encoding/hex"
-	"strings"
-	"regexp"
 )
-
 
 /* Map of app current servers */
 var servers = struct {
@@ -273,7 +272,7 @@ func prepareConfig(name string, server config.Server, defaults config.Connection
 
 			_, err := regexp.Compile(pattern)
 
-			if err != nil{
+			if err != nil {
 				return config.Server{}, errors.New("invalid regexp in expected_pattern")
 			}
 		}

@@ -7,9 +7,9 @@ import (
 	"../../discovery"
 	"../../healthcheck"
 	"../../logging"
+	"../../server"
 	"../../stats"
 	"../../utils"
-	"../../server"
 	"../modules/access"
 	"net"
 )
@@ -20,19 +20,19 @@ import (
  */
 type TCPServer struct {
 	/* Server friendly name */
-	name         string
+	name string
 
 	/* Listener */
-	listener     net.Listener
+	listener net.Listener
 
 	/* Configuration */
-	cfg          config.Server
+	cfg config.Server
 
 	/* Scheduler deals with discovery, balancing and healthchecks */
-	scheduler    server.Scheduler
+	scheduler server.Scheduler
 
 	/* Current clients connection */
-	clients      map[string]net.Conn
+	clients map[string]net.Conn
 
 	/* Stats handler */
 	statsHandler *stats.Handler
@@ -40,18 +40,18 @@ type TCPServer struct {
 	/* ----- channels ----- */
 
 	/* Channel for new connections */
-	connect      chan (net.Conn)
+	connect chan (net.Conn)
 
 	/* Channel for dropping connections or connectons to drop */
-	disconnect   chan (net.Conn)
+	disconnect chan (net.Conn)
 
 	/* Stop channel */
-	stop         chan bool
+	stop chan bool
 
 	/* ----- modules ----- */
 
 	/* Access module checks if client is allowed to connect */
-	access       *access.Access
+	access *access.Access
 }
 
 /**

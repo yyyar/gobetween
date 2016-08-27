@@ -24,13 +24,13 @@ const UDP_PACKET_SIZE = 65507
 const DEFAULT_UDP_SESSION_IDLE_TIMEOUT = time.Minute * 1
 
 type UDPServer struct {
-	name         string
-	cfg          config.Server
-	scheduler    server.Scheduler
+	name           string
+	cfg            config.Server
+	scheduler      server.Scheduler
 	sessionManager *sessionManager
-	statsHandler *stats.Handler
-	stop         chan bool
-	idleTimeout  time.Duration
+	statsHandler   *stats.Handler
+	stop           chan bool
+	idleTimeout    time.Duration
 }
 
 func NewUDPServer(name string, cfg config.Server) (*UDPServer, error) {
@@ -49,10 +49,10 @@ func NewUDPServer(name string, cfg config.Server) (*UDPServer, error) {
 			Healthcheck:  healthcheck.New(cfg.Healthcheck.Kind, *cfg.Healthcheck),
 			StatsHandler: statsHandler,
 		},
-		sessionManager:      newSessionManager(statsHandler),
-		statsHandler: statsHandler,
-		stop:         make(chan bool),
-		idleTimeout:  idleTimeout,
+		sessionManager: newSessionManager(statsHandler),
+		statsHandler:   statsHandler,
+		stop:           make(chan bool),
+		idleTimeout:    idleTimeout,
 	}
 
 	log.Info("Creating UDP '", name, "': ", cfg.Bind, " ", cfg.Balance, " ", cfg.Discovery.Kind, " ", cfg.Healthcheck.Kind)
@@ -106,7 +106,7 @@ func (this *UDPServer) Listen() error {
 	}
 
 	var sessionTimeout time.Duration
-	if (this.idleTimeout == 0){
+	if this.idleTimeout == 0 {
 		sessionTimeout = DEFAULT_UDP_SESSION_IDLE_TIMEOUT
 	} else {
 		sessionTimeout = this.idleTimeout
