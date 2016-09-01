@@ -83,8 +83,8 @@ protocol = "udp"
   kind = "udp"
   interval = "2s"
   timeout = "5s"
-  send_pattern =     "24 1a 01 00 00 01 00 00000000000377777706676f6f676c6503636f6d0000010001"
-  expected_pattern = "24 1a 81 80 00 01 00 (04|05)"
+  udp_send_pattern = "24 1a 01 00 00 01 00 00000000000377777706676f6f676c6503636f6d0000010001"
+  udp_expected_pattern = "24 1a 81 80 00 01 00"
 
 
 # -------------------- example ----------------------------- #

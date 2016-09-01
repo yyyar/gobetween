@@ -1,5 +1,5 @@
 /**
- * udpserver.go - proxy server implementation
+ * udpserver.go - UDP server implementation
  *
  * @author Illarion Kovalchuk <illarion.kovalchuk@gmail.com>
  */
@@ -13,27 +13,36 @@ import (
 	"../../discovery"
 	"../../healthcheck"
 	"../../logging"
-	"../../server"
 	"../../stats"
 	"../../utils"
+	"../scheduler"
 	"net"
 	"time"
 )
 
-const UDP_PACKET_SIZE = 65507
-const DEFAULT_UDP_SESSION_IDLE_TIMEOUT = time.Minute * 1
+const (
+	UDP_PACKET_SIZE                  = 65507
+	DEFAULT_UDP_SESSION_IDLE_TIMEOUT = time.Minute * 1
+)
 
+/**
+ * UDP server implementation
+ */
 type UDPServer struct {
 	name           string
 	cfg            config.Server
-	scheduler      server.Scheduler
+	scheduler      scheduler.Scheduler
 	sessionManager *sessionManager
 	statsHandler   *stats.Handler
 	stop           chan bool
 	idleTimeout    time.Duration
 }
 
+/**
+ * Creates new UDP server
+ */
 func NewUDPServer(name string, cfg config.Server) (*UDPServer, error) {
+
 	log := logging.For("UDPServer")
 
 	idleTimeout := utils.ParseDurationOrDefault(*cfg.ClientIdleTimeout, DEFAULT_UDP_SESSION_IDLE_TIMEOUT)
@@ -43,7 +52,7 @@ func NewUDPServer(name string, cfg config.Server) (*UDPServer, error) {
 	udpServer := &UDPServer{
 		name: name,
 		cfg:  cfg,
-		scheduler: server.Scheduler{
+		scheduler: scheduler.Scheduler{
 			Balancer:     balance.New(cfg.Balance),
 			Discovery:    discovery.New(cfg.Discovery.Kind, *cfg.Discovery),
 			Healthcheck:  healthcheck.New(cfg.Healthcheck.Kind, *cfg.Healthcheck),
@@ -66,6 +75,9 @@ func (this *UDPServer) Cfg() config.Server {
 	return this.cfg
 }
 
+/**
+ * Starts server
+ */
 func (this *UDPServer) Start() error {
 	log := logging.For("UDPServer.Listen")
 	this.statsHandler.Start()
@@ -94,6 +106,9 @@ func (this *UDPServer) Start() error {
 	return nil
 }
 
+/**
+ * Start accepting connections
+ */
 func (this *UDPServer) Listen() error {
 	log := logging.For("UDPServer.Listen")
 
@@ -147,14 +162,13 @@ func (this *UDPServer) Listen() error {
 			backendConn, err := net.DialUDP("udp", nil, backendAddr)
 
 			if err != nil {
-				log.Fatal("Error connecting to backend: ", err)
+				log.Debug("Error connecting to backend: ", err)
+				continue
 			}
 
 			//store client by it's address+port, so that when we get responce from server, we could route it
 			log.Debug("Creating new session for:", clientAddr.String())
-			session := newSession(clientAddr, this.statsHandler, &this.scheduler, backend, backendConn)
-
-			this.sessionManager.add(session)
+			session := this.sessionManager.createSession(clientAddr, this.statsHandler, &this.scheduler, backend, backendConn)
 			session.start(serverConn, this.sessionManager, sessionTimeout)
 			session.sendToBackend(buf[0:n])
 

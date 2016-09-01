@@ -1,9 +1,30 @@
+/**
+ * server.go - server creator
+ *
+ * @author Illarion Kovalchuk
+ * @author Yaroslav Pogrebnyak <yyyaroslav@gmail.com>
+ */
+
 package server
 
-import "../config"
+import (
+	"../config"
+	"../core"
+	"./tcp"
+	"./udp"
+	"errors"
+)
 
-type Server interface {
-	Start() error
-	Cfg() config.Server
-	Stop()
+/**
+ * Creates new Server based on cfg.Protocol
+ */
+func NewServer(name string, cfg config.Server) (core.Server, error) {
+	switch cfg.Protocol {
+	case "tcp":
+		return tcp.NewTCPServer(name, cfg)
+	case "udp":
+		return udp.NewUDPServer(name, cfg)
+	default:
+		return nil, errors.New("Can't create server for protocol " + cfg.Protocol)
+	}
 }

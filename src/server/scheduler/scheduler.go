@@ -4,16 +4,16 @@
  * @author Yaroslav Pogrebnyak <yyyaroslav@gmail.com>
  */
 
-package server
+package scheduler
 
 import (
-	"../balance"
-	"../core"
-	"../discovery"
-	"../healthcheck"
-	"../logging"
-	"../stats"
-	"../stats/counters"
+	"../../balance"
+	"../../core"
+	"../../discovery"
+	"../../healthcheck"
+	"../../logging"
+	"../../stats"
+	"../../stats/counters"
 	"time"
 )
 

@@ -193,6 +193,6 @@ type ExecHealthcheckConfig struct {
 }
 
 type UdpHealthcheckConfig struct {
-	SendPattern     string  `toml:"send_pattern" json:"send_pattern"`
-	ExpectedPattern *string `toml:"expected_pattern" json:"expected_pattern"`
+	UdpSendPattern     string  `toml:"udp_send_pattern" json:"udp_send_pattern"`
+	UdpExpectedPattern *string `toml:"udp_expected_pattern" json:"udp_expected_pattern"`
 }

@@ -1,3 +1,9 @@
+/**
+ * udp.go - UDP ping healthcheck
+ *
+ * @author Illarion Kovalchuk
+ */
+
 package healthcheck
 
 import (
@@ -11,43 +17,46 @@ import (
 	"time"
 )
 
+const (
+	UDP_RECV_BUFFER_SIZE = 1024
+)
+
 /**
  * Pattern healthcheck
  */
 func udp(t core.Target, cfg config.HealthcheckConfig, result chan<- CheckResult) {
-	patternPingTimeoutDuration, _ := time.ParseDuration(cfg.Timeout)
 
-	log := logging.For("healthcheck/pattern")
+	log := logging.For("healthcheck/udp")
 
-	checkResult := CheckResult{
-		Target: t,
-	}
-
+	timeout, _ := time.ParseDuration(cfg.Timeout)
 	conn, err := net.Dial("udp", t.Address())
 
 	if err != nil {
 		log.Error("Networking error", err)
-		conn.Close()
 		return
 	}
 
-	conn.SetReadDeadline(time.Now().Add(patternPingTimeoutDuration))
-	sendbuf, _ := hex.DecodeString(strings.Replace(cfg.SendPattern, " ", "", -1))
+	conn.SetReadDeadline(time.Now().Add(timeout))
 
-	recvbuf := make([]byte, 1024)
+	sendbuf, _ := hex.DecodeString(strings.Replace(cfg.UdpSendPattern, " ", "", -1))
+	recvbuf := make([]byte, UDP_RECV_BUFFER_SIZE)
 
 	conn.Write(sendbuf)
 	n, err := conn.Read(recvbuf)
 	conn.Close()
 
+	checkResult := CheckResult{
+		Target: t,
+	}
+
 	if err != nil {
 		checkResult.Live = false
 	} else {
-		if cfg.ExpectedPattern == nil {
+		if cfg.UdpExpectedPattern == nil {
 			checkResult.Live = true
 		} else {
 			recvStr := hex.EncodeToString(recvbuf[0:n])
-			matched, _ := regexp.MatchString(strings.Replace(*cfg.ExpectedPattern, " ", "", -1), recvStr)
+			matched, _ := regexp.MatchString(strings.Replace(*cfg.UdpExpectedPattern, " ", "", -1), recvStr)
 			checkResult.Live = matched
 		}
 	}

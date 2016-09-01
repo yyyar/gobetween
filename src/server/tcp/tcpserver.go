@@ -1,3 +1,8 @@
+/**
+ * tcpserver.go - TCP server implementation
+ *
+ * @author Yaroslav Pogrebnyak <yyyaroslav@gmail.com>
+ */
 package tcp
 
 import (
@@ -7,10 +12,10 @@ import (
 	"../../discovery"
 	"../../healthcheck"
 	"../../logging"
-	"../../server"
 	"../../stats"
 	"../../utils"
 	"../modules/access"
+	"../scheduler"
 	"net"
 )
 
@@ -19,6 +24,7 @@ import (
  * proxies it to backends
  */
 type TCPServer struct {
+
 	/* Server friendly name */
 	name string
 
@@ -29,7 +35,7 @@ type TCPServer struct {
 	cfg config.Server
 
 	/* Scheduler deals with discovery, balancing and healthchecks */
-	scheduler server.Scheduler
+	scheduler scheduler.Scheduler
 
 	/* Current clients connection */
 	clients map[string]net.Conn
@@ -72,7 +78,7 @@ func NewTCPServer(name string, cfg config.Server) (*TCPServer, error) {
 		connect:      make(chan net.Conn),
 		clients:      make(map[string]net.Conn),
 		statsHandler: stats.NewHandler(name),
-		scheduler: server.Scheduler{
+		scheduler: scheduler.Scheduler{
 			Balancer:    balance.New(cfg.Balance),
 			Discovery:   discovery.New(cfg.Discovery.Kind, *cfg.Discovery),
 			Healthcheck: healthcheck.New(cfg.Healthcheck.Kind, *cfg.Healthcheck),
