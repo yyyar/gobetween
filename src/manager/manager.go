@@ -251,7 +251,14 @@ func prepareConfig(name string, server config.Server, defaults config.Connection
 		return config.Server{}, errors.New("Cant use ping healthcheck with udp server")
 	}
 
+	/* MaxPackets and protocol match */
+
+	if server.MaxPackets != nil && server.Protocol != "udp" {
+		return config.Server{}, errors.New("Cant use max_packets in non udp server")
+	}
+
 	/* UDP healthcheck */
+
 	if server.Healthcheck.Kind == "udp" {
 
 		if _, err := hex.DecodeString(strings.Replace(server.Healthcheck.UdpSendPattern, " ", "", -1)); err != nil {

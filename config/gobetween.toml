@@ -61,6 +61,7 @@ bind = "localhost:3000"
 [servers.udpsample]
 bind = "localhost:5443"
 protocol = "udp"
+max_packets = 1
 
   [servers.udpsample.access]
   default = "allow"

@@ -114,6 +114,7 @@ func (this *UDPServer) Listen() error {
 
 	listenAddr, err := net.ResolveUDPAddr("udp", this.cfg.Bind)
 	serverConn, err := net.ListenUDP("udp", listenAddr)
+	//serverConn.SetReadBuffer(UDP_PACKET_SIZE)
 
 	if err != nil {
 		log.Error("Error starting UDP server: ", err)
@@ -127,11 +128,15 @@ func (this *UDPServer) Listen() error {
 		sessionTimeout = this.idleTimeout
 	}
 
+	maxPackets := this.cfg.MaxPackets
+
 	// Listen requests from clients
 	var buf = make([]byte, UDP_PACKET_SIZE)
+
 	go func() {
 		for {
 			log.Debug("Waiting for packet from clients")
+			//n, _, _, clientAddr, err := serverConn.ReadMsgUDP(buf, oobf)
 			n, clientAddr, err := serverConn.ReadFromUDP(buf)
 
 			if err != nil {
@@ -167,9 +172,9 @@ func (this *UDPServer) Listen() error {
 			}
 
 			//store client by it's address+port, so that when we get responce from server, we could route it
-			log.Debug("Creating new session for:", clientAddr.String())
+			log.Debug("Creating new session for: ", clientAddr.String())
 			session := this.sessionManager.createSession(clientAddr, this.statsHandler, &this.scheduler, backend, backendConn)
-			session.start(serverConn, this.sessionManager, sessionTimeout)
+			session.start(serverConn, this.sessionManager, sessionTimeout, maxPackets)
 			session.sendToBackend(buf[0:n])
 
 		}

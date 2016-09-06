@@ -39,7 +39,7 @@ type session struct {
 /**
  * Start session
  */
-func (c *session) start(serverConn *net.UDPConn, sessionManager *sessionManager, timeout time.Duration) {
+func (c *session) start(serverConn *net.UDPConn, sessionManager *sessionManager, timeout time.Duration, maxPackets *int) {
 
 	log := logging.For("udp/session")
 
@@ -65,8 +65,11 @@ func (c *session) start(serverConn *net.UDPConn, sessionManager *sessionManager,
 
 	go func() {
 		var buf = make([]byte, UDP_PACKET_SIZE)
+		var packets = 0
 		for {
 			n, _, err := c.backendConn.ReadFromUDP(buf)
+			packets++
+
 			if err != nil {
 				log.Debug("Closing client ", c.clientAddr.String())
 				break
@@ -74,7 +77,9 @@ func (c *session) start(serverConn *net.UDPConn, sessionManager *sessionManager,
 			c.markUpdated()
 			c.scheduler.IncrementRx(*c.backend, uint(n))
 			serverConn.WriteToUDP(buf[0:n], c.clientAddr)
-			c.scheduler.IncrementTx(*c.backend, uint(n))
+			if maxPackets != nil && packets >= *maxPackets {
+				c.stop()
+			}
 		}
 	}()
 }
