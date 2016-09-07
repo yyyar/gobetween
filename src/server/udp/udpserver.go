@@ -134,6 +134,7 @@ func (this *UDPServer) Listen() error {
 
 	listenAddr, err := net.ResolveUDPAddr("udp", this.cfg.Bind)
 	serverConn, err := net.ListenUDP("udp", listenAddr)
+	//serverConn.SetReadBuffer(UDP_PACKET_SIZE)
 
 	if err != nil {
 		log.Error("Error starting UDP server: ", err)
@@ -142,6 +143,7 @@ func (this *UDPServer) Listen() error {
 
 	// Listen requests from clients
 	var buf = make([]byte, UDP_PACKET_SIZE)
+	maxPackets := this.cfg.MaxPackets
 
 	// Main proxy loop goroutine
 	go func() {
@@ -184,7 +186,7 @@ func (this *UDPServer) Listen() error {
 			log.Debug("Creating new UDP session for:", clientAddr.String())
 
 			session := this.sessionManager.createSession(clientAddr, &this.scheduler, backend, backendConn)
-			session.start(serverConn, this.sessionManager, this.sessionTimeout)
+			session.start(serverConn, this.sessionManager, this.sessionTimeout, maxPackets)
 			session.sendToBackend(buf[0:n])
 		}
 	}()

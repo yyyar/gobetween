@@ -15,6 +15,11 @@ import (
 	"time"
 )
 
+type request struct {
+	addr     string
+	response chan *session
+}
+
 /**
  * SessionManager emulates UDP "session" and manages them
  */
@@ -25,6 +30,7 @@ type sessionManager struct {
 	addC         chan *session
 	remC         chan *session
 	stopC        chan bool
+	getC         chan *request
 }
 
 /**
@@ -38,6 +44,7 @@ func newSessionManager(statsHandler *stats.Handler) *sessionManager {
 		addC:         make(chan *session),
 		remC:         make(chan *session),
 		stopC:        make(chan bool),
+		getC:         make(chan *request),
 	}
 }
 
@@ -83,6 +90,15 @@ func (sm *sessionManager) start() {
 				sm.statsHandler.Connections <- sm.sessionCount
 				delete(sm.sessions, session.clientAddr.String())
 
+			/* Handle get session request */
+			case request := <-sm.getC:
+				session, ok := sm.sessions[request.addr]
+				if ok {
+					request.response <- session
+				} else {
+					request.response <- nil
+				}
+
 			/* Handle stop session manager */
 			case <-sm.stopC:
 				for _, session := range sm.sessions {
@@ -98,8 +114,13 @@ func (sm *sessionManager) start() {
  * Returns sesion for client if exists
  */
 func (sm *sessionManager) getForAddr(clientAddr *net.UDPAddr) (*session, bool) {
-	result, ok := sm.sessions[clientAddr.String()]
-	return result, ok
+	request := &request{
+		addr:     clientAddr.String(),
+		response: make(chan *session),
+	}
+	sm.getC <- request
+	session := <-request.response
+	return session, session != nil
 }
 
 /**
