@@ -23,23 +23,34 @@ type session struct {
 	/* client address */
 	clientAddr *net.UDPAddr
 
+	/* stats handler */
 	statsHandler *stats.Handler
-	scheduler    *scheduler.Scheduler
-	backend      *core.Backend
+
+	/* scheduler */
+	scheduler *scheduler.Scheduler
+
+	/* Session backend */
+	backend *core.Backend
 
 	/* connection to previously elected backend */
 	backendConn *net.UDPConn
 
+	/* Time where session was touched last time */
 	lastUpdated time.Time
 
-	updC  chan bool
+	/* ----- channels ----- */
+
+	/* touch channel */
+	touchC chan bool
+
+	/* stop channel */
 	stopC chan bool
 }
 
 /**
  * Start session
  */
-func (c *session) start(serverConn *net.UDPConn, sessionManager *sessionManager, timeout time.Duration) {
+func (c *session) start(clientConn *net.UDPConn, sessionManager *sessionManager, timeout time.Duration) {
 
 	log := logging.For("udp/session")
 
@@ -53,16 +64,21 @@ func (c *session) start(serverConn *net.UDPConn, sessionManager *sessionManager,
 				c.scheduler.DecrementConnection(*c.backend)
 				c.backendConn.Close()
 				sessionManager.remove(c)
-			case <-c.updC:
+			case <-c.touchC:
 				c.lastUpdated = time.Now()
 			case now := <-ticker.C:
+				log.Info("DA")
 				if c.lastUpdated.Add(timeout).Before(now) {
+					log.Info("Stopping")
 					c.stop()
 				}
 			}
 		}
 	}()
 
+	/**
+	 * Proxy data from backend to client
+	 */
 	go func() {
 		var buf = make([]byte, UDP_PACKET_SIZE)
 		for {
@@ -71,29 +87,31 @@ func (c *session) start(serverConn *net.UDPConn, sessionManager *sessionManager,
 				log.Debug("Closing client ", c.clientAddr.String())
 				break
 			}
-			c.markUpdated()
+			c.touch()
 			c.scheduler.IncrementRx(*c.backend, uint(n))
-			serverConn.WriteToUDP(buf[0:n], c.clientAddr)
-			c.scheduler.IncrementTx(*c.backend, uint(n))
+			clientConn.WriteToUDP(buf[0:n], c.clientAddr)
 		}
+	}()
+}
+
+/**
+ * Writes data to session backend
+ */
+func (c *session) sendToBackend(buf []byte) {
+	go func() {
+		c.backendConn.Write(buf)
+		c.touch()
+		n := len(buf)
+		c.scheduler.IncrementTx(*c.backend, uint(n))
 	}()
 }
 
 /**
  * Touches session
  */
-func (c *session) markUpdated() {
+func (c *session) touch() {
 	go func() {
-		c.updC <- true
-	}()
-}
-
-func (c *session) sendToBackend(buf []byte) {
-	go func() {
-		c.backendConn.Write(buf)
-		c.markUpdated()
-		n := len(buf)
-		c.scheduler.IncrementTx(*c.backend, uint(n))
+		c.touchC <- true
 	}()
 }
 

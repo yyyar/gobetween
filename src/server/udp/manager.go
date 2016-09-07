@@ -44,16 +44,18 @@ func newSessionManager(statsHandler *stats.Handler) *sessionManager {
 /**
  * Creates new sessions; adds to itself and returns it
  */
-func (sm *sessionManager) createSession(addr *net.UDPAddr, statsHandler *stats.Handler, scheduler *scheduler.Scheduler, backend *core.Backend, backendConn *net.UDPConn) *session {
+func (sm *sessionManager) createSession(addr *net.UDPAddr, scheduler *scheduler.Scheduler, backend *core.Backend, backendConn *net.UDPConn) *session {
+
 	scheduler.IncrementConnection(*backend)
+
 	session := &session{
 		clientAddr:   addr,
-		statsHandler: statsHandler,
+		statsHandler: sm.statsHandler,
 		scheduler:    scheduler,
 		backend:      backend,
 		backendConn:  backendConn,
 		lastUpdated:  time.Now(),
-		updC:         make(chan bool),
+		touchC:       make(chan bool),
 		stopC:        make(chan bool),
 	}
 
@@ -68,14 +70,20 @@ func (sm *sessionManager) start() {
 	go func() {
 		for {
 			select {
+
+			/* Handle adding new session */
 			case session := <-sm.addC:
 				sm.sessionCount++
 				sm.statsHandler.Connections <- sm.sessionCount
 				sm.sessions[session.clientAddr.String()] = session
+
+			/* Handle removig expired session */
 			case session := <-sm.remC:
 				sm.sessionCount--
 				sm.statsHandler.Connections <- sm.sessionCount
 				delete(sm.sessions, session.clientAddr.String())
+
+			/* Handle stop session manager */
 			case <-sm.stopC:
 				for _, session := range sm.sessions {
 					session.stop()
@@ -84,6 +92,14 @@ func (sm *sessionManager) start() {
 
 		}
 	}()
+}
+
+/**
+ * Returns sesion for client if exists
+ */
+func (sm *sessionManager) getForAddr(clientAddr *net.UDPAddr) (*session, bool) {
+	result, ok := sm.sessions[clientAddr.String()]
+	return result, ok
 }
 
 /**
@@ -111,12 +127,4 @@ func (sm *sessionManager) stop() {
 	go func() {
 		sm.stopC <- true
 	}()
-}
-
-/**
- * Returns sesion for client if exists
- */
-func (sm *sessionManager) getForAddr(clientAddr *net.UDPAddr) (*session, bool) {
-	result, ok := sm.sessions[clientAddr.String()]
-	return result, ok
 }

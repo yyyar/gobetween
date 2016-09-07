@@ -29,13 +29,29 @@ const (
  * UDP server implementation
  */
 type UDPServer struct {
-	name           string
-	cfg            config.Server
-	scheduler      scheduler.Scheduler
+
+	/* Server name */
+	name string
+
+	/* Server configuration */
+	cfg config.Server
+
+	/* Scheduler */
+	scheduler scheduler.Scheduler
+
+	/* Session Manager */
 	sessionManager *sessionManager
-	statsHandler   *stats.Handler
-	stop           chan bool
-	idleTimeout    time.Duration
+
+	/* Stats handler */
+	statsHandler *stats.Handler
+
+	/* Session timeout */
+	sessionTimeout time.Duration
+
+	/* ----- channels ----- */
+
+	/* Stop channel */
+	stop chan bool
 }
 
 /**
@@ -45,11 +61,9 @@ func NewUDPServer(name string, cfg config.Server) (*UDPServer, error) {
 
 	log := logging.For("UDPServer")
 
-	idleTimeout := utils.ParseDurationOrDefault(*cfg.ClientIdleTimeout, DEFAULT_UDP_SESSION_IDLE_TIMEOUT)
-
 	statsHandler := stats.NewHandler(name)
 
-	udpServer := &UDPServer{
+	server := &UDPServer{
 		name: name,
 		cfg:  cfg,
 		scheduler: scheduler.Scheduler{
@@ -61,11 +75,15 @@ func NewUDPServer(name string, cfg config.Server) (*UDPServer, error) {
 		sessionManager: newSessionManager(statsHandler),
 		statsHandler:   statsHandler,
 		stop:           make(chan bool),
-		idleTimeout:    idleTimeout,
+		sessionTimeout: utils.ParseDurationOrDefault(*cfg.ClientIdleTimeout, DEFAULT_UDP_SESSION_IDLE_TIMEOUT),
 	}
 
-	log.Info("Creating UDP '", name, "': ", cfg.Bind, " ", cfg.Balance, " ", cfg.Discovery.Kind, " ", cfg.Healthcheck.Kind)
-	return udpServer, nil
+	if server.sessionTimeout == 0 {
+		server.sessionTimeout = DEFAULT_UDP_SESSION_IDLE_TIMEOUT
+	}
+
+	log.Info("Creating UDP server '", name, "': ", cfg.Bind, " ", cfg.Balance, " ", cfg.Discovery.Kind, " ", cfg.Healthcheck.Kind)
+	return server, nil
 }
 
 /**
@@ -79,7 +97,9 @@ func (this *UDPServer) Cfg() config.Server {
  * Starts server
  */
 func (this *UDPServer) Start() error {
+
 	log := logging.For("UDPServer.Listen")
+
 	this.statsHandler.Start()
 	this.scheduler.Start()
 	this.sessionManager.start()
@@ -87,7 +107,6 @@ func (this *UDPServer) Start() error {
 	go func() {
 		for {
 			select {
-
 			case <-this.stop:
 				this.sessionManager.stop()
 				this.scheduler.Stop()
@@ -100,7 +119,7 @@ func (this *UDPServer) Start() error {
 	// Start listening
 	if err := this.Listen(); err != nil {
 		this.Stop()
-		log.Error("Error starting Listen", err)
+		log.Error("Error starting UDP Listen ", err)
 		return err
 	}
 	return nil
@@ -110,6 +129,7 @@ func (this *UDPServer) Start() error {
  * Start accepting connections
  */
 func (this *UDPServer) Listen() error {
+
 	log := logging.For("UDPServer.Listen")
 
 	listenAddr, err := net.ResolveUDPAddr("udp", this.cfg.Bind)
@@ -120,18 +140,12 @@ func (this *UDPServer) Listen() error {
 		return err
 	}
 
-	var sessionTimeout time.Duration
-	if this.idleTimeout == 0 {
-		sessionTimeout = DEFAULT_UDP_SESSION_IDLE_TIMEOUT
-	} else {
-		sessionTimeout = this.idleTimeout
-	}
-
 	// Listen requests from clients
 	var buf = make([]byte, UDP_PACKET_SIZE)
+
+	// Main proxy loop goroutine
 	go func() {
 		for {
-			log.Debug("Waiting for packet from clients")
 			n, clientAddr, err := serverConn.ReadFromUDP(buf)
 
 			if err != nil {
@@ -166,12 +180,12 @@ func (this *UDPServer) Listen() error {
 				continue
 			}
 
-			//store client by it's address+port, so that when we get responce from server, we could route it
-			log.Debug("Creating new session for:", clientAddr.String())
-			session := this.sessionManager.createSession(clientAddr, this.statsHandler, &this.scheduler, backend, backendConn)
-			session.start(serverConn, this.sessionManager, sessionTimeout)
-			session.sendToBackend(buf[0:n])
+			/* Store client by it's address+port, so that when we get responce from server, we could route it */
+			log.Debug("Creating new UDP session for:", clientAddr.String())
 
+			session := this.sessionManager.createSession(clientAddr, &this.scheduler, backend, backendConn)
+			session.start(serverConn, this.sessionManager, this.sessionTimeout)
+			session.sendToBackend(buf[0:n])
 		}
 	}()
 
