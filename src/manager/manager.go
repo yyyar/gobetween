@@ -253,8 +253,8 @@ func prepareConfig(name string, server config.Server, defaults config.Connection
 
 	/* MaxPackets and protocol match */
 
-	if server.MaxPackets != nil && server.Protocol != "udp" {
-		return config.Server{}, errors.New("Cant use max_packets in non udp server")
+	if server.MaxResponses != nil && server.Protocol != "udp" {
+		return config.Server{}, errors.New("Cant use max_responses in non udp server")
 	}
 
 	/* UDP healthcheck */

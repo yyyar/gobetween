@@ -143,7 +143,7 @@ func (this *UDPServer) Listen() error {
 
 	// Listen requests from clients
 	var buf = make([]byte, UDP_PACKET_SIZE)
-	maxPackets := this.cfg.MaxPackets
+	maxResponses := this.cfg.MaxResponses
 
 	// Main proxy loop goroutine
 	go func() {
@@ -155,39 +155,29 @@ func (this *UDPServer) Listen() error {
 				continue
 			}
 
-			if session, ok := this.sessionManager.getForAddr(clientAddr); ok {
-				session.sendToBackend(buf[0:n])
-				continue
-			}
+			go func(received []byte) {
 
-			backend, err := this.scheduler.TakeBackend(&core.UdpContext{
-				RemoteAddr: *clientAddr,
-			})
+				if session, ok := this.sessionManager.getForAddr(clientAddr); ok {
+					session.sendToBackend(received)
+					return
+				}
 
-			if err != nil {
-				log.Error("Error TakeBackend: ", err)
-				continue
-			}
+				backend, err := this.scheduler.TakeBackend(&core.UdpContext{
+					RemoteAddr: *clientAddr,
+				})
 
-			backendAddr, err := net.ResolveUDPAddr("udp", backend.Target.String())
-			if err != nil {
-				log.Error("Error ResolveUDPAddr: ", err)
-				continue
-			}
+				if err != nil {
+					log.Error("Error TakeBackend: ", err)
+					return
+				}
 
-			backendConn, err := net.DialUDP("udp", nil, backendAddr)
+				/* Store client by it's address+port, so that when we get responce from server, we could route it */
+				log.Debug("Creating new UDP session for:", clientAddr.String())
 
-			if err != nil {
-				log.Debug("Error connecting to backend: ", err)
-				continue
-			}
-
-			/* Store client by it's address+port, so that when we get responce from server, we could route it */
-			log.Debug("Creating new UDP session for:", clientAddr.String())
-
-			session := this.sessionManager.createSession(clientAddr, &this.scheduler, backend, backendConn)
-			session.start(serverConn, this.sessionManager, this.sessionTimeout, maxPackets)
-			session.sendToBackend(buf[0:n])
+				session := this.sessionManager.createSession(clientAddr, &this.scheduler, backend)
+				session.start(serverConn, this.sessionManager, this.sessionTimeout, maxResponses)
+				session.sendToBackend(received)
+			}(buf[0:n])
 		}
 	}()
 

@@ -1,7 +1,7 @@
 /**
  * udp.go - udp session manager
  *
- * @author Illarion Kovalchuk
+ * @author Illarion Kovalchuk <illarion.kovalchuk@gmail.com>
  * @author Yaroslav Pogrebnyak <yyyaroslav@gmail.com>
  */
 
@@ -9,6 +9,7 @@ package udp
 
 import (
 	"../../core"
+	"../../logging"
 	"../../stats"
 	"../scheduler"
 	"net"
@@ -51,7 +52,22 @@ func newSessionManager(statsHandler *stats.Handler) *sessionManager {
 /**
  * Creates new sessions; adds to itself and returns it
  */
-func (sm *sessionManager) createSession(addr *net.UDPAddr, scheduler *scheduler.Scheduler, backend *core.Backend, backendConn *net.UDPConn) *session {
+func (sm *sessionManager) createSession(addr *net.UDPAddr, scheduler *scheduler.Scheduler, backend *core.Backend) *session {
+
+	log := logging.For("udp.SessionManager.createSession")
+
+	backendAddr, err := net.ResolveUDPAddr("udp", backend.Target.String())
+	if err != nil {
+		log.Error("Error ResolveUDPAddr: ", err)
+		return nil
+	}
+
+	backendConn, err := net.DialUDP("udp", nil, backendAddr)
+
+	if err != nil {
+		log.Debug("Error connecting to backend: ", err)
+		return nil
+	}
 
 	scheduler.IncrementConnection(*backend)
 
@@ -142,7 +158,7 @@ func (sm *sessionManager) remove(session *session) {
 }
 
 /**
- * Stops session mnager
+ * Stops session manager
  */
 func (sm *sessionManager) stop() {
 	go func() {

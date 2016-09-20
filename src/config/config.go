@@ -57,7 +57,7 @@ type ConnectionOptions struct {
 	ClientIdleTimeout        *string `toml:"client_idle_timeout" json:"client_idle_timeout"`
 	BackendIdleTimeout       *string `toml:"backend_idle_timeout" json:"backend_idle_timeout"`
 	BackendConnectionTimeout *string `toml:"backend_connection_timeout" json:"backend_connection_timeout"`
-	MaxPackets               *int    `toml:"max_packets" json:"max_packets"`
+	MaxResponses             *int    `toml:"max_responses" json:"max_responses"`
 }
 
 /**

@@ -1,7 +1,7 @@
 /**
  * session.go - udp "session"
  *
- * @author Illarion Kovalchuk
+ * @author Illarion Kovalchuk <illarion.kovalchuk@gmail.com>
  * @author Yaroslav Pogrebnyak <yyyaroslav@gmail.com>
  */
 package udp
@@ -50,7 +50,7 @@ type session struct {
 /**
  * Start session
  */
-func (c *session) start(clientConn *net.UDPConn, sessionManager *sessionManager, timeout time.Duration, maxPackets *int) {
+func (c *session) start(serverConn *net.UDPConn, sessionManager *sessionManager, timeout time.Duration, maxResponses *int) {
 
 	log := logging.For("udp/session")
 
@@ -81,19 +81,20 @@ func (c *session) start(clientConn *net.UDPConn, sessionManager *sessionManager,
 	 */
 	go func() {
 		var buf = make([]byte, UDP_PACKET_SIZE)
-		var packets = 0
+		var responses = 0
 		for {
 			n, _, err := c.backendConn.ReadFromUDP(buf)
-			packets++
+			responses++
 
 			if err != nil {
 				log.Debug("Closing client ", c.clientAddr.String())
 				break
 			}
+
 			c.touch()
 			c.scheduler.IncrementRx(*c.backend, uint(n))
-			clientConn.WriteToUDP(buf[0:n], c.clientAddr)
-			if maxPackets != nil && packets >= *maxPackets {
+			serverConn.WriteToUDP(buf[0:n], c.clientAddr)
+			if maxResponses != nil && responses >= *maxResponses {
 				c.stop()
 			}
 		}

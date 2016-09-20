@@ -61,7 +61,7 @@ bind = "localhost:3000"
 [servers.udpsample]
 bind = "localhost:5443"
 protocol = "udp"
-max_packets = 1
+max_responses = 1
 
   [servers.udpsample.access]
   default = "allow"
@@ -97,13 +97,14 @@ max_packets = 1
 #[servers.default]
 #
 #bind = "localhost:3000"     #  (required) "<host>:<port>"
-#protocol = "tcp"            #  (required) "tcp"
+#protocol = "tcp"            #  (required) "tcp" | "udp"
 #balance = "weight"          #  (optional [weight]) "weight" | "leastconn" | "roundrobin" | "iphash" | "leastbandwidth"
 #
 #max_connections = 0
 #client_idle_timeout = "10m"
 #backend_idle_timeout = "10m"
 #backend_connection_timeout = "5s"
+#max_responses = 1           #  (optional) for udp server - number of expected responses from backend.
 #
 ## -------------------- access management -------------------- #
 #
