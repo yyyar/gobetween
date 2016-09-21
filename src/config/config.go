@@ -182,7 +182,6 @@ type HealthcheckConfig struct {
 
 	*PingHealthcheckConfig
 	*ExecHealthcheckConfig
-	*UdpHealthcheckConfig
 }
 
 type PingHealthcheckConfig struct{}
@@ -193,7 +192,3 @@ type ExecHealthcheckConfig struct {
 	ExecExpectedNegativeOutput string `toml:"exec_expected_negative_output" json:"exec_expected_negative_output"`
 }
 
-type UdpHealthcheckConfig struct {
-	UdpSendPattern     string  `toml:"udp_send_pattern" json:"udp_send_pattern"`
-	UdpExpectedPattern *string `toml:"udp_expected_pattern" json:"udp_expected_pattern"`
-}

@@ -67,9 +67,7 @@ func (c *session) start(serverConn *net.UDPConn, sessionManager *sessionManager,
 			case <-c.touchC:
 				c.lastUpdated = time.Now()
 			case now := <-ticker.C:
-				log.Info("DA")
 				if c.lastUpdated.Add(timeout).Before(now) {
-					log.Info("Stopping")
 					c.stop()
 				}
 			}

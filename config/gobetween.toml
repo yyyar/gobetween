@@ -81,11 +81,12 @@ max_responses = 1
   ]
 
   [servers.udpsample.healthcheck]
-  kind = "udp"
+  kind = "exec"
   interval = "2s"
   timeout = "5s"
-  udp_send_pattern = "24 1a 01 00 00 01 00 00000000000377777706676f6f676c6503636f6d0000010001"
-  udp_expected_pattern = "24 1a 81 80 00 01 00"
+  exec_command = "./share/healthcheck/udp_dns.sh"
+  exec_expected_positive_output = "1"
+  exec_expected_negative_output = "0"
 
 
 # -------------------- example ----------------------------- #
@@ -132,12 +133,6 @@ max_responses = 1
 #  exec_command = "/path/to/healthcheck.sh"      # (required) command to execute
 #  exec_expected_positive_output = "1"           # (required) expected output of command in case of success
 #  exec_expected_negative_output = "0"           # (required) expected output of command in case of failure
-#
-#  # -- udp -- #
-#  kind = "udp"                                 # Unavailableif server.protocol is tcp
-#  send_pattern =     "24 1a 01 00 00 01 00"    # (required) hex pattern to send.
-#  expected_pattern = "24 1a 81 00 (04|05)"     # (optional) regexp to check up to 1024 first bytes of the response
-#                                               # Default -- any response
 #
 ## -------------------- discovery ---------------------------- #
 #

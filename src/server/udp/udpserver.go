@@ -155,6 +155,9 @@ func (this *UDPServer) Listen() error {
 				continue
 			}
 
+			received := make([]byte, n)
+			copy(received, buf[0:n])
+
 			go func(received []byte) {
 
 				if session, ok := this.sessionManager.getForAddr(clientAddr); ok {
@@ -177,7 +180,7 @@ func (this *UDPServer) Listen() error {
 				session := this.sessionManager.createSession(clientAddr, &this.scheduler, backend)
 				session.start(serverConn, this.sessionManager, this.sessionTimeout, maxResponses)
 				session.sendToBackend(received)
-			}(buf[0:n])
+			}(received)
 		}
 	}()
 
