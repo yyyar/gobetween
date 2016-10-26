@@ -57,7 +57,8 @@ type ConnectionOptions struct {
 	ClientIdleTimeout        *string `toml:"client_idle_timeout" json:"client_idle_timeout"`
 	BackendIdleTimeout       *string `toml:"backend_idle_timeout" json:"backend_idle_timeout"`
 	BackendConnectionTimeout *string `toml:"backend_connection_timeout" json:"backend_connection_timeout"`
-	MaxResponses             *int    `toml:"max_responses" json:"max_responses"`
+	UdpResponses             *int    `toml:"udp_responses" json:"udp_responses"`
+	UdpSessionTimeout        *string `toml:"udp_session_timeout json:"udp_session_timeout"`
 }
 
 /**
@@ -191,4 +192,3 @@ type ExecHealthcheckConfig struct {
 	ExecExpectedPositiveOutput string `toml:"exec_expected_positive_output" json:"exec_expected_positive_output"`
 	ExecExpectedNegativeOutput string `toml:"exec_expected_negative_output" json:"exec_expected_negative_output"`
 }
-

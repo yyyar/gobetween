@@ -1,5 +1,5 @@
 /**
- * tcpserver.go - TCP server implementation
+ * server.go - TCP server implementation
  *
  * @author Yaroslav Pogrebnyak <yyyaroslav@gmail.com>
  */
@@ -23,7 +23,7 @@ import (
  * Server listens for client connections and
  * proxies it to backends
  */
-type TCPServer struct {
+type Server struct {
 
 	/* Server friendly name */
 	name string
@@ -63,14 +63,14 @@ type TCPServer struct {
 /**
  * Creates new server instance
  */
-func NewTCPServer(name string, cfg config.Server) (*TCPServer, error) {
+func New(name string, cfg config.Server) (*Server, error) {
 
 	log := logging.For("server")
 
 	var err error = nil
 
 	// Create server
-	server := &TCPServer{
+	server := &Server{
 		name:         name,
 		cfg:          cfg,
 		stop:         make(chan bool),
@@ -104,14 +104,14 @@ func NewTCPServer(name string, cfg config.Server) (*TCPServer, error) {
 /**
  * Returns current server configuration
  */
-func (this *TCPServer) Cfg() config.Server {
+func (this *Server) Cfg() config.Server {
 	return this.cfg
 }
 
 /**
  * Start server
  */
-func (this *TCPServer) Start() error {
+func (this *Server) Start() error {
 
 	go func() {
 
@@ -156,7 +156,7 @@ func (this *TCPServer) Start() error {
 /**
  * Handle client disconnection
  */
-func (this *TCPServer) HandleClientDisconnect(client net.Conn) {
+func (this *Server) HandleClientDisconnect(client net.Conn) {
 	client.Close()
 	delete(this.clients, client.RemoteAddr().String())
 	this.statsHandler.Connections <- uint(len(this.clients))
@@ -165,7 +165,7 @@ func (this *TCPServer) HandleClientDisconnect(client net.Conn) {
 /**
  * Handle new client connection
  */
-func (this *TCPServer) HandleClientConnect(client net.Conn) {
+func (this *Server) HandleClientConnect(client net.Conn) {
 
 	log := logging.For("server")
 
@@ -186,7 +186,7 @@ func (this *TCPServer) HandleClientConnect(client net.Conn) {
 /**
  * Stop, dropping all connections
  */
-func (this *TCPServer) Stop() {
+func (this *Server) Stop() {
 
 	log := logging.For("server.Listen")
 	log.Info("Stopping ", this.name)
@@ -197,7 +197,7 @@ func (this *TCPServer) Stop() {
 /**
  * Listen on specified port for a connections
  */
-func (this *TCPServer) Listen() (err error) {
+func (this *Server) Listen() (err error) {
 
 	log := logging.For("server.Listen")
 
@@ -224,7 +224,7 @@ func (this *TCPServer) Listen() (err error) {
 /**
  * Handle incoming connection and prox it to backend
  */
-func (this *TCPServer) handle(clientConn net.Conn) {
+func (this *Server) handle(clientConn net.Conn) {
 
 	log := logging.For("server.handle")
 

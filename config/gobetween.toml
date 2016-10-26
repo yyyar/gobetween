@@ -61,7 +61,8 @@ bind = "localhost:3000"
 [servers.udpsample]
 bind = "localhost:5443"
 protocol = "udp"
-max_responses = 1
+udp_responses = 1
+udp_session_timeout = "10m"
 
   [servers.udpsample.access]
   default = "allow"
@@ -105,7 +106,8 @@ max_responses = 1
 #client_idle_timeout = "10m"
 #backend_idle_timeout = "10m"
 #backend_connection_timeout = "5s"
-#max_responses = 1           #  (optional) for udp server - number of expected responses from backend.
+#udp_responses = 1           #  (optional) for udp server - number of expected responses from backend.
+#udp_session_timeout = "10m" #  (optional) for udp server - udp "session" timeout. 
 #
 ## -------------------- access management -------------------- #
 #

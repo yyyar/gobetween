@@ -122,7 +122,7 @@ func Create(name string, cfg config.Server) error {
 		return err
 	}
 
-	server, err := server.NewServer(name, c)
+	server, err := server.New(name, c)
 	if err != nil {
 		return err
 	}
@@ -243,9 +243,13 @@ func prepareConfig(name string, server config.Server, defaults config.Connection
 		return config.Server{}, errors.New("Cant use ping healthcheck with udp server")
 	}
 
-	/* MaxResponses and protocol match */
+	/* Udp related options and protocol match */
 
-	if server.MaxResponses != nil && server.Protocol != "udp" {
+	if server.UdpResponses != nil && server.Protocol != "udp" {
+		return config.Server{}, errors.New("Cant use max_responses in non udp server")
+	}
+
+	if server.UdpSessionTimeout != nil && server.Protocol != "udp" {
 		return config.Server{}, errors.New("Cant use max_responses in non udp server")
 	}
 
@@ -329,6 +333,24 @@ func prepareConfig(name string, server config.Server, defaults config.Connection
 	if server.BackendConnectionTimeout == nil {
 		server.BackendConnectionTimeout = new(string)
 		*server.BackendConnectionTimeout = *defaults.BackendConnectionTimeout
+	}
+
+	if server.Protocol == "udp" {
+		if defaults.UdpResponses == nil {
+			defaults.UdpResponses = new(int)
+			*defaults.UdpResponses = 1
+		}
+		if server.UdpResponses == nil {
+			server.UdpResponses = defaults.UdpResponses
+		}
+
+		if defaults.UdpSessionTimeout == nil {
+			defaults.UdpSessionTimeout = new(string)
+			*defaults.UdpSessionTimeout = "10m"
+		}
+		if server.UdpSessionTimeout == nil {
+			server.UdpSessionTimeout = defaults.UdpSessionTimeout
+		}
 	}
 
 	return server, nil

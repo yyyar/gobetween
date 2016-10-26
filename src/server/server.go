@@ -18,12 +18,12 @@ import (
 /**
  * Creates new Server based on cfg.Protocol
  */
-func NewServer(name string, cfg config.Server) (core.Server, error) {
+func New(name string, cfg config.Server) (core.Server, error) {
 	switch cfg.Protocol {
 	case "tcp":
-		return tcp.NewTCPServer(name, cfg)
+		return tcp.New(name, cfg)
 	case "udp":
-		return udp.NewUDPServer(name, cfg)
+		return udp.New(name, cfg)
 	default:
 		return nil, errors.New("Can't create server for protocol " + cfg.Protocol)
 	}

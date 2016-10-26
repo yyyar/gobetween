@@ -1,5 +1,5 @@
 /**
- * udp.go - udp session manager
+ * manager.go - udp session manager
  *
  * @author Illarion Kovalchuk <illarion.kovalchuk@gmail.com>
  * @author Yaroslav Pogrebnyak <yyyaroslav@gmail.com>
@@ -16,7 +16,7 @@ import (
 	"time"
 )
 
-type request struct {
+type getSessionRequest struct {
 	addr     string
 	response chan *session
 }
@@ -26,27 +26,54 @@ type request struct {
  */
 type sessionManager struct {
 	sessions     map[string]*session
+	scheduler    *scheduler.Scheduler
 	statsHandler *stats.Handler
 	sessionCount uint
-	addC         chan *session
-	remC         chan *session
+	addSessionC  chan *session
+	delSessionC  chan *session
 	stopC        chan bool
-	getC         chan *request
+	getSessionC  chan *getSessionRequest
 }
 
 /**
  * Creates new session manager
  */
-func newSessionManager(statsHandler *stats.Handler) *sessionManager {
+func newSessionManager(scheduler *scheduler.Scheduler, statsHandler *stats.Handler) *sessionManager {
 	return &sessionManager{
+		scheduler:    scheduler,
 		statsHandler: statsHandler,
 		sessions:     make(map[string]*session),
 		sessionCount: 0,
-		addC:         make(chan *session),
-		remC:         make(chan *session),
+		addSessionC:  make(chan *session),
+		delSessionC:  make(chan *session),
 		stopC:        make(chan bool),
-		getC:         make(chan *request),
+		getSessionC:  make(chan *getSessionRequest),
 	}
+}
+
+/**
+ * Sends buf received from serverConn, to backend on behalf of client, identified by clientAddr. Automatically selects backend.
+ */
+func (sm *sessionManager) Send(serverConn *net.UDPConn, clientAddr *net.UDPAddr, sessionTimeout time.Duration, udpResponses *int, buf []byte) error {
+
+	if session, ok := sm.getSession(clientAddr); ok {
+		session.send(buf)
+		return nil
+	}
+
+	backend, err := sm.scheduler.TakeBackend(&core.UdpContext{
+		RemoteAddr: *clientAddr,
+	})
+
+	if err != nil {
+		return err
+	}
+
+	session := sm.createSession(clientAddr, sm.scheduler, backend)
+	session.start(serverConn, sm, sessionTimeout, udpResponses)
+	session.send(buf)
+
+	return nil
 }
 
 /**
@@ -95,19 +122,19 @@ func (sm *sessionManager) start() {
 			select {
 
 			/* Handle adding new session */
-			case session := <-sm.addC:
+			case session := <-sm.addSessionC:
 				sm.sessionCount++
 				sm.statsHandler.Connections <- sm.sessionCount
 				sm.sessions[session.clientAddr.String()] = session
 
 			/* Handle removig expired session */
-			case session := <-sm.remC:
+			case session := <-sm.delSessionC:
 				sm.sessionCount--
 				sm.statsHandler.Connections <- sm.sessionCount
 				delete(sm.sessions, session.clientAddr.String())
 
 			/* Handle get session request */
-			case request := <-sm.getC:
+			case request := <-sm.getSessionC:
 				session, ok := sm.sessions[request.addr]
 				if ok {
 					request.response <- session
@@ -129,12 +156,12 @@ func (sm *sessionManager) start() {
 /**
  * Returns sesion for client if exists
  */
-func (sm *sessionManager) getForAddr(clientAddr *net.UDPAddr) (*session, bool) {
-	request := &request{
+func (sm *sessionManager) getSession(clientAddr *net.UDPAddr) (*session, bool) {
+	request := &getSessionRequest{
 		addr:     clientAddr.String(),
 		response: make(chan *session),
 	}
-	sm.getC <- request
+	sm.getSessionC <- request
 	session := <-request.response
 	return session, session != nil
 }
@@ -144,7 +171,7 @@ func (sm *sessionManager) getForAddr(clientAddr *net.UDPAddr) (*session, bool) {
  */
 func (sm *sessionManager) add(session *session) {
 	go func() {
-		sm.addC <- session
+		sm.addSessionC <- session
 	}()
 }
 
@@ -153,14 +180,14 @@ func (sm *sessionManager) add(session *session) {
  */
 func (sm *sessionManager) remove(session *session) {
 	go func() {
-		sm.remC <- session
+		sm.delSessionC <- session
 	}()
 }
 
 /**
  * Stops session manager
  */
-func (sm *sessionManager) stop() {
+func (sm *sessionManager) Stop() {
 	go func() {
 		sm.stopC <- true
 	}()

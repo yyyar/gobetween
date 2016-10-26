@@ -102,7 +102,7 @@ func (c *session) start(serverConn *net.UDPConn, sessionManager *sessionManager,
 /**
  * Writes data to session backend
  */
-func (c *session) sendToBackend(buf []byte) {
+func (c *session) send(buf []byte) {
 	go func() {
 		c.backendConn.Write(buf)
 		c.touch()
