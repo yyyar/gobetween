@@ -36,7 +36,7 @@ bind = ":8888"  # "host:port"
 # <int><duration> where duration can be one of 'ms', 's', 'm', 'h'.
 # Examples: "5s", "1m", "500ms", etc. "0" value means no limit
 #
-[defaults] 
+[defaults]
 max_connections = 0              # Maximum simultaneous connections to the server
 client_idle_timeout = "0"        # Client inactivity duration before forced connection drop
 backend_idle_timeout = "0"       # Backend inactivity duration before forced connection drop
@@ -49,6 +49,7 @@ backend_connection_timeout = "0" # Backend connection timeout
 [servers]
 
 [servers.sample]
+protocol = "tcp"
 bind = "localhost:3000"
 
   [servers.sample.discovery]
@@ -68,7 +69,7 @@ bind = "localhost:3000"
 #[servers.default]
 #
 #bind = "localhost:3000"     #  (required) "<host>:<port>"
-#protocol = "tcp"            #  (required) "tcp"
+#protocol = "tcp"            #  (required) "tcp" | "tls"
 #balance = "weight"          #  (optional [weight]) "weight" | "leastconn" | "roundrobin" | "iphash" | "leastbandwidth"
 #
 #max_connections = 0
@@ -76,9 +77,21 @@ bind = "localhost:3000"
 #backend_idle_timeout = "10m"
 #backend_connection_timeout = "5s"
 #
+#
+## ---------------------- tls properties --------------------- #
+#
+#  [servers.default.tls]             # (required) if protocol == "tls"
+#  cert_path = "/path/to/file.crt"   # (required) path to crt file
+#  key_path = "/path/to/file.key"    # (required) path to key file
+#  min_version = "tls1"              # (optional) "ssl3" | "tls1" | "tls1.1" | "tls1.2" - minimum allowed tls version
+#  max_version = "tls1.2"            # (optional) maximum allowed tls version
+#  ciphers = []                      # (optional) list of supported ciphers. Empty means all supported. For a list see https://golang.org/pkg/crypto/tls/#pkg-constants
+#  prefer_server_ciphers = false     # (optional) if true server selects server's most preferred cipher
+#  session_tickets = true            # (optional) if true enables session tickets
+#
 ## -------------------- access management -------------------- #
 #
-#  [servers.sample.access]   # (optional)
+#  [servers.default.access]  # (optional)
 #  default = "allow"         # (required) default access order
 #  rules = [                 # (required) list of access rules in
 #    "deny 127.0.0.1",       #   the following format: <deny|allow> <ip|network>

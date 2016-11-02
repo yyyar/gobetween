@@ -74,6 +74,9 @@ type Server struct {
 	// weight | leastconn | roundrobin
 	Balance string `toml:"balance" json:"balance"`
 
+	// Optional configuration for protocol = tls
+	Tls *Tls `toml:"tls" json:"tls"`
+
 	// Access configuration
 	Access *AccessConfig `toml:"access" json:"access"`
 
@@ -82,6 +85,20 @@ type Server struct {
 
 	// Healthcheck configuration
 	Healthcheck *HealthcheckConfig `toml:"healthcheck" json:"healthcheck"`
+}
+
+/**
+ * Server Tls options
+ * for protocol = "tls"
+ */
+type Tls struct {
+	CertPath            string   `toml:"cert_path" json:"cert_path"`
+	KeyPath             string   `toml:"key_path" json:"key_path"`
+	Ciphers             []string `toml:"ciphers" json:"ciphers"`
+	PreferServerCiphers bool     `toml:"prefer_server_ciphers" json:"prefer_server_ciphers"`
+	MinVersion          string   `toml:"min_version" json:"min_version"`
+	MaxVersion          string   `toml:"max_version" json:"max_version"`
+	SessionTickets      bool     `toml:"session_tickets" json:"session_tickets"`
 }
 
 /**

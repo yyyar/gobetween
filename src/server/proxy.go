@@ -84,7 +84,8 @@ func proxy(to net.Conn, from net.Conn, timeout time.Duration) <-chan core.ReadWr
 	go func() {
 		err := Copy(to, from, stats)
 		// hack to determine normal close. TODO: fix when it will be exposed in golang
-		if err != nil && err.(*net.OpError).Err.Error() != "use of closed network connection" {
+		e, ok := err.(*net.OpError)
+		if err != nil && (!ok || e.Err.Error() != "use of closed network connection") {
 			log.Warn(err)
 		}
 

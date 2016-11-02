@@ -15,7 +15,9 @@ import (
 	"../logging"
 	"../stats"
 	"../utils"
+	tlsutil "../utils/tls"
 	"./modules/access"
+	"crypto/tls"
 	"net"
 )
 
@@ -201,8 +203,30 @@ func (this *Server) Listen() (err error) {
 
 	log := logging.For("server.Listen")
 
-	if this.listener, err = net.Listen("tcp", this.cfg.Bind); err != nil {
-		log.Error("Error starting TCP server: ", err)
+	if this.cfg.Protocol == "tcp" {
+		// Create tcp listener
+		this.listener, err = net.Listen("tcp", this.cfg.Bind)
+
+	} else {
+		// Create tls listener
+		var crt tls.Certificate
+		if crt, err = tls.LoadX509KeyPair(this.cfg.Tls.CertPath, this.cfg.Tls.KeyPath); err != nil {
+			log.Error(err)
+			return err
+		}
+
+		this.listener, err = tls.Listen("tcp", this.cfg.Bind, &tls.Config{
+			Certificates:             []tls.Certificate{crt},
+			CipherSuites:             tlsutil.MapCiphers(this.cfg.Tls.Ciphers),
+			PreferServerCipherSuites: this.cfg.Tls.PreferServerCiphers,
+			MinVersion:               tlsutil.MapVersion(this.cfg.Tls.MinVersion),
+			MaxVersion:               tlsutil.MapVersion(this.cfg.Tls.MaxVersion),
+			SessionTicketsDisabled:   !this.cfg.Tls.SessionTickets,
+		})
+	}
+
+	if err != nil {
+		log.Error("Error starting ", this.cfg.Protocol+" server: ", err)
 		return err
 	}
 
@@ -248,7 +272,7 @@ func (this *Server) handle(clientConn net.Conn) {
 	}
 
 	/* Connect to backend */
-	backendConn, err := net.DialTimeout(this.cfg.Protocol, backend.Address(), utils.ParseDurationOrDefault(*this.cfg.BackendConnectionTimeout, 0))
+	backendConn, err := net.DialTimeout("tcp", backend.Address(), utils.ParseDurationOrDefault(*this.cfg.BackendConnectionTimeout, 0))
 	if err != nil {
 		this.scheduler.IncrementRefused(*backend)
 		log.Error(err)

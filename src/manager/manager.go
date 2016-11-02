@@ -222,10 +222,14 @@ func prepareConfig(name string, server config.Server, defaults config.Connection
 
 	/* Balance */
 	switch server.Protocol {
-	case
-		"tcp":
 	case "":
 		server.Protocol = "tcp"
+	case "tls":
+		if server.Tls == nil {
+			return config.Server{}, errors.New("Need tls section for tls protocol")
+		}
+		fallthrough
+	case "tcp":
 	default:
 		return config.Server{}, errors.New("Not supported protocol " + server.Protocol)
 	}
