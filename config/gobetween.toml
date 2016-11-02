@@ -59,6 +59,37 @@ bind = "localhost:3000"
       "localhost:8001"
   ]
 
+[servers.udpsample]
+bind = "localhost:5443"
+protocol = "udp"
+udp_responses = 1
+udp_session_timeout = "10m"
+
+  [servers.udpsample.access]
+  default = "allow"
+  rules = [
+    "allow 127.0.0.1",
+    "deny 192.168.0.1",
+    "allow 192.168.0.1/24",
+  ]
+
+  [servers.udpsample.discovery]
+  kind = "static"
+  static_list = [
+      "8.8.8.8:53",
+      "8.8.4.4:53",
+      "91.239.100.100:53",
+      "1.1.1.1:54"
+  ]
+
+  [servers.udpsample.healthcheck]
+  kind = "exec"
+  interval = "2s"
+  timeout = "5s"
+  exec_command = "./share/healthcheck/udp_dns.sh"
+  exec_expected_positive_output = "1"
+  exec_expected_negative_output = "0"
+
 
 # -------------------- example ----------------------------- #
 
@@ -69,13 +100,15 @@ bind = "localhost:3000"
 #[servers.default]
 #
 #bind = "localhost:3000"     #  (required) "<host>:<port>"
-#protocol = "tcp"            #  (required) "tcp" | "tls"
+#protocol = "tcp"            #  (required) "tcp" | "tls" | "udp"
 #balance = "weight"          #  (optional [weight]) "weight" | "leastconn" | "roundrobin" | "iphash" | "leastbandwidth"
 #
 #max_connections = 0
 #client_idle_timeout = "10m"
 #backend_idle_timeout = "10m"
 #backend_connection_timeout = "5s"
+#udp_responses = 1           #  (optional) for udp server - number of expected responses from backend.
+#udp_session_timeout = "10m" #  (optional) for udp server - udp "session" timeout. 
 #
 #
 ## ---------------------- tls properties --------------------- #
@@ -108,14 +141,13 @@ bind = "localhost:3000"
 #  passes = 1                      # (optional) successfull checks to mark backend as active
 #
 #  # -- ping -- #
-#  kind = "ping"
+#  kind = "ping"                   # Unavailable if server.protocol is udp
 #
 #  # -- exec -- #
 #  kind = "exec"
 #  exec_command = "/path/to/healthcheck.sh"      # (required) command to execute
 #  exec_expected_positive_output = "1"           # (required) expected output of command in case of success
 #  exec_expected_negative_output = "0"           # (required) expected output of command in case of failure
-#
 #
 ## -------------------- discovery ---------------------------- #
 #
