@@ -305,7 +305,8 @@ func prepareConfig(name string, server config.Server, defaults config.Connection
 		defaults.MaxConnections = new(int)
 	}
 	if server.MaxConnections == nil {
-		server.MaxConnections = defaults.MaxConnections
+		server.MaxConnections = new(int)
+		*server.MaxConnections = *defaults.MaxConnections
 	}
 
 	if defaults.ClientIdleTimeout == nil {
@@ -341,7 +342,8 @@ func prepareConfig(name string, server config.Server, defaults config.Connection
 			*defaults.UdpResponses = 1
 		}
 		if server.UdpResponses == nil {
-			server.UdpResponses = defaults.UdpResponses
+			server.UdpResponses = new(int)
+			*server.UdpResponses = *defaults.UdpResponses
 		}
 
 		if defaults.UdpSessionTimeout == nil {
@@ -349,7 +351,8 @@ func prepareConfig(name string, server config.Server, defaults config.Connection
 			*defaults.UdpSessionTimeout = "10m"
 		}
 		if server.UdpSessionTimeout == nil {
-			server.UdpSessionTimeout = defaults.UdpSessionTimeout
+			server.UdpSessionTimeout = new(string)
+			*server.UdpSessionTimeout = *defaults.UdpSessionTimeout
 		}
 	}
 
