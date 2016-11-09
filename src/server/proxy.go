@@ -42,7 +42,7 @@ func proxy(to net.Conn, from net.Conn, timeout time.Duration) <-chan core.ReadWr
 	go func() {
 
 		if timeout > 0 {
-			to.SetReadDeadline(time.Now().Add(timeout))
+			from.SetReadDeadline(time.Now().Add(timeout))
 		}
 
 		for {
@@ -64,7 +64,7 @@ func proxy(to net.Conn, from net.Conn, timeout time.Duration) <-chan core.ReadWr
 				}
 
 				if timeout > 0 && rwc.CountRead > 0 {
-					to.SetReadDeadline(time.Now().Add(timeout))
+					from.SetReadDeadline(time.Now().Add(timeout))
 				}
 
 				// Remove non blocking
@@ -72,7 +72,7 @@ func proxy(to net.Conn, from net.Conn, timeout time.Duration) <-chan core.ReadWr
 					rwcBuffer = rwc
 				} else {
 					rwcBuffer.CountWrite += rwc.CountWrite
-					rwcBuffer.CountRead = rwc.CountRead
+					rwcBuffer.CountRead += rwc.CountRead
 				}
 
 				flushed = false
