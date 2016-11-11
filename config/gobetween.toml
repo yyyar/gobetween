@@ -40,7 +40,7 @@ bind = ":8888"  # "host:port"
 max_connections = 0              # Maximum simultaneous connections to the server
 client_idle_timeout = "0"        # Client inactivity duration before forced connection drop
 backend_idle_timeout = "0"       # Backend inactivity duration before forced connection drop
-backend_connection_timeout = "0" # Backend connection timeout
+backend_connection_timeout = "0" # Backend connection timeout (ignored in udp)
 
 
 #
@@ -62,8 +62,9 @@ bind = "localhost:3000"
 [servers.udpsample]
 bind = "localhost:5443"
 protocol = "udp"
-udp_responses = 1
-udp_session_timeout = "10m"
+
+  [servers.udpsample.udp]
+    max_responses = 1
 
   [servers.udpsample.access]
   default = "allow"
@@ -90,7 +91,7 @@ udp_session_timeout = "10m"
   exec_expected_positive_output = "1"
   exec_expected_negative_output = "0"
 
-
+#
 # -------------------- example ----------------------------- #
 
 ##
@@ -107,8 +108,6 @@ udp_session_timeout = "10m"
 #client_idle_timeout = "10m"
 #backend_idle_timeout = "10m"
 #backend_connection_timeout = "5s"
-#udp_responses = 1           #  (optional) for udp server - number of expected responses from backend.
-#udp_session_timeout = "10m" #  (optional) for udp server - udp "session" timeout. 
 #
 #
 ## ---------------------- tls properties --------------------- #
@@ -121,6 +120,12 @@ udp_session_timeout = "10m"
 #  ciphers = []                      # (optional) list of supported ciphers. Empty means all supported. For a list see https://golang.org/pkg/crypto/tls/#pkg-constants
 #  prefer_server_ciphers = false     # (optional) if true server selects server's most preferred cipher
 #  session_tickets = true            # (optional) if true enables session tickets
+#
+#
+## ---------------------- udp properties --------------------- #
+#  [servers.default.udp]
+#  max_responses = 1
+#
 #
 ## -------------------- access management -------------------- #
 #

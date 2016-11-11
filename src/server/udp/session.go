@@ -9,7 +9,6 @@ package udp
 import (
 	"../../core"
 	"../../logging"
-	"../../stats"
 	"../scheduler"
 	"net"
 	"time"
@@ -19,15 +18,26 @@ import (
  * Emulates UDP "session"
  */
 type session struct {
+	/* timeout for new data from client */
+	clientIdleTimeout time.Duration
 
-	/* client address */
-	clientAddr *net.UDPAddr
+	/* timeout for new data from backend */
+	backendIdleTimeout time.Duration
 
-	/* stats handler */
-	statsHandler *stats.Handler
+	/* max number of backend responses */
+	udpResponses int
+
+	/* owner of session */
+	sessionManager *sessionManager
 
 	/* scheduler */
 	scheduler *scheduler.Scheduler
+
+	/* connection to send responses to client with */
+	serverConn *net.UDPConn
+
+	/* client address */
+	clientAddr *net.UDPAddr
 
 	/* Session backend */
 	backend *core.Backend
@@ -35,13 +45,9 @@ type session struct {
 	/* connection to previously elected backend */
 	backendConn *net.UDPConn
 
-	/* Time where session was touched last time */
-	lastUpdated time.Time
-
-	/* ----- channels ----- */
-
-	/* touch channel */
-	touchC chan bool
+	/* activity channel */
+	clientActivityC    chan bool
+	clientLastActivity time.Time
 
 	/* stop channel */
 	stopC chan bool
@@ -50,26 +56,60 @@ type session struct {
 /**
  * Start session
  */
-func (c *session) start(serverConn *net.UDPConn, sessionManager *sessionManager, timeout time.Duration, maxResponses *int) {
+func (s *session) start() error {
 
-	log := logging.For("udp/session")
+	log := logging.For("udp/Session")
+
+	s.stopC = make(chan bool)
+	s.clientActivityC = make(chan bool)
+	s.clientLastActivity = time.Now()
+
+	backendAddr, err := net.ResolveUDPAddr("udp", s.backend.Target.String())
+
+	if err != nil {
+		log.Error("Error ResolveUDPAddr: ", err)
+		return err
+	}
+
+	backendConn, err := net.DialUDP("udp", nil, backendAddr)
+
+	if err != nil {
+		log.Debug("Error connecting to backend: ", err)
+		return err
+	}
+
+	s.backendConn = backendConn
+
+	/**
+	 * Update time and wait for stop
+	 */
+	var t *time.Ticker
+	var tC <-chan time.Time
+
+	if s.clientIdleTimeout > 0 {
+		log.Debug("Starting new ticker for client ", s.clientAddr, " ", s.clientIdleTimeout)
+		t = time.NewTicker(s.clientIdleTimeout)
+		tC = t.C
+	}
 
 	go func() {
-
-		ticker := time.NewTicker(timeout)
 		for {
 			select {
-			case <-c.stopC:
-				ticker.Stop()
-				c.scheduler.DecrementConnection(*c.backend)
-				c.backendConn.Close()
-				sessionManager.remove(c)
-			case <-c.touchC:
-				c.lastUpdated = time.Now()
-			case now := <-ticker.C:
-				if c.lastUpdated.Add(timeout).Before(now) {
-					c.stop()
+			case now := <-tC:
+				if s.clientLastActivity.Add(s.clientIdleTimeout).Before(now) {
+					log.Debug("Client ", s.clientAddr, " was idle for more than ", s.clientIdleTimeout)
+					s.stopC <- true
 				}
+			case <-s.stopC:
+				log.Debug("Closing client session: ", s.clientAddr)
+				s.backendConn.Close()
+				s.sessionManager.remove(s)
+				if t != nil {
+					t.Stop()
+				}
+				return
+			case <-s.clientActivityC:
+				s.clientLastActivity = time.Now()
 			}
 		}
 	}()
@@ -78,53 +118,62 @@ func (c *session) start(serverConn *net.UDPConn, sessionManager *sessionManager,
 	 * Proxy data from backend to client
 	 */
 	go func() {
-		var buf = make([]byte, UDP_PACKET_SIZE)
-		var responses = 0
+		buf := make([]byte, UDP_PACKET_SIZE)
+		responses := 0
+
 		for {
-			n, _, err := c.backendConn.ReadFromUDP(buf)
-			responses++
+			if s.backendIdleTimeout > 0 {
+				err := s.backendConn.SetReadDeadline(time.Now().Add(s.backendIdleTimeout))
+				if err != nil {
+					log.Error("Unable to set timeout for backend connection, closing", err)
+					s.stop()
+					return
+				}
+			}
+			n, _, err := s.backendConn.ReadFromUDP(buf)
 
 			if err != nil {
-				log.Debug("Closing client ", c.clientAddr.String())
-				break
+
+				if !err.(*net.OpError).Timeout() {
+					log.Error("Error reading from backend", err)
+				}
+
+				s.stop()
+				return
 			}
 
-			c.touch()
-			c.scheduler.IncrementRx(*c.backend, uint(n))
-			serverConn.WriteToUDP(buf[0:n], c.clientAddr)
-			if maxResponses != nil && responses >= *maxResponses {
-				c.stop()
+			s.scheduler.IncrementRx(*s.backend, uint(n))
+			s.serverConn.WriteToUDP(buf[0:n], s.clientAddr)
+
+			if s.udpResponses > 0 {
+				responses++
+				if responses >= s.udpResponses {
+					s.stop()
+					return
+				}
 			}
 		}
 	}()
+	return nil
 }
 
 /**
  * Writes data to session backend
  */
-func (c *session) send(buf []byte) {
-	go func() {
-		c.backendConn.Write(buf)
-		c.touch()
-		n := len(buf)
-		c.scheduler.IncrementTx(*c.backend, uint(n))
-	}()
-}
+func (s *session) send(buf []byte) error {
+	s.clientActivityC <- true
 
-/**
- * Touches session
- */
-func (c *session) touch() {
-	go func() {
-		c.touchC <- true
-	}()
+	_, err := s.backendConn.Write(buf)
+	if err != nil {
+		return err
+	}
+	s.scheduler.IncrementTx(*s.backend, uint(len(buf)))
+	return nil
 }
 
 /**
  * Stops session
  */
 func (c *session) stop() {
-	go func() {
-		c.stopC <- true
-	}()
+	c.stopC <- true
 }

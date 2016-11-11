@@ -57,8 +57,6 @@ type ConnectionOptions struct {
 	ClientIdleTimeout        *string `toml:"client_idle_timeout" json:"client_idle_timeout"`
 	BackendIdleTimeout       *string `toml:"backend_idle_timeout" json:"backend_idle_timeout"`
 	BackendConnectionTimeout *string `toml:"backend_connection_timeout" json:"backend_connection_timeout"`
-	UdpResponses             *int    `toml:"udp_responses" json:"udp_responses"`
-	UdpSessionTimeout        *string `toml:"udp_session_timeout" json:"udp_session_timeout"`
 }
 
 /**
@@ -78,6 +76,9 @@ type Server struct {
 
 	// Optional configuration for protocol = tls
 	Tls *Tls `toml:"tls" json:"tls"`
+
+	// Optional configuration for protocol = udp
+	Udp *Udp `toml:"udp" json:"udp"`
 
 	// Access configuration
 	Access *AccessConfig `toml:"access" json:"access"`
@@ -101,6 +102,14 @@ type Tls struct {
 	MinVersion          string   `toml:"min_version" json:"min_version"`
 	MaxVersion          string   `toml:"max_version" json:"max_version"`
 	SessionTickets      bool     `toml:"session_tickets" json:"session_tickets"`
+}
+
+/**
+ * Server udp options
+ * for protocol = "udp"
+ */
+type Udp struct {
+	MaxResponses int `toml:"max_responses" json:"max_responses"`
 }
 
 /**

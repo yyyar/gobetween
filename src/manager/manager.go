@@ -248,14 +248,6 @@ func prepareConfig(name string, server config.Server, defaults config.Connection
 
 	/* Udp related options and protocol match */
 
-	if server.UdpResponses != nil && server.Protocol != "udp" {
-		return config.Server{}, errors.New("Cant use max_responses in non udp server")
-	}
-
-	if server.UdpSessionTimeout != nil && server.Protocol != "udp" {
-		return config.Server{}, errors.New("Cant use max_responses in non udp server")
-	}
-
 	/* Balance */
 	switch server.Balance {
 	case
@@ -337,26 +329,6 @@ func prepareConfig(name string, server config.Server, defaults config.Connection
 	if server.BackendConnectionTimeout == nil {
 		server.BackendConnectionTimeout = new(string)
 		*server.BackendConnectionTimeout = *defaults.BackendConnectionTimeout
-	}
-
-	if server.Protocol == "udp" {
-		if defaults.UdpResponses == nil {
-			defaults.UdpResponses = new(int)
-			*defaults.UdpResponses = 1
-		}
-		if server.UdpResponses == nil {
-			server.UdpResponses = new(int)
-			*server.UdpResponses = *defaults.UdpResponses
-		}
-
-		if defaults.UdpSessionTimeout == nil {
-			defaults.UdpSessionTimeout = new(string)
-			*defaults.UdpSessionTimeout = "10m"
-		}
-		if server.UdpSessionTimeout == nil {
-			server.UdpSessionTimeout = new(string)
-			*server.UdpSessionTimeout = *defaults.UdpSessionTimeout
-		}
 	}
 
 	return server, nil

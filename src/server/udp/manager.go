@@ -8,12 +8,12 @@
 package udp
 
 import (
+	"../../config"
 	"../../core"
-	"../../logging"
 	"../../stats"
+	"../../utils"
 	"../scheduler"
 	"net"
-	"time"
 )
 
 type getSessionRequest struct {
@@ -25,40 +25,40 @@ type getSessionRequest struct {
  * SessionManager emulates UDP "session" and manages them
  */
 type sessionManager struct {
+	cfg          config.Server
 	sessions     map[string]*session
 	scheduler    *scheduler.Scheduler
 	statsHandler *stats.Handler
 	sessionCount uint
 	addSessionC  chan *session
 	delSessionC  chan *session
-	stopC        chan bool
 	getSessionC  chan *getSessionRequest
+	stopC        chan bool
 }
 
 /**
  * Creates new session manager
  */
-func newSessionManager(scheduler *scheduler.Scheduler, statsHandler *stats.Handler) *sessionManager {
+func newSessionManager(cfg config.Server, scheduler *scheduler.Scheduler, statsHandler *stats.Handler) *sessionManager {
 	return &sessionManager{
+		cfg:          cfg,
 		scheduler:    scheduler,
 		statsHandler: statsHandler,
 		sessions:     make(map[string]*session),
-		sessionCount: 0,
 		addSessionC:  make(chan *session),
 		delSessionC:  make(chan *session),
-		stopC:        make(chan bool),
 		getSessionC:  make(chan *getSessionRequest),
+		stopC:        make(chan bool),
 	}
 }
 
 /**
  * Sends buf received from serverConn, to backend on behalf of client, identified by clientAddr. Automatically selects backend.
  */
-func (sm *sessionManager) Send(serverConn *net.UDPConn, clientAddr *net.UDPAddr, sessionTimeout time.Duration, udpResponses *int, buf []byte) error {
+func (sm *sessionManager) Send(serverConn *net.UDPConn, clientAddr *net.UDPAddr, buf []byte) error {
 
 	if session, ok := sm.getSession(clientAddr); ok {
-		session.send(buf)
-		return nil
+		return session.send(buf)
 	}
 
 	backend, err := sm.scheduler.TakeBackend(&core.UdpContext{
@@ -69,48 +69,44 @@ func (sm *sessionManager) Send(serverConn *net.UDPConn, clientAddr *net.UDPAddr,
 		return err
 	}
 
-	session := sm.createSession(clientAddr, sm.scheduler, backend)
-	session.start(serverConn, sm, sessionTimeout, udpResponses)
-	session.send(buf)
+	session, err := sm.createSession(clientAddr, serverConn, backend)
 
-	return nil
+	if err != nil {
+		return err
+	}
+
+	return session.send(buf)
 }
 
 /**
  * Creates new sessions; adds to itself and returns it
  */
-func (sm *sessionManager) createSession(addr *net.UDPAddr, scheduler *scheduler.Scheduler, backend *core.Backend) *session {
+func (sm *sessionManager) createSession(addr *net.UDPAddr, serverConn *net.UDPConn, backend *core.Backend) (*session, error) {
 
-	log := logging.For("udp.SessionManager.createSession")
-
-	backendAddr, err := net.ResolveUDPAddr("udp", backend.Target.String())
-	if err != nil {
-		log.Error("Error ResolveUDPAddr: ", err)
-		return nil
+	udpResponses := 0
+	if sm.cfg.Udp != nil {
+		udpResponses = sm.cfg.Udp.MaxResponses
 	}
-
-	backendConn, err := net.DialUDP("udp", nil, backendAddr)
-
-	if err != nil {
-		log.Debug("Error connecting to backend: ", err)
-		return nil
-	}
-
-	scheduler.IncrementConnection(*backend)
 
 	session := &session{
-		clientAddr:   addr,
-		statsHandler: sm.statsHandler,
-		scheduler:    scheduler,
-		backend:      backend,
-		backendConn:  backendConn,
-		lastUpdated:  time.Now(),
-		touchC:       make(chan bool),
-		stopC:        make(chan bool),
+		clientIdleTimeout:  utils.ParseDurationOrDefault(*sm.cfg.ClientIdleTimeout, 0),
+		backendIdleTimeout: utils.ParseDurationOrDefault(*sm.cfg.BackendIdleTimeout, 0),
+		udpResponses:       udpResponses,
+		sessionManager:     sm,
+		scheduler:          sm.scheduler,
+		serverConn:         serverConn,
+		clientAddr:         addr,
+		backend:            backend,
+	}
+
+	err := session.start()
+	if err != nil {
+		session.stop()
+		return nil, err
 	}
 
 	sm.add(session)
-	return session
+	return session, nil
 }
 
 /**
@@ -124,12 +120,14 @@ func (sm *sessionManager) start() {
 			/* Handle adding new session */
 			case session := <-sm.addSessionC:
 				sm.sessionCount++
+				sm.scheduler.IncrementConnection(*session.backend)
 				sm.statsHandler.Connections <- sm.sessionCount
 				sm.sessions[session.clientAddr.String()] = session
 
 			/* Handle removig expired session */
 			case session := <-sm.delSessionC:
 				sm.sessionCount--
+				sm.scheduler.DecrementConnection(*session.backend)
 				sm.statsHandler.Connections <- sm.sessionCount
 				delete(sm.sessions, session.clientAddr.String())
 
@@ -147,6 +145,7 @@ func (sm *sessionManager) start() {
 				for _, session := range sm.sessions {
 					session.stop()
 				}
+				return
 			}
 
 		}
