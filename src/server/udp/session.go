@@ -27,9 +27,6 @@ type session struct {
 	/* max number of backend responses */
 	udpResponses int
 
-	/* owner of session */
-	sessionManager *sessionManager
-
 	/* scheduler */
 	scheduler *scheduler.Scheduler
 
@@ -37,7 +34,7 @@ type session struct {
 	serverConn *net.UDPConn
 
 	/* client address */
-	clientAddr *net.UDPAddr
+	clientAddr net.UDPAddr
 
 	/* Session backend */
 	backend *core.Backend
@@ -51,6 +48,9 @@ type session struct {
 
 	/* stop channel */
 	stopC chan bool
+
+	/* channel to notify that session is closed */
+	notify chan net.UDPAddr
 }
 
 /**
@@ -103,7 +103,7 @@ func (s *session) start() error {
 			case <-s.stopC:
 				log.Debug("Closing client session: ", s.clientAddr)
 				s.backendConn.Close()
-				s.sessionManager.remove(s)
+				s.notify <- s.clientAddr
 				if t != nil {
 					t.Stop()
 				}
@@ -143,7 +143,7 @@ func (s *session) start() error {
 			}
 
 			s.scheduler.IncrementRx(*s.backend, uint(n))
-			s.serverConn.WriteToUDP(buf[0:n], s.clientAddr)
+			s.serverConn.WriteToUDP(buf[0:n], &s.clientAddr)
 
 			if s.udpResponses > 0 {
 				responses++
@@ -161,7 +161,10 @@ func (s *session) start() error {
  * Writes data to session backend
  */
 func (s *session) send(buf []byte) error {
-	s.clientActivityC <- true
+	select {
+	case s.clientActivityC <- true:
+	default:
+	}
 
 	_, err := s.backendConn.Write(buf)
 	if err != nil {

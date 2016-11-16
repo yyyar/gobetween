@@ -123,8 +123,8 @@ protocol = "udp"
 #
 #
 ## ---------------------- udp properties --------------------- #
-#  [servers.default.udp]
-#  max_responses = 1
+#  [servers.default.udp]             # (optional)
+#  max_responses = 0                 # (required) if > 0 accepts no more responses that max_responses from backend and closes session
 #
 #
 ## -------------------- access management -------------------- #
