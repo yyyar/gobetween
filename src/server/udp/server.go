@@ -173,14 +173,14 @@ func (this *Server) listen() error {
 					session, err = this.createSession(*clientAddr, this.serverConn)
 
 					if err != nil {
-						log.Error("Error creating session", err)
+						log.Error("Error creating session ", err)
 						return
 					}
 				}
 				err := session.send(received)
 
 				if err != nil {
-					log.Error("Error sending data to backend", err)
+					log.Error("Error sending data to backend ", err)
 				}
 
 			}(buf[0:n])
@@ -218,12 +218,16 @@ func (this *Server) createSession(clientAddr net.UDPAddr, serverConn *net.UDPCon
 		return nil, err
 	}
 
+	notify := func() {
+		this.notify <- clientAddr
+	}
+
 	session := &session{
 		clientIdleTimeout:  utils.ParseDurationOrDefault(*this.cfg.ClientIdleTimeout, 0),
 		backendIdleTimeout: utils.ParseDurationOrDefault(*this.cfg.BackendIdleTimeout, 0),
 		udpResponses:       udpResponses,
 		scheduler:          this.scheduler,
-		notify:             this.notify,
+		notify:             notify,
 		serverConn:         serverConn,
 		clientAddr:         clientAddr,
 		backend:            backend,

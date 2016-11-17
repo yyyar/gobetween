@@ -49,8 +49,8 @@ type session struct {
 	/* stop channel */
 	stopC chan bool
 
-	/* channel to notify that session is closed */
-	notify chan net.UDPAddr
+	/* function to call to notify server that session is closed and should be removed */
+	notify func()
 }
 
 /**
@@ -103,7 +103,7 @@ func (s *session) start() error {
 			case <-s.stopC:
 				log.Debug("Closing client session: ", s.clientAddr)
 				s.backendConn.Close()
-				s.notify <- s.clientAddr
+				s.notify()
 				if t != nil {
 					t.Stop()
 				}
@@ -125,7 +125,7 @@ func (s *session) start() error {
 			if s.backendIdleTimeout > 0 {
 				err := s.backendConn.SetReadDeadline(time.Now().Add(s.backendIdleTimeout))
 				if err != nil {
-					log.Error("Unable to set timeout for backend connection, closing", err)
+					log.Error("Unable to set timeout for backend connection, closing. Error: ", err)
 					s.stop()
 					return
 				}
@@ -135,7 +135,7 @@ func (s *session) start() error {
 			if err != nil {
 
 				if !err.(*net.OpError).Timeout() {
-					log.Error("Error reading from backend", err)
+					log.Error("Error reading from backend ", err)
 				}
 
 				s.stop()
