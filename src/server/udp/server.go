@@ -19,7 +19,6 @@ import (
 	"../scheduler"
 	"errors"
 	"net"
-	"sync"
 )
 
 const UDP_PACKET_SIZE = 65507
@@ -35,12 +34,6 @@ type Server struct {
 	/* Server configuration */
 	cfg config.Server
 
-	/* collection of virtual udp sessions */
-	sessions map[string]*session
-
-	/* sessions modification mutex */
-	sessionsLock sync.RWMutex
-
 	/* Scheduler */
 	scheduler *scheduler.Scheduler
 
@@ -53,13 +46,24 @@ type Server struct {
 	/* Flag indicating that server is stopped */
 	stopped bool
 
-	/* Sessions will notify that they're closed to this channel */
-	notify chan net.UDPAddr
+	/* ----- channels ----- */
+	getOrCreate chan *sessionRequest
+	remove      chan net.UDPAddr
+	stop        chan bool
 
 	/* ----- modules ----- */
 
 	/* Access module checks if client is allowed to connect */
 	access *access.Access
+}
+type sessionResponse struct {
+	session *session
+	err     error
+}
+
+type sessionRequest struct {
+	clientAddr net.UDPAddr
+	response   chan sessionResponse
 }
 
 /**
@@ -82,8 +86,9 @@ func New(name string, cfg config.Server) (*Server, error) {
 		cfg:          cfg,
 		scheduler:    scheduler,
 		statsHandler: statsHandler,
-		sessions:     make(map[string]*session),
-		notify:       make(chan net.UDPAddr),
+		getOrCreate:  make(chan *sessionRequest),
+		remove:       make(chan net.UDPAddr),
+		stop:         make(chan bool),
 	}
 
 	/* Add access if needed */
@@ -124,12 +129,44 @@ func (this *Server) Start() error {
 	}
 
 	go func() {
+		sessions := make(map[string]*session)
 		for {
-			clientAddr, more := <-this.notify
-			if !more {
+			select {
+			case sessionRequest := <-this.getOrCreate:
+				session, ok := sessions[sessionRequest.clientAddr.String()]
+
+				if ok {
+					sessionRequest.response <- sessionResponse{
+						session: session,
+						err:     nil,
+					}
+					break
+				}
+
+				session, err := this.makeSession(sessionRequest.clientAddr)
+				if err == nil {
+					sessions[sessionRequest.clientAddr.String()] = session
+				}
+
+				sessionRequest.response <- sessionResponse{
+					session: session,
+					err:     err,
+				}
+
+			case clientAddr := <-this.remove:
+				session, ok := sessions[clientAddr.String()]
+				if !ok {
+					break
+				}
+				session.stop()
+				delete(sessions, clientAddr.String())
+
+			case <-this.stop:
+				for _, session := range sessions {
+					session.stop()
+				}
 				return
 			}
-			this.removeSession(clientAddr)
 		}
 	}()
 
@@ -166,18 +203,21 @@ func (this *Server) listen() error {
 			}
 
 			go func(received []byte) {
-				session := this.getSession(*clientAddr)
+				sessionResponses := make(chan sessionResponse)
 
-				if session == nil {
-					var err error
-					session, err = this.createSession(*clientAddr, this.serverConn)
-
-					if err != nil {
-						log.Error("Error creating session ", err)
-						return
-					}
+				this.getOrCreate <- &sessionRequest{
+					clientAddr: *clientAddr,
+					response:   sessionResponses,
 				}
-				err := session.send(received)
+
+				result := <-sessionResponses
+
+				if result.err != nil {
+					log.Error("Error creating session ", result.err)
+					return
+				}
+
+				err := result.session.send(received)
 
 				if err != nil {
 					log.Error("Error sending data to backend ", err)
@@ -191,9 +231,9 @@ func (this *Server) listen() error {
 }
 
 /**
- * Creates new sessions; adds to itself and returns it
+ * Makes new session
  */
-func (this *Server) createSession(clientAddr net.UDPAddr, serverConn *net.UDPConn) (*session, error) {
+func (this *Server) makeSession(clientAddr net.UDPAddr) (*session, error) {
 
 	log := logging.For("udp/server")
 	/* Check access if needed */
@@ -204,7 +244,7 @@ func (this *Server) createSession(clientAddr net.UDPAddr, serverConn *net.UDPCon
 		}
 	}
 
-	log.Debug("Accepted ", clientAddr, " -> ", serverConn.LocalAddr())
+	log.Debug("Accepted ", clientAddr, " -> ", this.serverConn.LocalAddr())
 	udpResponses := 0
 	if this.cfg.Udp != nil {
 		udpResponses = this.cfg.Udp.MaxResponses
@@ -219,7 +259,7 @@ func (this *Server) createSession(clientAddr net.UDPAddr, serverConn *net.UDPCon
 	}
 
 	notify := func() {
-		this.notify <- clientAddr
+		this.remove <- clientAddr
 	}
 
 	session := &session{
@@ -228,7 +268,7 @@ func (this *Server) createSession(clientAddr net.UDPAddr, serverConn *net.UDPCon
 		udpResponses:       udpResponses,
 		scheduler:          this.scheduler,
 		notify:             notify,
-		serverConn:         serverConn,
+		serverConn:         this.serverConn,
 		clientAddr:         clientAddr,
 		backend:            backend,
 	}
@@ -239,27 +279,7 @@ func (this *Server) createSession(clientAddr net.UDPAddr, serverConn *net.UDPCon
 		return nil, err
 	}
 
-	this.addSession(clientAddr, session)
-
 	return session, nil
-}
-
-func (this *Server) addSession(clientAddr net.UDPAddr, session *session) {
-	this.sessionsLock.Lock()
-	this.sessions[clientAddr.String()] = session
-	this.sessionsLock.Unlock()
-}
-
-func (this *Server) getSession(clientAddr net.UDPAddr) *session {
-	this.sessionsLock.RLock()
-	defer this.sessionsLock.RUnlock()
-	return this.sessions[clientAddr.String()]
-}
-
-func (this *Server) removeSession(clientAddr net.UDPAddr) {
-	this.sessionsLock.Lock()
-	defer this.sessionsLock.Unlock()
-	delete(this.sessions, clientAddr.String())
 }
 
 /**
@@ -274,13 +294,5 @@ func (this *Server) Stop() {
 
 	this.scheduler.Stop()
 	this.statsHandler.Stop()
-
-	this.sessionsLock.Lock()
-	for _, session := range this.sessions {
-		session.stop()
-	}
-	this.sessions = make(map[string]*session)
-	this.sessionsLock.Unlock()
-
-	close(this.notify)
+	this.stop <- true
 }

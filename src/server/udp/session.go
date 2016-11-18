@@ -92,15 +92,19 @@ func (s *session) start() error {
 		tC = t.C
 	}
 
+	stopped := false
 	go func() {
 		for {
 			select {
 			case now := <-tC:
 				if s.clientLastActivity.Add(s.clientIdleTimeout).Before(now) {
 					log.Debug("Client ", s.clientAddr, " was idle for more than ", s.clientIdleTimeout)
-					s.stopC <- true
+					go func() {
+						s.stopC <- true
+					}()
 				}
 			case <-s.stopC:
+				stopped = true
 				log.Debug("Closing client session: ", s.clientAddr)
 				s.backendConn.Close()
 				s.notify()
@@ -134,7 +138,7 @@ func (s *session) start() error {
 
 			if err != nil {
 
-				if !err.(*net.OpError).Timeout() {
+				if !err.(*net.OpError).Timeout() && !stopped {
 					log.Error("Error reading from backend ", err)
 				}
 
@@ -178,5 +182,8 @@ func (s *session) send(buf []byte) error {
  * Stops session
  */
 func (c *session) stop() {
-	c.stopC <- true
+	select {
+	case c.stopC <- true:
+	default:
+	}
 }
