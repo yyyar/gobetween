@@ -181,6 +181,11 @@ func (this *Server) listen() error {
 	log := logging.For("udp/server")
 
 	listenAddr, err := net.ResolveUDPAddr("udp", this.cfg.Bind)
+	if err != nil {
+		log.Error("Error resolving server bind addr ", err)
+		return err
+	}
+
 	this.serverConn, err = net.ListenUDP("udp", listenAddr)
 
 	if err != nil {
