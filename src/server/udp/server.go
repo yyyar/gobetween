@@ -56,14 +56,21 @@ type Server struct {
 	/* Access module checks if client is allowed to connect */
 	access *access.Access
 }
-type sessionResponse struct {
-	session *session
-	err     error
-}
 
+/**
+ * Request to get session for clientAddr
+ */
 type sessionRequest struct {
 	clientAddr net.UDPAddr
 	response   chan sessionResponse
+}
+
+/**
+ * Sessnion request response
+ */
+type sessionResponse struct {
+	session *session
+	err     error
 }
 
 /**
@@ -132,6 +139,8 @@ func (this *Server) Start() error {
 		sessions := make(map[string]*session)
 		for {
 			select {
+
+			/* handle get session request */
 			case sessionRequest := <-this.getOrCreate:
 				session, ok := sessions[sessionRequest.clientAddr.String()]
 
@@ -153,6 +162,7 @@ func (this *Server) Start() error {
 					err:     err,
 				}
 
+			/* handle session remove */
 			case clientAddr := <-this.remove:
 				session, ok := sessions[clientAddr.String()]
 				if !ok {
@@ -161,6 +171,7 @@ func (this *Server) Start() error {
 				session.stop()
 				delete(sessions, clientAddr.String())
 
+			/* handle server stop */
 			case <-this.stop:
 				for _, session := range sessions {
 					session.stop()
@@ -207,22 +218,22 @@ func (this *Server) listen() error {
 				continue
 			}
 
-			go func(received []byte) {
-				sessionResponses := make(chan sessionResponse)
+			go func(buf []byte) {
+				responseChan := make(chan sessionResponse, 1)
 
 				this.getOrCreate <- &sessionRequest{
 					clientAddr: *clientAddr,
-					response:   sessionResponses,
+					response:   responseChan,
 				}
 
-				result := <-sessionResponses
+				response := <-responseChan
 
-				if result.err != nil {
-					log.Error("Error creating session ", result.err)
+				if response.err != nil {
+					log.Error("Error creating session ", response.err)
 					return
 				}
 
-				err := result.session.send(received)
+				err := response.session.send(buf)
 
 				if err != nil {
 					log.Error("Error sending data to backend ", err)
@@ -263,19 +274,17 @@ func (this *Server) makeSession(clientAddr net.UDPAddr) (*session, error) {
 		return nil, err
 	}
 
-	notify := func() {
-		this.remove <- clientAddr
-	}
-
 	session := &session{
 		clientIdleTimeout:  utils.ParseDurationOrDefault(*this.cfg.ClientIdleTimeout, 0),
 		backendIdleTimeout: utils.ParseDurationOrDefault(*this.cfg.BackendIdleTimeout, 0),
 		udpResponses:       udpResponses,
 		scheduler:          this.scheduler,
-		notify:             notify,
-		serverConn:         this.serverConn,
-		clientAddr:         clientAddr,
-		backend:            backend,
+		notifyClosed: func() {
+			this.remove <- clientAddr
+		},
+		serverConn: this.serverConn,
+		clientAddr: clientAddr,
+		backend:    backend,
 	}
 
 	err = session.start()

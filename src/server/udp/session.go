@@ -18,6 +18,7 @@ import (
  * Emulates UDP "session"
  */
 type session struct {
+
 	/* timeout for new data from client */
 	clientIdleTimeout time.Duration
 
@@ -43,14 +44,15 @@ type session struct {
 	backendConn *net.UDPConn
 
 	/* activity channel */
-	clientActivityC    chan bool
+	clientActivityC chan bool
+
 	clientLastActivity time.Time
 
 	/* stop channel */
 	stopC chan bool
 
 	/* function to call to notify server that session is closed and should be removed */
-	notify func()
+	notifyClosed func()
 }
 
 /**
@@ -107,7 +109,7 @@ func (s *session) start() error {
 				stopped = true
 				log.Debug("Closing client session: ", s.clientAddr)
 				s.backendConn.Close()
-				s.notify()
+				s.notifyClosed()
 				if t != nil {
 					t.Stop()
 				}

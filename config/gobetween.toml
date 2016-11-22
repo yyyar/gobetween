@@ -48,6 +48,8 @@ backend_connection_timeout = "0" # Backend connection timeout (ignored in udp)
 #
 [servers]
 
+# ---------- tcp example ----------- #
+
 [servers.sample]
 protocol = "tcp"
 bind = "localhost:3000"
@@ -59,37 +61,23 @@ bind = "localhost:3000"
       "localhost:8001"
   ]
 
+
+# ---------- udp example ----------- #
+
 [servers.udpsample]
-bind = "localhost:5443"
+bind = "localhost:4000"
 protocol = "udp"
 
   [servers.udpsample.udp]
-    max_responses = 1
-
-  [servers.udpsample.access]
-  default = "allow"
-  rules = [
-    "allow 127.0.0.1",
-    "deny 192.168.0.1",
-    "allow 192.168.0.1/24",
-  ]
+  max_responses = 0
 
   [servers.udpsample.discovery]
   kind = "static"
   static_list = [
       "8.8.8.8:53",
       "8.8.4.4:53",
-      "91.239.100.100:53",
-      "1.1.1.1:54"
+      "91.239.100.100:53"
   ]
-
-  [servers.udpsample.healthcheck]
-  kind = "exec"
-  interval = "2s"
-  timeout = "5s"
-  exec_command = "./share/healthcheck/udp_dns.sh"
-  exec_expected_positive_output = "1"
-  exec_expected_negative_output = "0"
 
 #
 # -------------------- example ----------------------------- #
