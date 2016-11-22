@@ -96,6 +96,7 @@ MIT. See LICENSE file for more details.
 - [Yaroslav Pogrebnyak](http://pogrebnyak.info)
 - [Nick Doikov](https://github.com/nickdoikov)
 - [Ievgen Ponomarenko](https://github.com/kikom)
+- [Illarion Kovalchuk](https://github.com/illarion)
 
 ## Logo
 Logo by [Max Demchenko](https://www.linkedin.com/in/max-demchenko-116170112)

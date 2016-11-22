@@ -77,6 +77,9 @@ type Server struct {
 	// Optional configuration for protocol = tls
 	Tls *Tls `toml:"tls" json:"tls"`
 
+	// Optional configuration for protocol = udp
+	Udp *Udp `toml:"udp" json:"udp"`
+
 	// Access configuration
 	Access *AccessConfig `toml:"access" json:"access"`
 
@@ -99,6 +102,14 @@ type Tls struct {
 	MinVersion          string   `toml:"min_version" json:"min_version"`
 	MaxVersion          string   `toml:"max_version" json:"max_version"`
 	SessionTickets      bool     `toml:"session_tickets" json:"session_tickets"`
+}
+
+/**
+ * Server udp options
+ * for protocol = "udp"
+ */
+type Udp struct {
+	MaxResponses int `toml:"max_responses" json:"max_responses"`
 }
 
 /**

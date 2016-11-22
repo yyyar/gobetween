@@ -40,13 +40,15 @@ bind = ":8888"  # "host:port"
 max_connections = 0              # Maximum simultaneous connections to the server
 client_idle_timeout = "0"        # Client inactivity duration before forced connection drop
 backend_idle_timeout = "0"       # Backend inactivity duration before forced connection drop
-backend_connection_timeout = "0" # Backend connection timeout
+backend_connection_timeout = "0" # Backend connection timeout (ignored in udp)
 
 
 #
 # Servers contains as many [server.<name>] sections as needed.
 #
 [servers]
+
+# ---------- tcp example ----------- #
 
 [servers.sample]
 protocol = "tcp"
@@ -60,6 +62,24 @@ bind = "localhost:3000"
   ]
 
 
+# ---------- udp example ----------- #
+
+[servers.udpsample]
+bind = "localhost:4000"
+protocol = "udp"
+
+  [servers.udpsample.udp]
+  max_responses = 0
+
+  [servers.udpsample.discovery]
+  kind = "static"
+  static_list = [
+      "8.8.8.8:53",
+      "8.8.4.4:53",
+      "91.239.100.100:53"
+  ]
+
+#
 # -------------------- example ----------------------------- #
 
 ##
@@ -69,7 +89,7 @@ bind = "localhost:3000"
 #[servers.default]
 #
 #bind = "localhost:3000"     #  (required) "<host>:<port>"
-#protocol = "tcp"            #  (required) "tcp" | "tls"
+#protocol = "tcp"            #  (required) "tcp" | "tls" | "udp"
 #balance = "weight"          #  (optional [weight]) "weight" | "leastconn" | "roundrobin" | "iphash" | "leastbandwidth"
 #
 #max_connections = 0
@@ -88,6 +108,12 @@ bind = "localhost:3000"
 #  ciphers = []                      # (optional) list of supported ciphers. Empty means all supported. For a list see https://golang.org/pkg/crypto/tls/#pkg-constants
 #  prefer_server_ciphers = false     # (optional) if true server selects server's most preferred cipher
 #  session_tickets = true            # (optional) if true enables session tickets
+#
+#
+## ---------------------- udp properties --------------------- #
+#  [servers.default.udp]             # (optional)
+#  max_responses = 0                 # (required) if > 0 accepts no more responses that max_responses from backend and closes session
+#
 #
 ## -------------------- access management -------------------- #
 #
@@ -108,14 +134,13 @@ bind = "localhost:3000"
 #  passes = 1                      # (optional) successfull checks to mark backend as active
 #
 #  # -- ping -- #
-#  kind = "ping"
+#  kind = "ping"                   # Unavailable if server.protocol is udp
 #
 #  # -- exec -- #
 #  kind = "exec"
 #  exec_command = "/path/to/healthcheck.sh"      # (required) command to execute
 #  exec_expected_positive_output = "1"           # (required) expected output of command in case of success
 #  exec_expected_negative_output = "0"           # (required) expected output of command in case of failure
-#
 #
 ## -------------------- discovery ---------------------------- #
 #

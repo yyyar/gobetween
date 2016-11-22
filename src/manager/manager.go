@@ -7,6 +7,7 @@ package manager
 
 import (
 	"../config"
+	"../core"
 	"../logging"
 	"../server"
 	"../utils/codec"
@@ -18,8 +19,8 @@ import (
 /* Map of app current servers */
 var servers = struct {
 	sync.RWMutex
-	m map[string]*server.Server
-}{m: make(map[string]*server.Server)}
+	m map[string]core.Server
+}{m: make(map[string]core.Server)}
 
 /* default configuration for server */
 var defaults config.ConnectionOptions
@@ -125,9 +126,14 @@ func Create(name string, cfg config.Server) error {
 	if err != nil {
 		return err
 	}
+
+	if err = server.Start(); err != nil {
+		return err
+	}
+
 	servers.m[name] = server
 
-	return server.Start()
+	return nil
 }
 
 /**
@@ -229,10 +235,18 @@ func prepareConfig(name string, server config.Server, defaults config.Connection
 			return config.Server{}, errors.New("Need tls section for tls protocol")
 		}
 		fallthrough
-	case "tcp":
+	case "tcp", "udp":
 	default:
 		return config.Server{}, errors.New("Not supported protocol " + server.Protocol)
 	}
+
+	/* Healthcheck and protocol match */
+
+	if server.Healthcheck.Kind == "ping" && server.Protocol == "udp" {
+		return config.Server{}, errors.New("Cant use ping healthcheck with udp server")
+	}
+
+	/* Udp related options and protocol match */
 
 	/* Balance */
 	switch server.Balance {
@@ -286,7 +300,8 @@ func prepareConfig(name string, server config.Server, defaults config.Connection
 		defaults.MaxConnections = new(int)
 	}
 	if server.MaxConnections == nil {
-		server.MaxConnections = defaults.MaxConnections
+		server.MaxConnections = new(int)
+		*server.MaxConnections = *defaults.MaxConnections
 	}
 
 	if defaults.ClientIdleTimeout == nil {
