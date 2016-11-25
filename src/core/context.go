@@ -12,6 +12,8 @@ import (
 
 type Context interface {
 	String() string
+	Ip() net.IP
+	Port() int
 }
 
 /**
@@ -29,7 +31,15 @@ func (t TcpContext) String() string {
 	return t.Conn.RemoteAddr().String()
 }
 
-/**
+func (t TcpContext) Ip() net.IP {
+	return t.Conn.RemoteAddr().(*net.TCPAddr).IP
+}
+
+func (t TcpContext) Port() int {
+	return t.Conn.RemoteAddr().(*net.TCPAddr).Port
+}
+
+/*
  * Proxy udp context
  */
 type UdpContext struct {
@@ -42,4 +52,12 @@ type UdpContext struct {
 
 func (u UdpContext) String() string {
 	return u.RemoteAddr.String()
+}
+
+func (u UdpContext) Ip() net.IP {
+	return u.RemoteAddr.IP
+}
+
+func (u UdpContext) Port() int {
+	return u.RemoteAddr.Port
 }

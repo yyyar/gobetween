@@ -28,12 +28,12 @@ func (b *WeightBalancer) Elect(context *core.Context, backends []core.Backend) (
 		totalWeight += backend.Weight
 	}
 
-	r := rand.Intn(100)
+	r := rand.Intn(totalWeight)
 	pos := 0
 
 	for _, backend := range backends {
-		pos += int(100 * (float32(backend.Weight) / float32(totalWeight)))
-		if r > pos {
+		pos += backend.Weight
+		if r >= pos {
 			continue
 		}
 		return &backend, nil
