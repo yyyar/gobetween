@@ -176,7 +176,7 @@ type DockerDiscoveryConfig struct {
 	DockerTlsEnabled    bool   `toml:"docker_tls_enabled" json:"docker_tls_enabled"`
 	DockerTlsCertPath   string `toml:"docker_tls_cert_path" json:"docker_tls_cert_path"`
 	DockerTlsKeyPath    string `toml:"docker_tls_key_path" json:"docker_tls_key_path"`
-	DockerTlsCacertPath string `toml:"docker_ts_cacert_path" json:"docker_tls_cacert_path"`
+	DockerTlsCacertPath string `toml:"docker_tls_cacert_path" json:"docker_tls_cacert_path"`
 }
 
 type ConsulDiscoveryConfig struct {
