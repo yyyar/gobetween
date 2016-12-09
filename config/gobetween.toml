@@ -97,6 +97,22 @@ protocol = "udp"
 #backend_idle_timeout = "10m"
 #backend_connection_timeout = "5s"
 #
+
+#backend_tls_enabled = false            # (optional) default false - enable connection to backends via tls (instead of plain tcp)
+#backend_tls_verify = true             # (optional) default true - enable tls certificate verification while connecting to backends
+
+#  [servers.sample.backend_tls]
+#    root_ca_cert_path = "/path/to/file.pem" # (optional) path to series of root PEM encoded certificates.
+#                                              By default the host's root CA set is used (on many linux distros it's /etc/ssl/cert.pem)
+#    cert_path = "/path/to/file.crt"   # (optional) path to crt file
+#    key_path = "/path/to/file.key"    # (optional) path to key file
+#    min_version = "tls1"              # (optional) "ssl3" | "tls1" | "tls1.1" | "tls1.2" - minimum allowed tls version
+#    max_version = "tls1.2"            # (optional) maximum allowed tls version
+#    ciphers = []                      # (optional) list of supported ciphers. Empty means all supported. For a list see https://golang.org/pkg/crypto/tls/#pkg-constants
+#    prefer_server_ciphers = false     # (optional) if true server selects server's most preferred cipher
+#    session_tickets = true            # (optional) if true enables session tickets
+
+#
 #
 ## ---------------------- tls properties --------------------- #
 #

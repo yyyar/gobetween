@@ -19,6 +19,8 @@ import (
 	"../modules/access"
 	"../scheduler"
 	"crypto/tls"
+	"crypto/x509"
+	"io/ioutil"
 	"net"
 )
 
@@ -56,6 +58,9 @@ type Server struct {
 
 	/* Stop channel */
 	stop chan bool
+
+	/* Tls config used to connect to backends */
+	backendTlsConfg *tls.Config
 
 	/* ----- modules ----- */
 
@@ -95,6 +100,50 @@ func New(name string, cfg config.Server) (*Server, error) {
 		server.access, err = access.NewAccess(cfg.Access)
 		if err != nil {
 			return nil, err
+		}
+	}
+
+	/* Add backend tls config if needed */
+
+	if *cfg.BackendTlsEnabled {
+
+		server.backendTlsConfg = &tls.Config{
+			InsecureSkipVerify:       !*cfg.BackendTlsVerify,
+			CipherSuites:             tlsutil.MapCiphers(cfg.BackendTls.Ciphers),
+			PreferServerCipherSuites: cfg.BackendTls.PreferServerCiphers,
+			MinVersion:               tlsutil.MapVersion(cfg.BackendTls.MinVersion),
+			MaxVersion:               tlsutil.MapVersion(cfg.BackendTls.MaxVersion),
+			SessionTicketsDisabled:   !cfg.BackendTls.SessionTickets,
+		}
+
+		if cfg.BackendTls.CertPath != nil && cfg.BackendTls.KeyPath != nil {
+
+			var crt tls.Certificate
+
+			if crt, err = tls.LoadX509KeyPair(*cfg.BackendTls.CertPath, *cfg.BackendTls.KeyPath); err != nil {
+				log.Error(err)
+				return nil, err
+			}
+
+			server.backendTlsConfg.Certificates = []tls.Certificate{crt}
+		}
+
+		if cfg.BackendTls.RootCaCertPath != nil {
+
+			var caCertPem []byte
+
+			if caCertPem, err = ioutil.ReadFile(*cfg.BackendTls.RootCaCertPath); err != nil {
+				log.Error(err)
+				return nil, err
+			}
+
+			caCertPool := x509.NewCertPool()
+			if ok := caCertPool.AppendCertsFromPEM(caCertPem); !ok {
+				log.Error("Unable to load root pem")
+			}
+
+			server.backendTlsConfg.RootCAs = caCertPool
+
 		}
 	}
 
@@ -272,7 +321,17 @@ func (this *Server) handle(clientConn net.Conn) {
 	}
 
 	/* Connect to backend */
-	backendConn, err := net.DialTimeout("tcp", backend.Address(), utils.ParseDurationOrDefault(*this.cfg.BackendConnectionTimeout, 0))
+	var backendConn net.Conn
+
+	if *this.cfg.BackendTlsEnabled {
+		backendConn, err = tls.DialWithDialer(&net.Dialer{
+			Timeout: utils.ParseDurationOrDefault(*this.cfg.BackendConnectionTimeout, 0),
+		}, "tcp", backend.Address(), this.backendTlsConfg)
+
+	} else {
+		backendConn, err = net.DialTimeout("tcp", backend.Address(), utils.ParseDurationOrDefault(*this.cfg.BackendConnectionTimeout, 0))
+	}
+
 	if err != nil {
 		this.scheduler.IncrementRefused(*backend)
 		log.Error(err)

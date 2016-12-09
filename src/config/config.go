@@ -57,6 +57,8 @@ type ConnectionOptions struct {
 	ClientIdleTimeout        *string `toml:"client_idle_timeout" json:"client_idle_timeout"`
 	BackendIdleTimeout       *string `toml:"backend_idle_timeout" json:"backend_idle_timeout"`
 	BackendConnectionTimeout *string `toml:"backend_connection_timeout" json:"backend_connection_timeout"`
+	BackendTlsEnabled        *bool   `toml:"backend_tls_enabled" json:"backend_tls_enabled"`
+	BackendTlsVerify         *bool   `toml:"backend_tls_verify" json:"backend_tls_verify"`
 }
 
 /**
@@ -68,7 +70,7 @@ type Server struct {
 	// hostname:port
 	Bind string `toml:"bind" json:"bind"`
 
-	// tcp | udp
+	// tcp | udp | tls
 	Protocol string `toml:"protocol" json:"protocol"`
 
 	// weight | leastconn | roundrobin
@@ -76,6 +78,9 @@ type Server struct {
 
 	// Optional configuration for protocol = tls
 	Tls *Tls `toml:"tls" json:"tls"`
+
+	// Optional configuration for backend_tls_enabled = true
+	BackendTls *BackendTls `toml:"backend_tls" json:"backend_tls"`
 
 	// Optional configuration for protocol = udp
 	Udp *Udp `toml:"udp" json:"udp"`
@@ -91,17 +96,31 @@ type Server struct {
 }
 
 /**
- * Server Tls options
- * for protocol = "tls"
+ * Common part of Tls and BackendTls types
  */
-type Tls struct {
-	CertPath            string   `toml:"cert_path" json:"cert_path"`
-	KeyPath             string   `toml:"key_path" json:"key_path"`
+type tlsCommon struct {
 	Ciphers             []string `toml:"ciphers" json:"ciphers"`
 	PreferServerCiphers bool     `toml:"prefer_server_ciphers" json:"prefer_server_ciphers"`
 	MinVersion          string   `toml:"min_version" json:"min_version"`
 	MaxVersion          string   `toml:"max_version" json:"max_version"`
 	SessionTickets      bool     `toml:"session_tickets" json:"session_tickets"`
+}
+
+/**
+ * Server Tls options
+ * for protocol = "tls"
+ */
+type Tls struct {
+	CertPath string `toml:"cert_path" json:"cert_path"`
+	KeyPath  string `toml:"key_path" json:"key_path"`
+	tlsCommon
+}
+
+type BackendTls struct {
+	RootCaCertPath *string `toml:"root_ca_cert_path" json:"root_ca_cert_path"`
+	CertPath       *string `toml:"cert_path" json:"cert_path"`
+	KeyPath        *string `toml:"key_path" json:"key_path"`
+	tlsCommon
 }
 
 /**
@@ -176,7 +195,7 @@ type DockerDiscoveryConfig struct {
 	DockerTlsEnabled    bool   `toml:"docker_tls_enabled" json:"docker_tls_enabled"`
 	DockerTlsCertPath   string `toml:"docker_tls_cert_path" json:"docker_tls_cert_path"`
 	DockerTlsKeyPath    string `toml:"docker_tls_key_path" json:"docker_tls_key_path"`
-	DockerTlsCacertPath string `toml:"docker_ts_cacert_path" json:"docker_tls_cacert_path"`
+	DockerTlsCacertPath string `toml:"docker_tls_cacert_path" json:"docker_tls_cacert_path"`
 }
 
 type ConsulDiscoveryConfig struct {

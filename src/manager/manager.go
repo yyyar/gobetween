@@ -331,5 +331,23 @@ func prepareConfig(name string, server config.Server, defaults config.Connection
 		*server.BackendConnectionTimeout = *defaults.BackendConnectionTimeout
 	}
 
+	if defaults.BackendTlsEnabled == nil {
+		defaults.BackendTlsEnabled = new(bool)
+		*defaults.BackendTlsEnabled = false
+	}
+	if server.BackendTlsEnabled == nil {
+		server.BackendTlsEnabled = new(bool)
+		*server.BackendTlsEnabled = *defaults.BackendTlsEnabled
+	}
+
+	if defaults.BackendTlsVerify == nil {
+		defaults.BackendTlsVerify = new(bool)
+		*defaults.BackendTlsVerify = true
+	}
+	if server.BackendTlsVerify == nil {
+		server.BackendTlsVerify = new(bool)
+		*server.BackendTlsVerify = *defaults.BackendTlsVerify
+	}
+
 	return server, nil
 }
