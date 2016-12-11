@@ -97,11 +97,10 @@ protocol = "udp"
 #backend_idle_timeout = "10m"
 #backend_connection_timeout = "5s"
 #
+#backend_tls_enabled = false           # (optional) if true, use tls in order to connect to backends
 
-#backend_tls_enabled = false            # (optional) default false - enable connection to backends via tls (instead of plain tcp)
-#backend_tls_verify = true             # (optional) default true - enable tls certificate verification while connecting to backends
-
-#  [servers.sample.backend_tls]
+#  [servers.sample.backend_tls]        # (optional) backends tls options
+#    ignore_verify = false             # (optional) insecure, disable tls certificate verification while connecting to backends
 #    root_ca_cert_path = "/path/to/file.pem" # (optional) path to series of root PEM encoded certificates.
 #                                              By default the host's root CA set is used (on many linux distros it's /etc/ssl/cert.pem)
 #    cert_path = "/path/to/file.crt"   # (optional) path to crt file

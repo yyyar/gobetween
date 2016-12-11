@@ -108,7 +108,7 @@ func New(name string, cfg config.Server) (*Server, error) {
 	if *cfg.BackendTlsEnabled {
 
 		server.backendTlsConfg = &tls.Config{
-			InsecureSkipVerify:       !*cfg.BackendTlsVerify,
+			InsecureSkipVerify:       cfg.BackendTls.IgnoreVerify,
 			CipherSuites:             tlsutil.MapCiphers(cfg.BackendTls.Ciphers),
 			PreferServerCipherSuites: cfg.BackendTls.PreferServerCiphers,
 			MinVersion:               tlsutil.MapVersion(cfg.BackendTls.MinVersion),

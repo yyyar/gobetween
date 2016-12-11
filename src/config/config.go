@@ -58,7 +58,6 @@ type ConnectionOptions struct {
 	BackendIdleTimeout       *string `toml:"backend_idle_timeout" json:"backend_idle_timeout"`
 	BackendConnectionTimeout *string `toml:"backend_connection_timeout" json:"backend_connection_timeout"`
 	BackendTlsEnabled        *bool   `toml:"backend_tls_enabled" json:"backend_tls_enabled"`
-	BackendTlsVerify         *bool   `toml:"backend_tls_verify" json:"backend_tls_verify"`
 }
 
 /**
@@ -117,6 +116,7 @@ type Tls struct {
 }
 
 type BackendTls struct {
+	IgnoreVerify   bool    `toml:"ignore_verify" json:"ignore_verify"`
 	RootCaCertPath *string `toml:"root_ca_cert_path" json:"root_ca_cert_path"`
 	CertPath       *string `toml:"cert_path" json:"cert_path"`
 	KeyPath        *string `toml:"key_path" json:"key_path"`

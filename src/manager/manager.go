@@ -226,7 +226,7 @@ func prepareConfig(name string, server config.Server, defaults config.Connection
 
 	/* ----- Connections params and overrides ----- */
 
-	/* Balance */
+	/* Protocol */
 	switch server.Protocol {
 	case "":
 		server.Protocol = "tcp"
@@ -235,9 +235,19 @@ func prepareConfig(name string, server config.Server, defaults config.Connection
 			return config.Server{}, errors.New("Need tls section for tls protocol")
 		}
 		fallthrough
-	case "tcp", "udp":
+	case "tcp":
+	case "udp":
+		if server.BackendTls != nil {
+			return config.Server{}, errors.New("backend_tls section is not allowed for udp protocol")
+		}
 	default:
 		return config.Server{}, errors.New("Not supported protocol " + server.Protocol)
+	}
+
+	if server.BackendTls != nil {
+		if (server.BackendTls.KeyPath == nil) != (server.BackendTls.CertPath == nil) {
+			return config.Server{}, errors.New("backend_tls.cert_path and .key_path should be specified together")
+		}
 	}
 
 	/* Healthcheck and protocol match */
@@ -340,13 +350,8 @@ func prepareConfig(name string, server config.Server, defaults config.Connection
 		*server.BackendTlsEnabled = *defaults.BackendTlsEnabled
 	}
 
-	if defaults.BackendTlsVerify == nil {
-		defaults.BackendTlsVerify = new(bool)
-		*defaults.BackendTlsVerify = true
-	}
-	if server.BackendTlsVerify == nil {
-		server.BackendTlsVerify = new(bool)
-		*server.BackendTlsVerify = *defaults.BackendTlsVerify
+	if *server.BackendTlsEnabled && server.BackendTls == nil {
+		server.BackendTls = &config.BackendTls{}
 	}
 
 	return server, nil
