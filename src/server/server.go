@@ -20,7 +20,7 @@ import (
  */
 func New(name string, cfg config.Server) (core.Server, error) {
 	switch cfg.Protocol {
-	case "tcp":
+	case "tls", "tcp":
 		return tcp.New(name, cfg)
 	case "udp":
 		return udp.New(name, cfg)
