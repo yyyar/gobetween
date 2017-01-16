@@ -23,8 +23,15 @@ type WeightBalancer struct{}
  */
 func (b *WeightBalancer) Elect(context *core.Context, backends []core.Backend) (*core.Backend, error) {
 
+	if len(backends) == 0 {
+		return nil, errors.New("Can't elect backend, Backends empty")
+	}
+
 	totalWeight := 0
 	for _, backend := range backends {
+		if backend.Weight <= 0 {
+			return nil, errors.New("Invalid backend weight 0")
+		}
 		totalWeight += backend.Weight
 	}
 
@@ -39,5 +46,5 @@ func (b *WeightBalancer) Elect(context *core.Context, backends []core.Backend) (
 		return &backend, nil
 	}
 
-	return nil, errors.New("Cant elect backend, or backends list is empty")
+	return nil, errors.New("Cant elect backend")
 }
