@@ -46,8 +46,11 @@ func consulFetch(cfg config.DiscoveryConfig) (*[]core.Backend, error) {
 	log.Info("Fetching ", cfg)
 
 	// Prepare vars for http client
+	// TODO move http & consul client creation to constructor
 	scheme := "http"
-	transport := &http.Transport{}
+	transport := &http.Transport{
+		DisableKeepAlives: true,
+	}
 
 	// Enable tls if needed
 	if cfg.ConsulTlsEnabled {
