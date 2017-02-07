@@ -28,7 +28,7 @@ func init() {
  */
 var RootCmd = &cobra.Command{
 	Use:   "gobetween",
-	Short: "Modern & minimalistic load balancer for the Cload era",
+	Short: "Modern & minimalistic load balancer for the Cloud era.",
 	Run: func(cmd *cobra.Command, args []string) {
 
 		if configPath == "" {
