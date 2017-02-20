@@ -250,13 +250,22 @@ func (this *Scheduler) HandleBackendsUpdate(backends []core.Backend) {
  * Perform backend election
  */
 func (this *Scheduler) HandleBackendElect(req ElectRequest) {
+	sni := req.Context.Sni()
 
 	// Filter only live backends
+	// Filter only backends with appropriate sni
 	var backends []core.Backend
 	for _, b := range this.backendsList {
-		if b.Stats.Live {
-			backends = append(backends, *b)
+
+		if !b.Stats.Live {
+			continue
 		}
+
+		if sni != "" && b.Sni != sni {
+			continue
+		}
+
+		backends = append(backends, *b)
 	}
 
 	// Elect backend

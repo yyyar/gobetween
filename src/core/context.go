@@ -7,6 +7,7 @@
 package core
 
 import (
+	"../utils/tls/sni"
 	"net"
 )
 
@@ -14,6 +15,7 @@ type Context interface {
 	String() string
 	Ip() net.IP
 	Port() int
+	Sni() string
 }
 
 /**
@@ -39,6 +41,14 @@ func (t TcpContext) Port() int {
 	return t.Conn.RemoteAddr().(*net.TCPAddr).Port
 }
 
+func (t TcpContext) Sni() string {
+	if sniConn, ok := t.Conn.(sni.Conn); ok {
+		return sniConn.Hostname()
+	} else {
+		return ""
+	}
+}
+
 /*
  * Proxy udp context
  */
@@ -60,4 +70,8 @@ func (u UdpContext) Ip() net.IP {
 
 func (u UdpContext) Port() int {
 	return u.RemoteAddr.Port
+}
+
+func (u UdpContext) Sni() string {
+	return ""
 }

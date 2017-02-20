@@ -14,6 +14,7 @@ import (
 	"fmt"
 	consul "github.com/hashicorp/consul/api"
 	"net/http"
+	"strings"
 	"time"
 )
 
@@ -93,6 +94,21 @@ func consulFetch(cfg config.DiscoveryConfig) (*[]core.Backend, error) {
 	backends := []core.Backend{}
 	for _, entry := range service {
 		s := entry.Service
+		sni := ""
+
+		for _, tag := range s.Tags {
+			split := strings.SplitN(tag, "=", 2)
+
+			if len(split) != 2 {
+				continue
+			}
+
+			if split[0] != "sni" {
+				continue
+			}
+			sni = split[1]
+		}
+
 		backends = append(backends, core.Backend{
 			Target: core.Target{
 				Host: s.Address,
@@ -103,6 +119,7 @@ func consulFetch(cfg config.DiscoveryConfig) (*[]core.Backend, error) {
 			Stats: core.BackendStats{
 				Live: true,
 			},
+			Sni: sni,
 		})
 	}
 

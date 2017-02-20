@@ -18,6 +18,7 @@ type Backend struct {
 	Target
 	Priority int          `json:"priority"`
 	Weight   int          `json:"weight"`
+	Sni      string       `json:"sni,omitempty"`
 	Stats    BackendStats `json:"stats"`
 }
 

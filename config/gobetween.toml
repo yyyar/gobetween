@@ -53,12 +53,13 @@ backend_connection_timeout = "0" # Backend connection timeout (ignored in udp)
 [servers.sample]
 protocol = "tcp"
 bind = "localhost:3000"
+sni_enabled = true
 
   [servers.sample.discovery]
   kind = "static"
   static_list = [
-      "localhost:8000",
-      "localhost:8001"
+      "127.0.0.1:8000 sni=foo.bar",
+      "127.0.0.1:8001 sni=foo.baz"
   ]
 
 

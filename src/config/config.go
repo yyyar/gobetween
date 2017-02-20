@@ -74,6 +74,9 @@ type Server struct {
 	// weight | leastconn | roundrobin
 	Balance string `toml:"balance" json:"balance"`
 
+	// Set to true if sni based balancing is needed
+	SniEnabled bool `toml:"sni_enabled" json:"sni_enabled"`
+
 	// Optional configuration for protocol = tls
 	Tls *Tls `toml:"tls" json:"tls"`
 
@@ -178,6 +181,7 @@ type JsonDiscoveryConfig struct {
 	JsonPortPattern     string `toml:"json_port_pattern" json:"json_port_pattern"`
 	JsonWeightPattern   string `toml:"json_weight_pattern" json:"json_weight_pattern"`
 	JsonPriorityPattern string `toml:"json_priority_pattern" json:"json_priority_pattern"`
+	JsonSniPattern      string `toml:"json_sni_pattern" json:"json_sni_pattern"`
 }
 
 type PlaintextDiscoveryConfig struct {
