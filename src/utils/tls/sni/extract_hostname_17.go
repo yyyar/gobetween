@@ -1,4 +1,4 @@
-// +build go1.1 !go1.8
+// +build go1.1, !go1.8
 
 package sni
 
