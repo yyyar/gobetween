@@ -12,8 +12,17 @@ import (
 	"bytes"
 	"io"
 	"net"
+	"sync"
 	"time"
 )
+
+const MAX_HEADER_SIZE = 16385
+
+var pool = sync.Pool{
+	New: func() interface{} {
+		return make([]byte, MAX_HEADER_SIZE)
+	},
+}
 
 // delegatedConn delegates all calls to net.Conn, but Read to reader
 type Conn struct {
@@ -35,7 +44,10 @@ func (c Conn) Read(b []byte) (n int, err error) {
 func Sniff(conn net.Conn, readTimeout time.Duration) (net.Conn, error) {
 	conn.SetReadDeadline(time.Now().Add(readTimeout))
 
-	buf := make([]byte, 1024)
+	//buf := make([]byte, 1024)
+	buf := pool.Get().([]byte)
+	defer pool.Put(buf)
+
 	i, err := conn.Read(buf)
 
 	if err != nil {
@@ -54,11 +66,11 @@ func Sniff(conn net.Conn, readTimeout time.Duration) (net.Conn, error) {
 		return nil, err
 	}
 
-	buf = buf[0:i]
+	hostname := extractHostname(buf[0:i])
 
-	hostname := extractHostname(buf)
-
-	mreader := io.MultiReader(bytes.NewBuffer(buf), conn)
+	data := make([]byte, i)
+	copy(data, buf) // Since we reuse buf between invocations, we have to make copy of data
+	mreader := io.MultiReader(bytes.NewBuffer(data), conn)
 
 	// Wrap connection so that it will Read from buffer first and remaining data
 	// from initial conn
