@@ -44,7 +44,6 @@ func (c Conn) Read(b []byte) (n int, err error) {
 func Sniff(conn net.Conn, readTimeout time.Duration) (net.Conn, error) {
 	conn.SetReadDeadline(time.Now().Add(readTimeout))
 
-	//buf := make([]byte, 1024)
 	buf := pool.Get().([]byte)
 	defer pool.Put(buf)
 

@@ -1,7 +1,5 @@
-// +build go1.8
-
 /**
- * bufferConn.go - pseudo net.Conn built around the byte buffer
+ * extract.go - extractor of hostname from ClientHello
  *
  * @author Illarion Kovalchuk <illarion.kovalchuk@gmail.com>
  */
@@ -9,10 +7,12 @@
 package sni
 
 import (
+	"../../../logging"
 	"bytes"
 	"crypto/tls"
 	"io"
 	"net"
+	"reflect"
 	"time"
 )
 
@@ -62,9 +62,30 @@ func (c bufferConn) SetWriteDeadline(t time.Time) error {
 	return nil
 }
 
-func extractHostname(buf []byte) string {
+func extractHostname(buf []byte) (result string) {
 	conn := tls.Server(newBufferConn(buf), &tls.Config{})
 	defer conn.Close()
+
 	conn.Handshake()
-	return conn.ConnectionState().ServerName
+	result = conn.ConnectionState().ServerName
+
+	if result != "" {
+		return
+	}
+
+	defer func() {
+		if r := recover(); r != nil {
+			if err, ok := r.(error); ok {
+				logging.Error("Was not able to extract hostname from ClientHello due to :", err)
+			}
+			result = ""
+		}
+	}()
+
+	// Prior to go1.8 ConnectionState.ServerName will be not filled, so we'll try to get it from reflection
+	p := reflect.ValueOf(conn)
+	v := reflect.Indirect(p)
+
+	result = v.FieldByName("serverName").String()
+	return
 }
