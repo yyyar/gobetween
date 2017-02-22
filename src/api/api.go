@@ -8,7 +8,8 @@ package api
 import (
 	"../config"
 	"../logging"
-	"github.com/gin-gonic/gin"
+	"gopkg.in/gin-gonic/gin.v1"
+	"gopkg.in/gin-contrib/cors.v1"
 )
 
 /* gin app */
@@ -36,6 +37,19 @@ func Start(cfg config.ApiConfig) {
 	log.Info("Starting up API")
 
 	app = gin.New()
+
+	if cfg.Cors {
+		corsConfig := cors.DefaultConfig();
+		corsConfig.AllowAllOrigins = true;
+		corsConfig.AllowCredentials = true;
+		corsConfig.AllowMethods = []string{"PUT", "POST", "DELETE", "GET", "OPTIONS"}
+
+		app.Use(cors.New(corsConfig));
+		log.Info("API CORS enabled");
+	}
+
+
+
 	r := app.Group("/")
 
 	if cfg.BasicAuth != nil {

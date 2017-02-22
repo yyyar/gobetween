@@ -2,6 +2,7 @@
  * config.go - config file definitions
  *
  * @author Yaroslav Pogrebnyak <yyyaroslav@gmail.com>
+ * @author Gene Ponomarenko <kikomdev@gmail.com>
  */
 package config
 
@@ -31,6 +32,7 @@ type ApiConfig struct {
 	Bind      string              `toml:"bind" json:"bind"`
 	BasicAuth *ApiBasicAuthConfig `toml:"basic_auth" json:"basic_auth"`
 	Tls       *ApiTlsConfig       `toml:"tls" json:"tls"`
+	Cors      bool		      `toml:"cors" json:"cors"`
 }
 
 /**

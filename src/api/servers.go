@@ -9,7 +9,7 @@ import (
 	"../config"
 	"../manager"
 	"../stats"
-	"github.com/gin-gonic/gin"
+	"gopkg.in/gin-gonic/gin.v1"
 	"net/http"
 )
 
