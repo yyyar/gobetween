@@ -223,7 +223,7 @@ func (this *Server) Listen() (err error) {
 	this.listener, err = net.Listen("tcp", this.cfg.Bind)
 
 	var tlsConfig *tls.Config
-	sniEnabled := this.cfg.Sni != nil && this.cfg.Sni.Enabled
+	sniEnabled := this.cfg.Sni.Enabled
 
 	if this.cfg.Protocol == "tls" {
 
@@ -258,16 +258,29 @@ func (this *Server) Listen() (err error) {
 				return
 			}
 
+			//TODO refactor
 			if sniEnabled {
-				var err error
+				go func(conn net.Conn) {
+					var err error
 
-				conn, err = sni.Sniff(conn, utils.ParseDurationOrDefault(this.cfg.Sni.ReadTimeout, time.Second*2))
+					sniConn, err := sni.Sniff(conn, utils.ParseDurationOrDefault(this.cfg.Sni.ReadTimeout, time.Second*2))
 
-				if err != nil {
-					log.Error(err)
-					return
-				}
+					if err != nil {
+						log.Error("Failed to get / parse ClientHello for sni: ", err)
+						conn.Close()
+						return
+					}
 
+					conn = sniConn
+
+					if tlsConfig != nil {
+						conn = tls.Server(conn, tlsConfig)
+					}
+
+					this.connect <- conn
+				}(conn)
+
+				continue
 			}
 
 			if tlsConfig != nil {

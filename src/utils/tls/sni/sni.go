@@ -42,11 +42,10 @@ func (c Conn) Read(b []byte) (n int, err error) {
 // Sniff sniffs hostname from ClientHello message (if any),
 // returns sni.Conn, filling it's Hostname field
 func Sniff(conn net.Conn, readTimeout time.Duration) (net.Conn, error) {
-	conn.SetReadDeadline(time.Now().Add(readTimeout))
-
 	buf := pool.Get().([]byte)
 	defer pool.Put(buf)
 
+	conn.SetReadDeadline(time.Now().Add(readTimeout))
 	i, err := conn.Read(buf)
 
 	if err != nil {
