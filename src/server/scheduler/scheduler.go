@@ -7,6 +7,8 @@
 package scheduler
 
 import (
+	"time"
+
 	"../../balance"
 	"../../core"
 	"../../discovery"
@@ -14,8 +16,6 @@ import (
 	"../../logging"
 	"../../stats"
 	"../../stats/counters"
-	"strings"
-	"time"
 )
 
 /**
@@ -247,47 +247,24 @@ func (this *Scheduler) HandleBackendsUpdate(backends []core.Backend) {
 	this.backendsList = updatedList
 }
 
-func compareSni(requestedSni string, backendSni string) bool {
-	r := strings.ToLower(requestedSni)
-	b := strings.ToLower(backendSni)
-
-	if strings.HasSuffix(b, "*") {
-		return strings.HasPrefix(r, b[:len(b)-1])
-	}
-
-	return r == b
-}
-
 /**
  * Perform backend election
  */
 func (this *Scheduler) HandleBackendElect(req ElectRequest) {
-	sni := req.Context.Sni()
 
 	// Filter only live backends
-	// Filter only backends with appropriate sni
-	var backends []core.Backend
+	var backends []*core.Backend
 	for _, b := range this.backendsList {
 
 		if !b.Stats.Live {
 			continue
 		}
 
-		// user has provided SNI so that we check and throw away backend if it does not compare
-		if sni != "" && !compareSni(sni, b.Sni) {
-			continue
-		}
-
-		// user did not provide SNI, so we throw away backend that has sni
-		if sni == "" && b.Sni != "" {
-			continue
-		}
-
-		backends = append(backends, *b)
+		backends = append(backends, b)
 	}
 
 	// Elect backend
-	backend, err := this.Balancer.Elect(&req.Context, backends)
+	backend, err := this.Balancer.Elect(req.Context, backends)
 	if err != nil {
 		req.Err <- err
 		return

@@ -7,8 +7,9 @@
 package balance
 
 import (
-	"../core"
 	"errors"
+
+	"../core"
 )
 
 /**
@@ -23,7 +24,7 @@ type RoundrobinBalancer struct {
 /**
  * Elect backend using roundrobin strategy
  */
-func (b *RoundrobinBalancer) Elect(context *core.Context, backends []core.Backend) (*core.Backend, error) {
+func (b *RoundrobinBalancer) Elect(context core.Context, backends []*core.Backend) (*core.Backend, error) {
 
 	if len(backends) == 0 {
 		return nil, errors.New("Can't elect backend, Backends empty")
@@ -33,7 +34,7 @@ func (b *RoundrobinBalancer) Elect(context *core.Context, backends []core.Backen
 		b.current = 0
 	}
 
-	backend := &backends[b.current]
+	backend := backends[b.current]
 	b.current += 1
 
 	return backend, nil

@@ -1,13 +1,14 @@
 package test
 
 import (
-	"../src/balance"
-	"../src/core"
 	"math"
 	"math/rand"
 	"net"
 	"testing"
 	"time"
+
+	"../src/balance"
+	"../src/core"
 )
 
 type DummyContext struct{}
@@ -24,6 +25,10 @@ func (d DummyContext) Port() int {
 	return 0
 }
 
+func (d DummyContext) Sni() string {
+	return ""
+}
+
 func TestWeightDistribution(t *testing.T) {
 	rand.Seed(time.Now().Unix())
 	balancer := &balance.WeightBalancer{}
@@ -31,7 +36,7 @@ func TestWeightDistribution(t *testing.T) {
 
 	context = DummyContext{}
 
-	backends := []core.Backend{
+	backends := []*core.Backend{
 		{
 			Weight: 20,
 		},
@@ -54,7 +59,7 @@ func TestWeightDistribution(t *testing.T) {
 
 	n := 10000
 	for try := 0; try < 100*n; try++ {
-		backend, err := balancer.Elect(&context, backends)
+		backend, err := balancer.Elect(context, backends)
 		if err != nil {
 			t.Fatal(err)
 		}

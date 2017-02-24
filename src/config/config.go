@@ -74,8 +74,8 @@ type Server struct {
 	// weight | leastconn | roundrobin
 	Balance string `toml:"balance" json:"balance"`
 
-	// Set to true if sni based balancing is needed
-	SniEnabled bool `toml:"sni_enabled" json:"sni_enabled"`
+	// Optional configuration for server name indication
+	Sni *Sni `toml:"sni" json:"sni"`
 
 	// Optional configuration for protocol = tls
 	Tls *Tls `toml:"tls" json:"tls"`
@@ -94,6 +94,15 @@ type Server struct {
 
 	// Healthcheck configuration
 	Healthcheck *HealthcheckConfig `toml:"healthcheck" json:"healthcheck"`
+}
+
+/**
+ * Server Sni options
+ */
+type Sni struct {
+	Enabled                    bool   `toml:"enabled" json:"enabled"`
+	UnexpectedHostnameStrategy string `toml:"unexpected_hostname_strategy" json:"unexpected_hostname_strategy"`
+	ReadTimeout                string `toml:"read_timeout" json:"read_timeout"`
 }
 
 /**

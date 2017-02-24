@@ -50,18 +50,6 @@ func Sniff(conn net.Conn, readTimeout time.Duration) (net.Conn, error) {
 	i, err := conn.Read(buf)
 
 	if err != nil {
-
-		if nerr, ok := err.(net.Error); ok {
-			//in case of timed out read from client - do not try to extract sni
-			if nerr.Timeout() {
-				return conn, nil
-			}
-
-			return nil, err
-		}
-	}
-
-	if err != nil {
 		return nil, err
 	}
 

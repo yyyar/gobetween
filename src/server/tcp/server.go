@@ -91,7 +91,7 @@ func New(name string, cfg config.Server) (*Server, error) {
 		clients:      make(map[string]net.Conn),
 		statsHandler: statsHandler,
 		scheduler: scheduler.Scheduler{
-			Balancer:     balance.New(cfg.Balance),
+			Balancer:     balance.New(cfg),
 			Discovery:    discovery.New(cfg.Discovery.Kind, *cfg.Discovery),
 			Healthcheck:  healthcheck.New(cfg.Healthcheck.Kind, *cfg.Healthcheck),
 			StatsHandler: statsHandler,
@@ -223,7 +223,7 @@ func (this *Server) Listen() (err error) {
 	this.listener, err = net.Listen("tcp", this.cfg.Bind)
 
 	var tlsConfig *tls.Config
-	sniEnabled := this.cfg.SniEnabled
+	sniEnabled := this.cfg.Sni != nil && this.cfg.Sni.Enabled
 
 	if this.cfg.Protocol == "tls" {
 
@@ -261,8 +261,7 @@ func (this *Server) Listen() (err error) {
 			if sniEnabled {
 				var err error
 
-				//TODO move timeout to config
-				conn, err = sni.Sniff(conn, time.Second*5)
+				conn, err = sni.Sniff(conn, utils.ParseDurationOrDefault(this.cfg.Sni.ReadTimeout, time.Second*2))
 
 				if err != nil {
 					log.Error(err)

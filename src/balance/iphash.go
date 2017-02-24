@@ -7,9 +7,10 @@
 package balance
 
 import (
-	"../core"
 	"errors"
 	"math"
+
+	"../core"
 )
 
 /**
@@ -23,13 +24,13 @@ type IphashBalancer struct{}
  * FNV-1a hash (https://en.wikipedia.org/wiki/Fowler%E2%80%93Noll%E2%80%93Vo_hash_function)
  * TODO: Improve as needed
  */
-func (b *IphashBalancer) Elect(context *core.Context, backends []core.Backend) (*core.Backend, error) {
+func (b *IphashBalancer) Elect(context core.Context, backends []*core.Backend) (*core.Backend, error) {
 
 	if len(backends) == 0 {
 		return nil, errors.New("Can't elect backend, Backends empty")
 	}
 
-	ip := (*context).Ip()
+	ip := context.Ip()
 
 	hash := 11
 	for _, b := range ip {
@@ -40,5 +41,5 @@ func (b *IphashBalancer) Elect(context *core.Context, backends []core.Backend) (
 
 	backend := backends[hash]
 
-	return &backend, nil
+	return backend, nil
 }

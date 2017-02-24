@@ -7,13 +7,14 @@
 package sni
 
 import (
-	"../../../logging"
 	"bytes"
 	"crypto/tls"
 	"io"
 	"net"
 	"reflect"
 	"time"
+
+	"../../../logging"
 )
 
 type bufferConn struct {
@@ -65,7 +66,6 @@ func (c bufferConn) SetWriteDeadline(t time.Time) error {
 func extractHostname(buf []byte) (result string) {
 	conn := tls.Server(newBufferConn(buf), &tls.Config{})
 	defer conn.Close()
-
 	conn.Handshake()
 	result = conn.ConnectionState().ServerName
 

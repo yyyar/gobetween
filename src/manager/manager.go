@@ -217,6 +217,33 @@ func prepareConfig(name string, server config.Server, defaults config.Connection
 		server.Healthcheck.Passes = 1
 	}
 
+	if server.Sni == nil {
+		server.Sni = &config.Sni{
+			Enabled: false,
+		}
+	}
+
+	if server.Sni.ReadTimeout == "" {
+		server.Sni.ReadTimeout = "2s"
+	}
+
+	if server.Sni.UnexpectedHostnameStrategy == "" {
+		server.Sni.UnexpectedHostnameStrategy = "default"
+	}
+
+	switch server.Sni.UnexpectedHostnameStrategy {
+	case
+		"default",
+		"reject",
+		"any":
+	default:
+		return config.Server{}, errors.New("Not supported sni unexprected hostname strategy " + server.Sni.UnexpectedHostnameStrategy)
+	}
+
+	if _, err := time.ParseDuration(server.Sni.ReadTimeout); err != nil {
+		return config.Server{}, errors.New("timeout parsing error")
+	}
+
 	if _, err := time.ParseDuration(server.Healthcheck.Timeout); err != nil {
 		return config.Server{}, errors.New("timeout parsing error")
 	}

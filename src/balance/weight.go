@@ -7,9 +7,10 @@
 package balance
 
 import (
-	"../core"
 	"errors"
 	"math/rand"
+
+	"../core"
 )
 
 /**
@@ -21,7 +22,7 @@ type WeightBalancer struct{}
  * Elect backend based on weight strategy
  * TODO: Ensure backends are sorted in the same way (not it's not bacause of map in scheduler)
  */
-func (b *WeightBalancer) Elect(context *core.Context, backends []core.Backend) (*core.Backend, error) {
+func (b *WeightBalancer) Elect(context core.Context, backends []*core.Backend) (*core.Backend, error) {
 
 	if len(backends) == 0 {
 		return nil, errors.New("Can't elect backend, Backends empty")
@@ -43,7 +44,7 @@ func (b *WeightBalancer) Elect(context *core.Context, backends []core.Backend) (
 		if r >= pos {
 			continue
 		}
-		return &backend, nil
+		return backend, nil
 	}
 
 	return nil, errors.New("Cant elect backend")

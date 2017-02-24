@@ -53,13 +53,12 @@ backend_connection_timeout = "0" # Backend connection timeout (ignored in udp)
 [servers.sample]
 protocol = "tcp"
 bind = "localhost:3000"
-sni_enabled = true
 
   [servers.sample.discovery]
   kind = "static"
   static_list = [
-      "127.0.0.1:8000 sni=foo.bar",
-      "127.0.0.1:8001 sni=foo.baz"
+      "localhost:8000",
+      "localhost:8001"
   ]
 
 
@@ -114,6 +113,16 @@ protocol = "udp"
 #    prefer_server_ciphers = false     # (optional) if true server selects server's most preferred cipher
 #    session_tickets = true            # (optional) if true enables session tickets
 #
+#
+## ---------------------- sni properties --------------------- #
+#
+# [servers.default.sni]                    # (optional)
+# enabled = false                          # (required) if true server will lookup sni from ClientHello
+# read_timeout = "2s"                      # (optional) timeout for reading sni from client
+# unexpected_hostname_strategy = "default" # (optional) "default" | "reject" | "any" strategy for dealing with unknown hostname requests
+#                                          #    "default" -- forward connections to backends with no sni tag
+#                                          #    "reject" -- drop connection
+#                                          #    "any" -- forward to any available backend
 #
 #
 ## ---------------------- tls properties --------------------- #
