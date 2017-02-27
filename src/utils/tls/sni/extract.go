@@ -12,10 +12,14 @@ import (
 	"io"
 	"net"
 	"reflect"
+	"runtime"
+	"strings"
 	"time"
 
 	"../../../logging"
 )
+
+var needReflection = strings.HasPrefix(runtime.Version(), "go") && runtime.Version() >= "go1.8"
 
 type bufferConn struct {
 	io.Reader
@@ -83,6 +87,10 @@ func extractHostname(buf []byte) (result string) {
 	}()
 
 	// Prior to go1.8 ConnectionState.ServerName will be not filled, so we'll try to get it from reflection
+	if !needReflection {
+		return ""
+	}
+
 	p := reflect.ValueOf(conn)
 	v := reflect.Indirect(p)
 
