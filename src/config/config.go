@@ -101,6 +101,7 @@ type Server struct {
  */
 type Sni struct {
 	Enabled                    bool   `toml:"enabled" json:"enabled"`
+	Matching                   string `toml:"matching" json:"matching"`
 	UnexpectedHostnameStrategy string `toml:"unexpected_hostname_strategy" json:"unexpected_hostname_strategy"`
 	ReadTimeout                string `toml:"read_timeout" json:"read_timeout"`
 }

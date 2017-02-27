@@ -240,6 +240,18 @@ func prepareConfig(name string, server config.Server, defaults config.Connection
 		return config.Server{}, errors.New("Not supported sni unexprected hostname strategy " + server.Sni.UnexpectedHostnameStrategy)
 	}
 
+	if server.Sni.Matching == "" {
+		server.Sni.Matching = "exact"
+	}
+
+	switch server.Sni.Matching {
+	case
+		"exact",
+		"regexp":
+	default:
+		return config.Server{}, errors.New("Not supported sni matching " + server.Sni.Matching)
+	}
+
 	if _, err := time.ParseDuration(server.Sni.ReadTimeout); err != nil {
 		return config.Server{}, errors.New("timeout parsing error")
 	}

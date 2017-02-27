@@ -118,6 +118,7 @@ protocol = "udp"
 #
 # [servers.default.sni]                    # (optional)
 # enabled = false                          # (required) if true server will lookup sni from ClientHello
+# matching = "exact"                       # (optional) "exact" | "regexp" if regexp, then compile sni tag of backend as regexp.
 # read_timeout = "2s"                      # (optional) timeout for reading sni from client
 # unexpected_hostname_strategy = "default" # (optional) "default" | "reject" | "any" strategy for dealing with unknown hostname requests
 #                                          #    "default" -- forward connections to backends with no sni tag

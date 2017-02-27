@@ -6,10 +6,7 @@
 
 package core
 
-import (
-	"../utils/tls/sni"
-	"net"
-)
+import "net"
 
 type Context interface {
 	String() string
@@ -22,7 +19,7 @@ type Context interface {
  * Proxy tcp context
  */
 type TcpContext struct {
-
+	Hostname string
 	/**
 	 * Current client connection
 	 */
@@ -42,11 +39,7 @@ func (t TcpContext) Port() int {
 }
 
 func (t TcpContext) Sni() string {
-	if sniConn, ok := t.Conn.(sni.Conn); ok {
-		return sniConn.Hostname()
-	} else {
-		return ""
-	}
+	return t.Hostname
 }
 
 /*

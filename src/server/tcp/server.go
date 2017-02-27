@@ -54,7 +54,7 @@ type Server struct {
 	/* ----- channels ----- */
 
 	/* Channel for new connections */
-	connect chan (net.Conn)
+	connect chan (*core.TcpContext)
 
 	/* Channel for dropping connections or connectons to drop */
 	disconnect chan (net.Conn)
@@ -87,7 +87,7 @@ func New(name string, cfg config.Server) (*Server, error) {
 		cfg:          cfg,
 		stop:         make(chan bool),
 		disconnect:   make(chan net.Conn),
-		connect:      make(chan net.Conn),
+		connect:      make(chan *core.TcpContext),
 		clients:      make(map[string]net.Conn),
 		statsHandler: statsHandler,
 		scheduler: scheduler.Scheduler{
@@ -138,8 +138,8 @@ func (this *Server) Start() error {
 			case client := <-this.disconnect:
 				this.HandleClientDisconnect(client)
 
-			case client := <-this.connect:
-				this.HandleClientConnect(client)
+			case ctx := <-this.connect:
+				this.HandleClientConnect(ctx)
 
 			case <-this.stop:
 				this.scheduler.Stop()
@@ -183,8 +183,8 @@ func (this *Server) HandleClientDisconnect(client net.Conn) {
 /**
  * Handle new client connection
  */
-func (this *Server) HandleClientConnect(client net.Conn) {
-
+func (this *Server) HandleClientConnect(ctx *core.TcpContext) {
+	client := ctx.Conn
 	log := logging.For("server")
 
 	if *this.cfg.MaxConnections != 0 && len(this.clients) >= *this.cfg.MaxConnections {
@@ -196,7 +196,7 @@ func (this *Server) HandleClientConnect(client net.Conn) {
 	this.clients[client.RemoteAddr().String()] = client
 	this.statsHandler.Connections <- uint(len(this.clients))
 	go func() {
-		this.handle(client)
+		this.handle(ctx)
 		this.disconnect <- client
 	}()
 }
@@ -210,6 +210,37 @@ func (this *Server) Stop() {
 	log.Info("Stopping ", this.name)
 
 	this.stop <- true
+}
+
+func (this *Server) wrap(conn net.Conn, sniEnabled bool, tlsConfig *tls.Config) {
+	log := logging.For("server.Listen.wrap")
+
+	go func() {
+		var hostname string
+		var err error
+
+		if sniEnabled {
+			var sniConn net.Conn
+			sniConn, hostname, err = sni.Sniff(conn, utils.ParseDurationOrDefault(this.cfg.Sni.ReadTimeout, time.Second*2))
+
+			if err != nil {
+				log.Error("Failed to get / parse ClientHello for sni: ", err)
+				conn.Close()
+				return
+			}
+
+			conn = sniConn
+		}
+
+		if tlsConfig != nil {
+			conn = tls.Server(conn, tlsConfig)
+		}
+
+		this.connect <- &core.TcpContext{
+			hostname,
+			conn,
+		}
+	}()
 }
 
 /**
@@ -258,36 +289,7 @@ func (this *Server) Listen() (err error) {
 				return
 			}
 
-			//TODO refactor
-			if sniEnabled {
-				go func(conn net.Conn) {
-					var err error
-
-					sniConn, err := sni.Sniff(conn, utils.ParseDurationOrDefault(this.cfg.Sni.ReadTimeout, time.Second*2))
-
-					if err != nil {
-						log.Error("Failed to get / parse ClientHello for sni: ", err)
-						conn.Close()
-						return
-					}
-
-					conn = sniConn
-
-					if tlsConfig != nil {
-						conn = tls.Server(conn, tlsConfig)
-					}
-
-					this.connect <- conn
-				}(conn)
-
-				continue
-			}
-
-			if tlsConfig != nil {
-				conn = tls.Server(conn, tlsConfig)
-			}
-
-			this.connect <- conn
+			this.wrap(conn, sniEnabled, tlsConfig)
 		}
 	}()
 
@@ -297,7 +299,8 @@ func (this *Server) Listen() (err error) {
 /**
  * Handle incoming connection and prox it to backend
  */
-func (this *Server) handle(clientConn net.Conn) {
+func (this *Server) handle(ctx *core.TcpContext) {
+	clientConn := ctx.Conn
 	log := logging.For("server.handle")
 
 	/* Check access if needed */
@@ -313,7 +316,7 @@ func (this *Server) handle(clientConn net.Conn) {
 
 	/* Find out backend for proxying */
 	var err error
-	backend, err := this.scheduler.TakeBackend(&core.TcpContext{clientConn})
+	backend, err := this.scheduler.TakeBackend(ctx)
 	if err != nil {
 		log.Error(err, " Closing connection ", clientConn.RemoteAddr())
 		return

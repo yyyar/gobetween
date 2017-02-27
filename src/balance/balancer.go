@@ -48,15 +48,25 @@ type baseBalancer struct {
 	delegate Balancer
 }
 
-func compareSni(requestedSni string, backendSni string) bool {
-	if regexp, err := regexp.Compile(backendSni); err == nil {
-		return regexp.MatchString(requestedSni)
+func (b *baseBalancer) compareSni(requestedSni string, backendSni string) (bool, error) {
+	sniMatching := b.cfg.Sni.Matching
+
+	switch sniMatching {
+	case "regexp":
+		regexp, err := regexp.Compile(backendSni)
+		if err != nil {
+			return false, err
+		}
+		return regexp.MatchString(requestedSni), nil
+	case "exact":
+		r := strings.ToLower(requestedSni)
+		b := strings.ToLower(backendSni)
+
+		return r == b, nil
+	default:
+		return false, errors.New("Unsupported sni matching mechanism: " + sniMatching)
 	}
 
-	r := strings.ToLower(requestedSni)
-	b := strings.ToLower(backendSni)
-
-	return r == b
 }
 
 func (b *baseBalancer) Elect(ctx core.Context, backends []*core.Backend) (*core.Backend, error) {
@@ -78,10 +88,16 @@ func (b *baseBalancer) Elect(ctx core.Context, backends []*core.Backend) (*core.
 
 	var filtered []*core.Backend
 
-	for _, b := range backends {
+	for _, backend := range backends {
 
-		if compareSni(sni, b.Sni) {
-			filtered = append(filtered, b)
+		match, err := b.compareSni(sni, backend.Sni)
+
+		if err != nil {
+			return nil, err
+		}
+
+		if match {
+			filtered = append(filtered, backend)
 		}
 
 	}

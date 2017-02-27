@@ -26,13 +26,8 @@ var pool = sync.Pool{
 
 // delegatedConn delegates all calls to net.Conn, but Read to reader
 type Conn struct {
-	hostname string
 	reader   io.Reader
 	net.Conn //delegate
-}
-
-func (c Conn) Hostname() string {
-	return c.hostname
 }
 
 func (c Conn) Read(b []byte) (n int, err error) {
@@ -41,7 +36,7 @@ func (c Conn) Read(b []byte) (n int, err error) {
 
 // Sniff sniffs hostname from ClientHello message (if any),
 // returns sni.Conn, filling it's Hostname field
-func Sniff(conn net.Conn, readTimeout time.Duration) (net.Conn, error) {
+func Sniff(conn net.Conn, readTimeout time.Duration) (net.Conn, string, error) {
 	buf := pool.Get().([]byte)
 	defer pool.Put(buf)
 
@@ -49,7 +44,7 @@ func Sniff(conn net.Conn, readTimeout time.Duration) (net.Conn, error) {
 	i, err := conn.Read(buf)
 
 	if err != nil {
-		return nil, err
+		return nil, "", err
 	}
 
 	hostname := extractHostname(buf[0:i])
@@ -60,5 +55,5 @@ func Sniff(conn net.Conn, readTimeout time.Duration) (net.Conn, error) {
 
 	// Wrap connection so that it will Read from buffer first and remaining data
 	// from initial conn
-	return Conn{hostname, mreader, conn}, nil
+	return Conn{mreader, conn}, hostname, nil
 }
