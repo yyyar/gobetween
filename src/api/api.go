@@ -43,12 +43,11 @@ func Start(cfg config.ApiConfig) {
 		corsConfig.AllowAllOrigins = true;
 		corsConfig.AllowCredentials = true;
 		corsConfig.AllowMethods = []string{"PUT", "POST", "DELETE", "GET", "OPTIONS"}
+		corsConfig.ExposeHeaders = []string{"Authorization"}
 
 		app.Use(cors.New(corsConfig));
 		log.Info("API CORS enabled");
 	}
-
-
 
 	r := app.Group("/")
 
