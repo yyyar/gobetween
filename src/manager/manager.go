@@ -6,14 +6,15 @@
 package manager
 
 import (
+	"errors"
+	"sync"
+	"time"
+
 	"../config"
 	"../core"
 	"../logging"
 	"../server"
 	"../utils/codec"
-	"errors"
-	"sync"
-	"time"
 )
 
 /* Map of app current servers */
@@ -224,6 +225,16 @@ func prepareConfig(name string, server config.Server, defaults config.Connection
 		return config.Server{}, errors.New("interval parsing error")
 	}
 
+	if server.BackendsTls == nil {
+		server.BackendsTls = &config.BackendsTls{
+			Enabled: false,
+		}
+	}
+
+	if server.BackendsTls.Enabled && ((server.BackendsTls.KeyPath == nil) != (server.BackendsTls.CertPath == nil)) {
+		return config.Server{}, errors.New("backend_tls.cert_path and .key_path should be specified together")
+	}
+
 	/* ----- Connections params and overrides ----- */
 
 	/* Protocol */
@@ -237,17 +248,11 @@ func prepareConfig(name string, server config.Server, defaults config.Connection
 		fallthrough
 	case "tcp":
 	case "udp":
-		if server.BackendTls != nil {
-			return config.Server{}, errors.New("backend_tls section is not allowed for udp protocol")
+		if server.BackendsTls.Enabled {
+			return config.Server{}, errors.New("backends_tls should not be enabled for udp protocol")
 		}
 	default:
 		return config.Server{}, errors.New("Not supported protocol " + server.Protocol)
-	}
-
-	if server.BackendTls != nil {
-		if (server.BackendTls.KeyPath == nil) != (server.BackendTls.CertPath == nil) {
-			return config.Server{}, errors.New("backend_tls.cert_path and .key_path should be specified together")
-		}
 	}
 
 	/* Healthcheck and protocol match */
@@ -339,19 +344,6 @@ func prepareConfig(name string, server config.Server, defaults config.Connection
 	if server.BackendConnectionTimeout == nil {
 		server.BackendConnectionTimeout = new(string)
 		*server.BackendConnectionTimeout = *defaults.BackendConnectionTimeout
-	}
-
-	if defaults.BackendTlsEnabled == nil {
-		defaults.BackendTlsEnabled = new(bool)
-		*defaults.BackendTlsEnabled = false
-	}
-	if server.BackendTlsEnabled == nil {
-		server.BackendTlsEnabled = new(bool)
-		*server.BackendTlsEnabled = *defaults.BackendTlsEnabled
-	}
-
-	if *server.BackendTlsEnabled && server.BackendTls == nil {
-		server.BackendTls = &config.BackendTls{}
 	}
 
 	return server, nil

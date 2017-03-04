@@ -57,7 +57,6 @@ type ConnectionOptions struct {
 	ClientIdleTimeout        *string `toml:"client_idle_timeout" json:"client_idle_timeout"`
 	BackendIdleTimeout       *string `toml:"backend_idle_timeout" json:"backend_idle_timeout"`
 	BackendConnectionTimeout *string `toml:"backend_connection_timeout" json:"backend_connection_timeout"`
-	BackendTlsEnabled        *bool   `toml:"backend_tls_enabled" json:"backend_tls_enabled"`
 }
 
 /**
@@ -79,7 +78,7 @@ type Server struct {
 	Tls *Tls `toml:"tls" json:"tls"`
 
 	// Optional configuration for backend_tls_enabled = true
-	BackendTls *BackendTls `toml:"backend_tls" json:"backend_tls"`
+	BackendsTls *BackendsTls `toml:"backends_tls" json:"backends_tls"`
 
 	// Optional configuration for protocol = udp
 	Udp *Udp `toml:"udp" json:"udp"`
@@ -115,7 +114,8 @@ type Tls struct {
 	tlsCommon
 }
 
-type BackendTls struct {
+type BackendsTls struct {
+	Enabled        bool    `toml:"enabled" json:"enabled"`
 	IgnoreVerify   bool    `toml:"ignore_verify" json:"ignore_verify"`
 	RootCaCertPath *string `toml:"root_ca_cert_path" json:"root_ca_cert_path"`
 	CertPath       *string `toml:"cert_path" json:"cert_path"`

@@ -7,6 +7,11 @@
 package tcp
 
 import (
+	"crypto/tls"
+	"crypto/x509"
+	"io/ioutil"
+	"net"
+
 	"../../balance"
 	"../../config"
 	"../../core"
@@ -18,10 +23,6 @@ import (
 	tlsutil "../../utils/tls"
 	"../modules/access"
 	"../scheduler"
-	"crypto/tls"
-	"crypto/x509"
-	"io/ioutil"
-	"net"
 )
 
 /**
@@ -60,7 +61,7 @@ type Server struct {
 	stop chan bool
 
 	/* Tls config used to connect to backends */
-	backendTlsConfg *tls.Config
+	backendsTlsConfg *tls.Config
 
 	/* ----- modules ----- */
 
@@ -104,46 +105,10 @@ func New(name string, cfg config.Server) (*Server, error) {
 	}
 
 	/* Add backend tls config if needed */
-
-	if *cfg.BackendTlsEnabled {
-
-		server.backendTlsConfg = &tls.Config{
-			InsecureSkipVerify:       cfg.BackendTls.IgnoreVerify,
-			CipherSuites:             tlsutil.MapCiphers(cfg.BackendTls.Ciphers),
-			PreferServerCipherSuites: cfg.BackendTls.PreferServerCiphers,
-			MinVersion:               tlsutil.MapVersion(cfg.BackendTls.MinVersion),
-			MaxVersion:               tlsutil.MapVersion(cfg.BackendTls.MaxVersion),
-			SessionTicketsDisabled:   !cfg.BackendTls.SessionTickets,
-		}
-
-		if cfg.BackendTls.CertPath != nil && cfg.BackendTls.KeyPath != nil {
-
-			var crt tls.Certificate
-
-			if crt, err = tls.LoadX509KeyPair(*cfg.BackendTls.CertPath, *cfg.BackendTls.KeyPath); err != nil {
-				log.Error(err)
-				return nil, err
-			}
-
-			server.backendTlsConfg.Certificates = []tls.Certificate{crt}
-		}
-
-		if cfg.BackendTls.RootCaCertPath != nil {
-
-			var caCertPem []byte
-
-			if caCertPem, err = ioutil.ReadFile(*cfg.BackendTls.RootCaCertPath); err != nil {
-				log.Error(err)
-				return nil, err
-			}
-
-			caCertPool := x509.NewCertPool()
-			if ok := caCertPool.AppendCertsFromPEM(caCertPem); !ok {
-				log.Error("Unable to load root pem")
-			}
-
-			server.backendTlsConfg.RootCAs = caCertPool
-
+	if cfg.BackendsTls.Enabled {
+		server.backendsTlsConfg, err = prepareBackendsTlsConfig(cfg)
+		if err != nil {
+			return nil, err
 		}
 	}
 
@@ -323,10 +288,10 @@ func (this *Server) handle(clientConn net.Conn) {
 	/* Connect to backend */
 	var backendConn net.Conn
 
-	if *this.cfg.BackendTlsEnabled {
+	if this.cfg.BackendsTls.Enabled {
 		backendConn, err = tls.DialWithDialer(&net.Dialer{
 			Timeout: utils.ParseDurationOrDefault(*this.cfg.BackendConnectionTimeout, 0),
-		}, "tcp", backend.Address(), this.backendTlsConfg)
+		}, "tcp", backend.Address(), this.backendsTlsConfg)
 
 	} else {
 		backendConn, err = net.DialTimeout("tcp", backend.Address(), utils.ParseDurationOrDefault(*this.cfg.BackendConnectionTimeout, 0))
@@ -358,4 +323,52 @@ func (this *Server) handle(clientConn net.Conn) {
 	}
 
 	log.Debug("End ", clientConn.RemoteAddr(), " -> ", this.listener.Addr(), " -> ", backendConn.RemoteAddr())
+}
+
+func prepareBackendsTlsConfig(cfg config.Server) (*tls.Config, error) {
+
+	log := logging.For("server.prepareBackendsTlsConfig")
+	var err error
+
+	result := &tls.Config{
+		InsecureSkipVerify:       cfg.BackendsTls.IgnoreVerify,
+		CipherSuites:             tlsutil.MapCiphers(cfg.BackendsTls.Ciphers),
+		PreferServerCipherSuites: cfg.BackendsTls.PreferServerCiphers,
+		MinVersion:               tlsutil.MapVersion(cfg.BackendsTls.MinVersion),
+		MaxVersion:               tlsutil.MapVersion(cfg.BackendsTls.MaxVersion),
+		SessionTicketsDisabled:   !cfg.BackendsTls.SessionTickets,
+	}
+
+	if cfg.BackendsTls.CertPath != nil && cfg.BackendsTls.KeyPath != nil {
+
+		var crt tls.Certificate
+
+		if crt, err = tls.LoadX509KeyPair(*cfg.BackendsTls.CertPath, *cfg.BackendsTls.KeyPath); err != nil {
+			log.Error(err)
+			return nil, err
+		}
+
+		result.Certificates = []tls.Certificate{crt}
+	}
+
+	if cfg.BackendsTls.RootCaCertPath != nil {
+
+		var caCertPem []byte
+
+		if caCertPem, err = ioutil.ReadFile(*cfg.BackendsTls.RootCaCertPath); err != nil {
+			log.Error(err)
+			return nil, err
+		}
+
+		caCertPool := x509.NewCertPool()
+		if ok := caCertPool.AppendCertsFromPEM(caCertPem); !ok {
+			log.Error("Unable to load root pem")
+		}
+
+		result.RootCAs = caCertPool
+
+	}
+
+	return result, nil
+
 }
