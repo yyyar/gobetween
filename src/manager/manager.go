@@ -225,13 +225,7 @@ func prepareConfig(name string, server config.Server, defaults config.Connection
 		return config.Server{}, errors.New("interval parsing error")
 	}
 
-	if server.BackendsTls == nil {
-		server.BackendsTls = &config.BackendsTls{
-			Enabled: false,
-		}
-	}
-
-	if server.BackendsTls.Enabled && ((server.BackendsTls.KeyPath == nil) != (server.BackendsTls.CertPath == nil)) {
+	if server.BackendsTls != nil && ((server.BackendsTls.KeyPath == nil) != (server.BackendsTls.CertPath == nil)) {
 		return config.Server{}, errors.New("backend_tls.cert_path and .key_path should be specified together")
 	}
 
@@ -248,7 +242,7 @@ func prepareConfig(name string, server config.Server, defaults config.Connection
 		fallthrough
 	case "tcp":
 	case "udp":
-		if server.BackendsTls.Enabled {
+		if server.BackendsTls != nil {
 			return config.Server{}, errors.New("backends_tls should not be enabled for udp protocol")
 		}
 	default:

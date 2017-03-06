@@ -115,7 +115,6 @@ type Tls struct {
 }
 
 type BackendsTls struct {
-	Enabled        bool    `toml:"enabled" json:"enabled"`
 	IgnoreVerify   bool    `toml:"ignore_verify" json:"ignore_verify"`
 	RootCaCertPath *string `toml:"root_ca_cert_path" json:"root_ca_cert_path"`
 	CertPath       *string `toml:"cert_path" json:"cert_path"`

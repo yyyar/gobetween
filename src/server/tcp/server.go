@@ -105,7 +105,7 @@ func New(name string, cfg config.Server) (*Server, error) {
 	}
 
 	/* Add backend tls config if needed */
-	if cfg.BackendsTls.Enabled {
+	if cfg.BackendsTls != nil {
 		server.backendsTlsConfg, err = prepareBackendsTlsConfig(cfg)
 		if err != nil {
 			return nil, err
@@ -288,7 +288,7 @@ func (this *Server) handle(clientConn net.Conn) {
 	/* Connect to backend */
 	var backendConn net.Conn
 
-	if this.cfg.BackendsTls.Enabled {
+	if this.cfg.BackendsTls != nil {
 		backendConn, err = tls.DialWithDialer(&net.Dialer{
 			Timeout: utils.ParseDurationOrDefault(*this.cfg.BackendConnectionTimeout, 0),
 		}, "tcp", backend.Address(), this.backendsTlsConfg)
