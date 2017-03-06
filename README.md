@@ -64,7 +64,7 @@
 
 ## Hacking
 
-* Install Go 1.6+ https://golang.org/
+* Install Go 1.8+ https://golang.org/
 * `$ git clone git@github.com:yyyar/gobetween.git`
 * `$ make deps`
 * `$ make run`
@@ -75,7 +75,7 @@ Run several web servers for tests in different terminals:
 * `$ python -m SimpleHTTPServer 8000`
 * `$ python -m SimpleHTTPServer 8001`
 
-Put `localhost:8000` and `localhost:8001` to static_list of static discovery in config file, then try it:
+Put `localhost:8000` and `localhost:8001` to `static_list` of static discovery in config file, then try it:
 
 * `$ gobetween -c gobetween.toml`
 
