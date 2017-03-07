@@ -49,7 +49,7 @@ type baseBalancer struct {
 }
 
 func (b *baseBalancer) compareSni(requestedSni string, backendSni string) (bool, error) {
-	sniMatching := b.cfg.Sni.Matching
+	sniMatching := b.cfg.Sni.HostnameMatchingStrategy
 
 	switch sniMatching {
 	case "regexp":
@@ -71,7 +71,7 @@ func (b *baseBalancer) compareSni(requestedSni string, backendSni string) (bool,
 
 func (b *baseBalancer) Elect(ctx core.Context, backends []*core.Backend) (*core.Backend, error) {
 
-	if !b.cfg.Sni.Enabled {
+	if b.cfg.Sni == nil {
 		return b.delegate.Elect(ctx, backends)
 	}
 

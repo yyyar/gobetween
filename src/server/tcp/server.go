@@ -215,32 +215,31 @@ func (this *Server) Stop() {
 func (this *Server) wrap(conn net.Conn, sniEnabled bool, tlsConfig *tls.Config) {
 	log := logging.For("server.Listen.wrap")
 
-	go func() {
-		var hostname string
-		var err error
+	var hostname string
+	var err error
 
-		if sniEnabled {
-			var sniConn net.Conn
-			sniConn, hostname, err = sni.Sniff(conn, utils.ParseDurationOrDefault(this.cfg.Sni.ReadTimeout, time.Second*2))
+	if sniEnabled {
+		var sniConn net.Conn
+		sniConn, hostname, err = sni.Sniff(conn, utils.ParseDurationOrDefault(this.cfg.Sni.ReadTimeout, time.Second*2))
 
-			if err != nil {
-				log.Error("Failed to get / parse ClientHello for sni: ", err)
-				conn.Close()
-				return
-			}
-
-			conn = sniConn
+		if err != nil {
+			log.Error("Failed to get / parse ClientHello for sni: ", err)
+			conn.Close()
+			return
 		}
 
-		if tlsConfig != nil {
-			conn = tls.Server(conn, tlsConfig)
-		}
+		conn = sniConn
+	}
 
-		this.connect <- &core.TcpContext{
-			hostname,
-			conn,
-		}
-	}()
+	if tlsConfig != nil {
+		conn = tls.Server(conn, tlsConfig)
+	}
+
+	this.connect <- &core.TcpContext{
+		hostname,
+		conn,
+	}
+
 }
 
 /**
@@ -254,7 +253,7 @@ func (this *Server) Listen() (err error) {
 	this.listener, err = net.Listen("tcp", this.cfg.Bind)
 
 	var tlsConfig *tls.Config
-	sniEnabled := this.cfg.Sni.Enabled
+	sniEnabled := this.cfg.Sni != nil
 
 	if this.cfg.Protocol == "tls" {
 
@@ -289,7 +288,7 @@ func (this *Server) Listen() (err error) {
 				return
 			}
 
-			this.wrap(conn, sniEnabled, tlsConfig)
+			go this.wrap(conn, sniEnabled, tlsConfig)
 		}
 	}()
 
