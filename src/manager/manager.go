@@ -6,14 +6,15 @@
 package manager
 
 import (
+	"errors"
+	"sync"
+	"time"
+
 	"../config"
 	"../core"
 	"../logging"
 	"../server"
 	"../utils/codec"
-	"errors"
-	"sync"
-	"time"
 )
 
 /* Map of app current servers */
@@ -224,9 +225,13 @@ func prepareConfig(name string, server config.Server, defaults config.Connection
 		return config.Server{}, errors.New("interval parsing error")
 	}
 
+	if server.BackendsTls != nil && ((server.BackendsTls.KeyPath == nil) != (server.BackendsTls.CertPath == nil)) {
+		return config.Server{}, errors.New("backend_tls.cert_path and .key_path should be specified together")
+	}
+
 	/* ----- Connections params and overrides ----- */
 
-	/* Balance */
+	/* Protocol */
 	switch server.Protocol {
 	case "":
 		server.Protocol = "tcp"
@@ -235,7 +240,11 @@ func prepareConfig(name string, server config.Server, defaults config.Connection
 			return config.Server{}, errors.New("Need tls section for tls protocol")
 		}
 		fallthrough
-	case "tcp", "udp":
+	case "tcp":
+	case "udp":
+		if server.BackendsTls != nil {
+			return config.Server{}, errors.New("backends_tls should not be enabled for udp protocol")
+		}
 	default:
 		return config.Server{}, errors.New("Not supported protocol " + server.Protocol)
 	}
