@@ -44,12 +44,13 @@ type Balancer interface {
 }
 
 type baseBalancer struct {
-	cfg      config.Server
+	sniConf  *config.Sni
 	delegate Balancer
 }
 
 func (b *baseBalancer) compareSni(requestedSni string, backendSni string) (bool, error) {
-	sniMatching := b.cfg.Sni.HostnameMatchingStrategy
+
+	sniMatching := b.sniConf.HostnameMatchingStrategy
 
 	switch sniMatching {
 	case "regexp":
@@ -59,10 +60,7 @@ func (b *baseBalancer) compareSni(requestedSni string, backendSni string) (bool,
 		}
 		return regexp.MatchString(requestedSni), nil
 	case "exact":
-		r := strings.ToLower(requestedSni)
-		b := strings.ToLower(backendSni)
-
-		return r == b, nil
+		return strings.ToLower(requestedSni) == strings.ToLower(backendSni), nil
 	default:
 		return false, errors.New("Unsupported sni matching mechanism: " + sniMatching)
 	}
@@ -71,12 +69,12 @@ func (b *baseBalancer) compareSni(requestedSni string, backendSni string) (bool,
 
 func (b *baseBalancer) Elect(ctx core.Context, backends []*core.Backend) (*core.Backend, error) {
 
-	if b.cfg.Sni == nil {
+	if b.sniConf == nil {
 		return b.delegate.Elect(ctx, backends)
 	}
 
 	sni := ctx.Sni()
-	strategy := b.cfg.Sni.UnexpectedHostnameStrategy
+	strategy := b.sniConf.UnexpectedHostnameStrategy
 
 	if sni == "" && strategy == "reject" {
 		return nil, errors.New("Rejecting client due to an empty sni")
@@ -117,9 +115,9 @@ func (b *baseBalancer) Elect(ctx core.Context, backends []*core.Backend) (*core.
 /**
  * Create new Balancer based on balancing strategy
  */
-func New(cfg config.Server) Balancer {
+func New(sniConf *config.Sni, balance string) Balancer {
 	return &baseBalancer{
-		cfg:      cfg,
-		delegate: reflect.New(typeRegistry[cfg.Balance]).Elem().Addr().Interface().(Balancer),
+		sniConf:  sniConf,
+		delegate: reflect.New(typeRegistry[balance]).Elem().Addr().Interface().(Balancer),
 	}
 }

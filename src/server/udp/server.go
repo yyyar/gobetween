@@ -83,7 +83,7 @@ func New(name string, cfg config.Server) (*Server, error) {
 
 	statsHandler := stats.NewHandler(name)
 	scheduler := &scheduler.Scheduler{
-		Balancer:     balance.New(cfg),
+		Balancer:     balance.New(nil, cfg.Balance),
 		Discovery:    discovery.New(cfg.Discovery.Kind, *cfg.Discovery),
 		Healthcheck:  healthcheck.New(cfg.Healthcheck.Kind, *cfg.Healthcheck),
 		StatsHandler: statsHandler,
