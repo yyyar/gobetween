@@ -35,10 +35,6 @@ func (b *SniBalancer) compareSni(requestedSni string, backendSni string) (bool, 
 
 func (b *SniBalancer) Elect(ctx core.Context, backends []*core.Backend) (*core.Backend, error) {
 
-	if b.SniConf == nil {
-		return b.Delegate.Elect(ctx, backends)
-	}
-
 	sni := ctx.Sni()
 	strategy := b.SniConf.UnexpectedHostnameStrategy
 
