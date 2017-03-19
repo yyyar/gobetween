@@ -9,7 +9,6 @@ package scheduler
 import (
 	"time"
 
-	"../../balance"
 	"../../core"
 	"../../discovery"
 	"../../healthcheck"
@@ -58,7 +57,7 @@ type ElectRequest struct {
 type Scheduler struct {
 
 	/* Balancer impl */
-	Balancer balance.Balancer
+	Balancer core.Balancer
 
 	/* Discovery impl */
 	Discovery *discovery.Discovery
