@@ -9,6 +9,7 @@ import (
 	"../config"
 	"../logging"
 	"github.com/gin-gonic/gin"
+	"github.com/gin-contrib/cors"
 )
 
 /* gin app */
@@ -36,6 +37,18 @@ func Start(cfg config.ApiConfig) {
 	log.Info("Starting up API")
 
 	app = gin.New()
+
+	if cfg.Cors {
+		corsConfig := cors.DefaultConfig()
+		corsConfig.AllowAllOrigins = true
+		corsConfig.AllowCredentials = true
+		corsConfig.AllowMethods = []string{"PUT", "POST", "DELETE", "GET", "OPTIONS"}
+		corsConfig.ExposeHeaders = []string{"Authorization"}
+
+		app.Use(cors.New(corsConfig))
+		log.Info("API CORS enabled")
+	}
+
 	r := app.Group("/")
 
 	if cfg.BasicAuth != nil {

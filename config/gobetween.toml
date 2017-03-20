@@ -20,6 +20,7 @@ output = "stdout" # "stdout" | "stderr" | "/path/to/gobetween.log"
 [api]
 enabled = true  # true | false
 bind = ":8888"  # "host:port"
+cors = false    # cross-origin resource sharing
 
 #  [api.basic_auth]   # (optional) Enable HTTP Basic Auth
 #  login = "admin"    # HTTP Auth Login

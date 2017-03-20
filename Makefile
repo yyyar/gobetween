@@ -66,7 +66,8 @@ deps: clean-deps
 	github.com/gin-gonic/gin \
 	github.com/hashicorp/consul/api \
 	github.com/spf13/cobra \
-	github.com/laher/goxc
+	github.com/laher/goxc \
+	github.com/gin-contrib/cors
 
 clean-dist:
 	rm -rf ./dist/${VERSION}
