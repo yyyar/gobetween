@@ -134,6 +134,10 @@ func jsonFetch(cfg config.DiscoveryConfig) (*[]core.Backend, error) {
 			backend.Priority = int(priority)
 		}
 
+		if sni, err := parsed.QueryToString(key + cfg.JsonSniPattern); err == nil {
+			backend.Sni = sni
+		}
+
 		backends = append(backends, backend)
 	}
 

@@ -6,21 +6,20 @@
 
 package core
 
-import (
-	"net"
-)
+import "net"
 
 type Context interface {
 	String() string
 	Ip() net.IP
 	Port() int
+	Sni() string
 }
 
 /**
  * Proxy tcp context
  */
 type TcpContext struct {
-
+	Hostname string
 	/**
 	 * Current client connection
 	 */
@@ -37,6 +36,10 @@ func (t TcpContext) Ip() net.IP {
 
 func (t TcpContext) Port() int {
 	return t.Conn.RemoteAddr().(*net.TCPAddr).Port
+}
+
+func (t TcpContext) Sni() string {
+	return t.Hostname
 }
 
 /*
@@ -60,4 +63,8 @@ func (u UdpContext) Ip() net.IP {
 
 func (u UdpContext) Port() int {
 	return u.RemoteAddr.Port
+}
+
+func (u UdpContext) Sni() string {
+	return ""
 }

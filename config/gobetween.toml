@@ -114,6 +114,16 @@ protocol = "udp"
 #    session_tickets = true            # (optional) if true enables session tickets
 #
 #
+## ---------------------- sni properties --------------------- #
+#
+# [servers.default.sni]                    # (optional)
+# read_timeout = "2s"                      # (optional) timeout for reading sni from client
+# hostname_matching_strategy = "exact"     # (optional) "exact" | "regexp" if regexp, then match using regular expression associated with backend.
+# unexpected_hostname_strategy = "default" # (optional) "default" | "reject" | "any" strategy for dealing with unknown hostname requests
+#                                          #    "default" -- forward connections to backends with no sni tag
+#                                          #    "reject" -- drop connection
+#                                          #    "any" -- forward to any available backend
+#
 #
 ## ---------------------- tls properties --------------------- #
 #
@@ -168,9 +178,9 @@ protocol = "udp"
 #
 #  # -- static -- #
 #  kind = "static"
-#  static_list = [                  #  (required)  [
-#      "localhost:8000 weight=5",   #    "<host>:<port> weight=<int>" weight=1 by default
-#      "localhost:8001"             #  ]
+#  static_list = [                       #  (required)  [
+#      "localhost:8000 weight=5",        #    "<host>:<port> weight=<int>" weight=1 by default
+#      "localhost:8001 sni=www.foo.com"  #  ]
 #  ]
 #
 #  # -- srv -- #

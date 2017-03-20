@@ -104,6 +104,7 @@ func dockerFetch(cfg config.DiscoveryConfig) (*[]core.Backend, error) {
 				Stats: core.BackendStats{
 					Live: true,
 				},
+				Sni: container.Labels["sni"],
 			})
 		}
 	}

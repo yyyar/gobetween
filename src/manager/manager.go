@@ -217,6 +217,42 @@ func prepareConfig(name string, server config.Server, defaults config.Connection
 		server.Healthcheck.Passes = 1
 	}
 
+	if server.Sni != nil {
+
+		if server.Sni.ReadTimeout == "" {
+			server.Sni.ReadTimeout = "2s"
+		}
+
+		if server.Sni.UnexpectedHostnameStrategy == "" {
+			server.Sni.UnexpectedHostnameStrategy = "default"
+		}
+
+		switch server.Sni.UnexpectedHostnameStrategy {
+		case
+			"default",
+			"reject",
+			"any":
+		default:
+			return config.Server{}, errors.New("Not supported sni unexprected hostname strategy " + server.Sni.UnexpectedHostnameStrategy)
+		}
+
+		if server.Sni.HostnameMatchingStrategy == "" {
+			server.Sni.HostnameMatchingStrategy = "exact"
+		}
+
+		switch server.Sni.HostnameMatchingStrategy {
+		case
+			"exact",
+			"regexp":
+		default:
+			return config.Server{}, errors.New("Not supported sni matching " + server.Sni.HostnameMatchingStrategy)
+		}
+
+		if _, err := time.ParseDuration(server.Sni.ReadTimeout); err != nil {
+			return config.Server{}, errors.New("timeout parsing error")
+		}
+	}
+
 	if _, err := time.ParseDuration(server.Healthcheck.Timeout); err != nil {
 		return config.Server{}, errors.New("timeout parsing error")
 	}
@@ -254,8 +290,6 @@ func prepareConfig(name string, server config.Server, defaults config.Connection
 	if server.Healthcheck.Kind == "ping" && server.Protocol == "udp" {
 		return config.Server{}, errors.New("Cant use ping healthcheck with udp server")
 	}
-
-	/* Udp related options and protocol match */
 
 	/* Balance */
 	switch server.Balance {

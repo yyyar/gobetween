@@ -74,6 +74,9 @@ type Server struct {
 	// weight | leastconn | roundrobin
 	Balance string `toml:"balance" json:"balance"`
 
+	// Optional configuration for server name indication
+	Sni *Sni `toml:"sni" json:"sni"`
+
 	// Optional configuration for protocol = tls
 	Tls *Tls `toml:"tls" json:"tls"`
 
@@ -91,6 +94,15 @@ type Server struct {
 
 	// Healthcheck configuration
 	Healthcheck *HealthcheckConfig `toml:"healthcheck" json:"healthcheck"`
+}
+
+/**
+ * Server Sni options
+ */
+type Sni struct {
+	HostnameMatchingStrategy   string `toml:"hostname_matching_strategy" json:"hostname_matching_strategy"`
+	UnexpectedHostnameStrategy string `toml:"unexpected_hostname_strategy" json:"unexpected_hostname_strategy"`
+	ReadTimeout                string `toml:"read_timeout" json:"read_timeout"`
 }
 
 /**
@@ -178,6 +190,7 @@ type JsonDiscoveryConfig struct {
 	JsonPortPattern     string `toml:"json_port_pattern" json:"json_port_pattern"`
 	JsonWeightPattern   string `toml:"json_weight_pattern" json:"json_weight_pattern"`
 	JsonPriorityPattern string `toml:"json_priority_pattern" json:"json_priority_pattern"`
+	JsonSniPattern      string `toml:"json_sni_pattern" json:"json_sni_pattern"`
 }
 
 type PlaintextDiscoveryConfig struct {

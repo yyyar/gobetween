@@ -1,5 +1,5 @@
 /**
- * balancer.go - balancer interface
+ * registry.go - balancers registry
  *
  * @author Yaroslav Pogrebnyak <yyyaroslav@gmail.com>
  */
@@ -7,8 +7,12 @@
 package balance
 
 import (
-	"../core"
 	"reflect"
+
+	"./middleware"
+
+	"../config"
+	"../core"
 )
 
 /**
@@ -29,18 +33,17 @@ func init() {
 
 /**
  * Create new Balancer based on balancing strategy
+ * Wrap it in middlewares if needed
  */
-func New(strategy string) Balancer {
-	return reflect.New(typeRegistry[strategy]).Elem().Addr().Interface().(Balancer)
-}
+func New(sniConf *config.Sni, balance string) core.Balancer {
+	balancer := reflect.New(typeRegistry[balance]).Elem().Addr().Interface().(core.Balancer)
 
-/**
- * Balancer interface
- */
-type Balancer interface {
+	if sniConf == nil {
+		return balancer
+	}
 
-	/**
-	 * Elect backend based on Balancer implementation
-	 */
-	Elect(*core.Context, []core.Backend) (*core.Backend, error)
+	return &middleware.SniBalancer{
+		SniConf:  sniConf,
+		Delegate: balancer,
+	}
 }

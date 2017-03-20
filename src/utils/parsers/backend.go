@@ -16,7 +16,7 @@ import (
 )
 
 const (
-	DEFAULT_BACKEND_PATTERN = `^(?P<host>\S+):(?P<port>\d+)(\sweight=(?P<weight>\d+))?(\spriority=(?P<priority>\d+))?$`
+	DEFAULT_BACKEND_PATTERN = `^(?P<host>\S+):(?P<port>\d+)(\sweight=(?P<weight>\d+))?(\spriority=(?P<priority>\d+))?(\ssni=(?P<sni>[^\s]+))?$`
 )
 
 /**
@@ -67,6 +67,7 @@ func ParseBackend(line string, pattern string) (*core.Backend, error) {
 			Port: result["port"],
 		},
 		Weight:   weight,
+		Sni:      result["sni"],
 		Priority: priority,
 		Stats: core.BackendStats{
 			Live: true,

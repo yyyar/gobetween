@@ -7,6 +7,9 @@
 package udp
 
 import (
+	"errors"
+	"net"
+
 	"../../balance"
 	"../../config"
 	"../../core"
@@ -17,8 +20,6 @@ import (
 	"../../utils"
 	"../modules/access"
 	"../scheduler"
-	"errors"
-	"net"
 )
 
 const UDP_PACKET_SIZE = 65507
@@ -82,7 +83,7 @@ func New(name string, cfg config.Server) (*Server, error) {
 
 	statsHandler := stats.NewHandler(name)
 	scheduler := &scheduler.Scheduler{
-		Balancer:     balance.New(cfg.Balance),
+		Balancer:     balance.New(nil, cfg.Balance),
 		Discovery:    discovery.New(cfg.Discovery.Kind, *cfg.Discovery),
 		Healthcheck:  healthcheck.New(cfg.Healthcheck.Kind, *cfg.Healthcheck),
 		StatsHandler: statsHandler,

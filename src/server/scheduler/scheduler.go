@@ -7,14 +7,14 @@
 package scheduler
 
 import (
-	"../../balance"
+	"time"
+
 	"../../core"
 	"../../discovery"
 	"../../healthcheck"
 	"../../logging"
 	"../../stats"
 	"../../stats/counters"
-	"time"
 )
 
 /**
@@ -57,7 +57,7 @@ type ElectRequest struct {
 type Scheduler struct {
 
 	/* Balancer impl */
-	Balancer balance.Balancer
+	Balancer core.Balancer
 
 	/* Discovery impl */
 	Discovery *discovery.Discovery
@@ -252,15 +252,18 @@ func (this *Scheduler) HandleBackendsUpdate(backends []core.Backend) {
 func (this *Scheduler) HandleBackendElect(req ElectRequest) {
 
 	// Filter only live backends
-	var backends []core.Backend
+	var backends []*core.Backend
 	for _, b := range this.backendsList {
-		if b.Stats.Live {
-			backends = append(backends, *b)
+
+		if !b.Stats.Live {
+			continue
 		}
+
+		backends = append(backends, b)
 	}
 
 	// Elect backend
-	backend, err := this.Balancer.Elect(&req.Context, backends)
+	backend, err := this.Balancer.Elect(req.Context, backends)
 	if err != nil {
 		req.Err <- err
 		return
