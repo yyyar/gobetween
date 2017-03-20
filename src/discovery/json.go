@@ -8,17 +8,18 @@
 package discovery
 
 import (
-	"../config"
-	"../core"
-	"../logging"
-	"../utils"
 	"errors"
 	"fmt"
-	"github.com/elgs/gojq"
 	"io/ioutil"
 	"net/http"
 	"strconv"
 	"time"
+
+	"../config"
+	"../core"
+	"../logging"
+	"../utils"
+	"github.com/elgs/gojq"
 )
 
 const (
@@ -28,6 +29,7 @@ const (
 	jsonDefaultPortPattern     = "port"
 	jsonDefaultWeightPattern   = "weight"
 	jsonDefaultPriorityPattern = "priority"
+	jsonDefaultSniPattern      = "sni"
 )
 
 /**
@@ -51,6 +53,10 @@ func NewJsonDiscovery(cfg config.DiscoveryConfig) interface{} {
 
 	if cfg.JsonPriorityPattern == "" {
 		cfg.JsonPriorityPattern = jsonDefaultPriorityPattern
+	}
+
+	if cfg.JsonSniPattern == "" {
+		cfg.JsonSniPattern = jsonDefaultSniPattern
 	}
 
 	d := Discovery{

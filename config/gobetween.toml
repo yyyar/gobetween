@@ -209,6 +209,7 @@ protocol = "udp"
 #  json_port_pattern = "port"              # (optional) path to port value in JSON object, by default "port"
 #  json_weight_pattern = "weight"          # (optional) path to weight value in JSON object, by default "weight"
 #  json_priority_pattern = "priority"      # (optional) path to priority value in JSON object, by default "priority"
+#  json_sni_pattern = "sni"                # (optional) path to SNI value in JSON object, by default "sni"
 #
 #  # -- exec -- #
 #  kind = "exec"
