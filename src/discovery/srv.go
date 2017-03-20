@@ -7,13 +7,15 @@
 package discovery
 
 import (
+	"fmt"
+	"strings"
+	"time"
+
 	"../config"
 	"../core"
 	"../logging"
 	"../utils"
-	"fmt"
 	"github.com/miekg/dns"
-	"time"
 )
 
 const (
@@ -80,6 +82,7 @@ func srvFetch(cfg config.DiscoveryConfig) (*[]core.Backend, error) {
 			Stats: core.BackendStats{
 				Live: true,
 			},
+			Sni: strings.TrimRight(record.Target, "."),
 		})
 	}
 
