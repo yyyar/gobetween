@@ -63,11 +63,11 @@ deps: clean-deps
 	github.com/fsouza/go-dockerclient \
 	github.com/Sirupsen/logrus \
 	github.com/elgs/gojq \
-	gopkg.in/gin-gonic/gin.v1 \
+	github.com/gin-gonic/gin \
 	github.com/hashicorp/consul/api \
 	github.com/spf13/cobra \
 	github.com/laher/goxc \
-	gopkg.in/gin-contrib/cors.v1
+	github.com/gin-contrib/cors
 
 clean-dist:
 	rm -rf ./dist/${VERSION}

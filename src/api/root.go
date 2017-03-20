@@ -8,7 +8,7 @@ package api
 import (
 	"../info"
 	"../manager"
-	"gopkg.in/gin-gonic/gin.v1"
+	"github.com/gin-gonic/gin"
 	"net/http"
 	"os"
 	"time"
