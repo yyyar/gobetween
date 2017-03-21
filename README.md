@@ -6,7 +6,7 @@
 [![Docs](https://img.shields.io/badge/docs-current-brightgreen.svg)](https://github.com/yyyar/gobetween/wiki)
 [![Docker](https://img.shields.io/docker/pulls/yyyar/gobetween.svg)](https://hub.docker.com/r/yyyar/gobetween/)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](/LICENSE)
-[![Gitter](https://badges.gitter.im/yyyar/gobetween.svg)](https://gitter.im/yyyar/gobetween?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge)
+[![Bountysource](https://img.shields.io/bountysource/team/gobetween/activity.svg)](https://www.bountysource.com/teams/gobetween)
 
 **gobetween** -  modern & minimalistic load balancer and reverse-proxy for the :cloud: Cloud era.
 
@@ -21,7 +21,7 @@
   * **URL** - query URL by HTTP and get configuration from the response body 
   * **Consul** - query Consul key-value storage API for configuration
 
-* [Management REST API] (https://github.com/yyyar/gobetween/wiki/REST-API)
+* [Management REST API](https://github.com/yyyar/gobetween/wiki/REST-API)
   * **System Information** - general server info
   * **Configuration** - dump current config 
   * **Servers** - list, create & delete
