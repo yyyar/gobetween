@@ -24,7 +24,7 @@ var pool = sync.Pool{
 	},
 }
 
-// delegatedConn delegates all calls to net.Conn, but Read to reader
+// Conn delegates all calls to net.Conn, but Read to reader
 type Conn struct {
 	reader   io.Reader
 	net.Conn //delegate
@@ -46,6 +46,8 @@ func Sniff(conn net.Conn, readTimeout time.Duration) (net.Conn, string, error) {
 	if err != nil {
 		return nil, "", err
 	}
+
+	conn.SetReadDeadline(time.Time{}) // Reset read deadline
 
 	hostname := extractHostname(buf[0:i])
 
