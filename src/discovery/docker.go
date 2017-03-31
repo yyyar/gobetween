@@ -51,9 +51,10 @@ func dockerFetch(cfg config.DiscoveryConfig) (*[]core.Backend, error) {
 
 	if cfg.DockerTlsEnabled {
 
-		// Added because docker client error very scant
-		if cfg.DockerTlsCacertPath == "" || cfg.DockerTlsCertPath == "" || cfg.DockerTlsKeyPath == "" {
-			return nil, errors.New("Missing keys or certificates required for TLS")
+		// Client cert and key files should be specified together (or both not specified)
+		// Ca cert may be not specified, so not checked here
+		if (cfg.DockerTlsCertPath == "") != (cfg.DockerTlsKeyPath == "") {
+			return nil, errors.New("Missing key or certificate required for TLS client validation")
 		}
 
 		client, err = docker.NewTLSClient(cfg.DockerEndpoint, cfg.DockerTlsCertPath, cfg.DockerTlsKeyPath, cfg.DockerTlsCacertPath)

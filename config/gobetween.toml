@@ -197,10 +197,10 @@ protocol = "udp"
 #  docker_container_label = "proxied=true"   # (optional) Label to filter containers
 #  docker_container_host_env_var = ""        # (optional) Take container host from container env variable
 #
-#  docker_tls_enabled = false                # (optional) enable client tls auth
-#  docker_tls_cert_path = '/path/to/cert.pem'
-#  docker_tls_key_path = '/path/to/key.pem'
-#  docker_tls_cacert_path = '/path/to/cacert.pem'
+#  docker_tls_enabled = false                 # (optional) enable client tls auth
+#  docker_tls_cert_path = '/path/to/cert.pem' # (optional) key and cert should be specified together, or both left not specified
+#  docker_tls_key_path = '/path/to/key.pem'   # (optional)
+#  docker_tls_cacert_path = '/path/to/cacert.pem' # (optional) if not specified, docker endpoint tls verification will be skipped (insecure!)
 #
 #  # -- json -- #
 #  kind = "json"
