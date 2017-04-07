@@ -14,8 +14,11 @@
 
 ## Features
 
-* [Fast L4 TCP Load Balancing](https://github.com/yyyar/gobetween/wiki)
-
+* [Fast L4 Load Balancing](https://github.com/yyyar/gobetween/wiki)
+  * **TCP**
+  * **UDP**
+  * **TLS** - [TLS Termination](https://github.com/yyyar/gobetween/wiki/Protocols#tls) & [TLS Proxy](https://github.com/yyyar/gobetween/wiki/Tls-Proxying)
+  
 * [Clear & Flexible Configuration](https://github.com/yyyar/gobetween/wiki/Configuration) with [TOML](config/gobetween.toml) or [JSON](config/gobetween.json)
   * **File** - read configuration from the file
   * **URL** - query URL by HTTP and get configuration from the response body 
@@ -40,12 +43,12 @@
   * **Ping** - simple TCP ping healtcheck
   * **Exec** - execute arbitrary program passing host & port as options, and read healtcheck status from the stdout
 
-* [Balancing Strategies](https://github.com/yyyar/gobetween/wiki/Balancing)
+* [Balancing Strategies](https://github.com/yyyar/gobetween/wiki/Balancing) (with [SNI](https://github.com/yyyar/gobetween/wiki/Server-Name-Indication) support)
   * **Weight** - select backend from pool based relative weights of backends
   * **Roundrobin** - simple elect backend from pool in circular order
   * **Iphash** - route client to the same backend based on client ip hash
   * **Leastconn** - select backend with least active connections
-  * **Leastbandwidth** - select backends with least bandwidth
+  * **Leastbandwidth** -  backends with least bandwidth
 
 * Integrates seamlessly with Docker and with any custom system (thanks to Exec discovery and healtchecks)
 
