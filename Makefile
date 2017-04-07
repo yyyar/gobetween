@@ -29,7 +29,7 @@ build:
 
 build-static:
 	@echo Building...
-	CGO_ENABLED=0 go build -v -o ./bin/$(NAME) -ldflags '-s -w --extldflags "-static”  ${LDFLAGS}' ./src/*.go
+	CGO_ENABLED=0 go build -v -o ./bin/$(NAME) -ldflags '-s -w --extldflags "-static"  ${LDFLAGS}' ./src/*.go
 	@echo Done.
 
 run: build
