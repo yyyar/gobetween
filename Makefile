@@ -48,7 +48,7 @@ uninstall:
 	rm -f ${DESTDIR}/etc/${NAME}.toml
 
 authors:
-	@git log --format='%aN <%aE>' | LC_ALL=C.UTF-8 sort | uniq -c | sort -nr | sed "s/^ *[0-9]* //g" > AUTHORS
+	@git log --format='%aN <%aE>' | LC_ALL=C.UTF-8 sort | uniq -c -i | sort -nr | sed "s/^ *[0-9]* //g" > AUTHORS
 	@cat AUTHORS
 
 clean-deps:
