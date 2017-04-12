@@ -28,6 +28,9 @@ type session struct {
 	/* max number of backend responses */
 	udpResponses int
 
+	/* track backends list for existing session */
+	udpTrackBackends bool
+
 	/* scheduler */
 	scheduler *scheduler.Scheduler
 

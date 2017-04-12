@@ -145,7 +145,7 @@ func (this *Server) Start() error {
 			case sessionRequest := <-this.getOrCreate:
 				session, ok := sessions[sessionRequest.clientAddr.String()]
 
-				if ok {
+				if ok && !session.udpTrackBackends {
 					sessionRequest.response <- sessionResponse{
 						session: session,
 						err:     nil,
@@ -263,8 +263,12 @@ func (this *Server) makeSession(clientAddr net.UDPAddr) (*session, error) {
 
 	log.Debug("Accepted ", clientAddr, " -> ", this.serverConn.LocalAddr())
 	udpResponses := 0
+	udpTrackBackends := false
 	if this.cfg.Udp != nil {
 		udpResponses = this.cfg.Udp.MaxResponses
+		if this.cfg.Udp.TrackSessionBackends {
+			udpTrackBackends = true
+		}
 	}
 
 	backend, err := this.scheduler.TakeBackend(&core.UdpContext{
@@ -279,6 +283,7 @@ func (this *Server) makeSession(clientAddr net.UDPAddr) (*session, error) {
 		clientIdleTimeout:  utils.ParseDurationOrDefault(*this.cfg.ClientIdleTimeout, 0),
 		backendIdleTimeout: utils.ParseDurationOrDefault(*this.cfg.BackendIdleTimeout, 0),
 		udpResponses:       udpResponses,
+		udpTrackBackends:   udpTrackBackends,
 		scheduler:          this.scheduler,
 		notifyClosed: func() {
 			this.remove <- clientAddr

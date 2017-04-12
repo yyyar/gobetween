@@ -32,7 +32,7 @@ type ApiConfig struct {
 	Bind      string              `toml:"bind" json:"bind"`
 	BasicAuth *ApiBasicAuthConfig `toml:"basic_auth" json:"basic_auth"`
 	Tls       *ApiTlsConfig       `toml:"tls" json:"tls"`
-	Cors      bool		      `toml:"cors" json:"cors"`
+	Cors      bool                `toml:"cors" json:"cors"`
 }
 
 /**
@@ -141,7 +141,8 @@ type BackendsTls struct {
  * for protocol = "udp"
  */
 type Udp struct {
-	MaxResponses int `toml:"max_responses" json:"max_responses"`
+	MaxResponses         int  `toml:"max_responses" json:"max_responses"`
+	TrackSessionBackends bool `toml:"track_session_backends" json:"track_session_backends"`
 }
 
 /**
