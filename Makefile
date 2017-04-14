@@ -66,10 +66,12 @@ deps: clean-deps
 	github.com/gin-gonic/gin \
 	github.com/hashicorp/consul/api \
 	github.com/spf13/cobra \
-	github.com/gin-contrib/cors \
 	github.com/Microsoft/go-winio \
 	golang.org/x/sys/windows \
-	github.com/inconshreveable/mousetrap
+	github.com/inconshreveable/mousetrap \
+	github.com/gin-contrib/cors \
+	github.com/lxc/lxd \
+	github.com/jtopjian/lxdhelpers
 
 clean-dist:
 	rm -rf ./dist/${VERSION}
@@ -78,7 +80,7 @@ clean-dist:
 dist:
 	@# For linux 386 when building on linux amd64 you'll need 'libc6-dev-i386' package
 	@echo Building dist
-	
+
 	@#             os    arch  cgo ext
 	@for arch in "linux   386  1      "  "linux   amd64 1      "  \
 				 "windows 386  0 .exe "  "windows amd64 0 .exe "  \
@@ -98,11 +100,11 @@ dist:
 	  fi \
 	done 
 
-build-container-latest: build 
+build-container-latest: build
 	@echo Building docker container LATEST
 	docker build -t yyyar/gobetween .
 
-build-container-tagged: build 
+build-container-tagged: build
 	@echo Building docker container ${VERSION}
 	docker build -t yyyar/gobetween:${VERSION} .
 

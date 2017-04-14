@@ -32,7 +32,7 @@ type ApiConfig struct {
 	Bind      string              `toml:"bind" json:"bind"`
 	BasicAuth *ApiBasicAuthConfig `toml:"basic_auth" json:"basic_auth"`
 	Tls       *ApiTlsConfig       `toml:"tls" json:"tls"`
-	Cors      bool		      `toml:"cors" json:"cors"`
+	Cors      bool                `toml:"cors" json:"cors"`
 }
 
 /**
@@ -170,6 +170,7 @@ type DiscoveryConfig struct {
 	*ExecDiscoveryConfig
 	*PlaintextDiscoveryConfig
 	*ConsulDiscoveryConfig
+	*LXDDiscoveryConfig
 }
 
 type StaticDiscoveryConfig struct {
@@ -226,6 +227,28 @@ type ConsulDiscoveryConfig struct {
 	ConsulTlsCertPath   string `toml:"consul_tls_cert_path" json:"consul_tls_cert_path"`
 	ConsulTlsKeyPath    string `toml:"consul_tls_key_path" json:"consul_tls_key_path"`
 	ConsulTlsCacertPath string `toml:"consul_tls_cacert_path" json:"consul_tls_cacert_path"`
+}
+
+type LXDDiscoveryConfig struct {
+	LXDServerAddress        string `toml:"lxd_server_address" json:"lxd_server_address"`
+	LXDServerRemoteName     string `toml:"lxd_server_remote_name" json:"lxd_server_remote_name"`
+	LXDServerRemotePassword string `toml:"lxd_server_remote_password" json:"lxd_server_remote_password"`
+
+	LXDConfigDirectory     string `toml:"lxd_config_directory" json:"lxd_config_directory"`
+	LXDGenerateClientCerts bool   `toml:"lxd_generate_client_certs" json:"lxd_generate_client_certs"`
+	LXDAcceptServerCert    bool   `toml:"lxd_accept_server_cert" json:"lxd_accept_server_cert"`
+
+	LXDContainerLabelKey   string `toml:"lxd_container_label_key" json:"lxd_container_label_key"`
+	LXDContainerLabelValue string `toml:"lxd_container_label_value" json:"lxd_container_label_value"`
+
+	LXDContainerPort    int    `toml:"lxd_container_port" json:"lxd_container_port"`
+	LXDContainerPortKey string `toml:"lxd_container_port_key" json:"lxd_container_port_key"`
+
+	LXDContainerInterface    string `toml:"lxd_container_interface" json:"lxd_container_interface"`
+	LXDContainerInterfaceKey string `toml:"lxd_container_interface_key" json:"lxd_container_interface_key"`
+
+	LXDContainerSNIKey      string `toml:"lxd_container_sni_key" json:"lxd_container_sni_key"`
+	LXDContainerAddressType string `toml:"lxd_container_address_type" json:"lxd_container_address_type"`
 }
 
 /**
