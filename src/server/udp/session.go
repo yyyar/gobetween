@@ -7,11 +7,13 @@
 package udp
 
 import (
+	"net"
+	"sync/atomic"
+	"time"
+
 	"../../core"
 	"../../logging"
 	"../scheduler"
-	"net"
-	"time"
 )
 
 /**
@@ -25,8 +27,14 @@ type session struct {
 	/* timeout for new data from backend */
 	backendIdleTimeout time.Duration
 
+	/* max number of client requests */
+	maxRequests uint64
+
+	/* actually sent client requests */
+	_sentRequests uint64
+
 	/* max number of backend responses */
-	udpResponses int
+	maxResponses uint64
 
 	/* scheduler */
 	scheduler *scheduler.Scheduler
@@ -125,7 +133,7 @@ func (s *session) start() error {
 	 */
 	go func() {
 		buf := make([]byte, UDP_PACKET_SIZE)
-		responses := 0
+		var responses uint64
 
 		for {
 			if s.backendIdleTimeout > 0 {
@@ -151,9 +159,9 @@ func (s *session) start() error {
 			s.scheduler.IncrementRx(*s.backend, uint(n))
 			s.serverConn.WriteToUDP(buf[0:n], &s.clientAddr)
 
-			if s.udpResponses > 0 {
+			if s.maxResponses > 0 {
 				responses++
-				if responses >= s.udpResponses {
+				if responses >= s.maxResponses {
 					s.stop()
 					return
 				}
@@ -176,7 +184,15 @@ func (s *session) send(buf []byte) error {
 	if err != nil {
 		return err
 	}
+
 	s.scheduler.IncrementTx(*s.backend, uint(len(buf)))
+
+	if s.maxRequests > 0 {
+		if atomic.AddUint64(&s._sentRequests, 1) >= s.maxRequests {
+			s.stop()
+		}
+	}
+
 	return nil
 }
 

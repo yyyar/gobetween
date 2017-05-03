@@ -262,9 +262,13 @@ func (this *Server) makeSession(clientAddr net.UDPAddr) (*session, error) {
 	}
 
 	log.Debug("Accepted ", clientAddr, " -> ", this.serverConn.LocalAddr())
-	udpResponses := 0
+
+	var maxRequests uint64
+	var maxResponses uint64
+
 	if this.cfg.Udp != nil {
-		udpResponses = this.cfg.Udp.MaxResponses
+		maxRequests = this.cfg.Udp.MaxRequests
+		maxResponses = this.cfg.Udp.MaxResponses
 	}
 
 	backend, err := this.scheduler.TakeBackend(&core.UdpContext{
@@ -278,7 +282,8 @@ func (this *Server) makeSession(clientAddr net.UDPAddr) (*session, error) {
 	session := &session{
 		clientIdleTimeout:  utils.ParseDurationOrDefault(*this.cfg.ClientIdleTimeout, 0),
 		backendIdleTimeout: utils.ParseDurationOrDefault(*this.cfg.BackendIdleTimeout, 0),
-		udpResponses:       udpResponses,
+		maxRequests:        maxRequests,
+		maxResponses:       maxResponses,
 		scheduler:          this.scheduler,
 		notifyClosed: func() {
 			this.remove <- clientAddr

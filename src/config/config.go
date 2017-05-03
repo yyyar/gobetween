@@ -141,7 +141,8 @@ type BackendsTls struct {
  * for protocol = "udp"
  */
 type Udp struct {
-	MaxResponses int `toml:"max_responses" json:"max_responses"`
+	MaxRequests  uint64 `toml:"max_requests" json:"max_requests"`
+	MaxResponses uint64 `toml:"max_responses" json:"max_responses"`
 }
 
 /**
