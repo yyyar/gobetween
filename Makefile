@@ -67,7 +67,10 @@ deps: clean-deps
 	github.com/hashicorp/consul/api \
 	github.com/spf13/cobra \
 	github.com/laher/goxc \
-	github.com/gin-contrib/cors
+	github.com/gin-contrib/cors \
+	github.com/Microsoft/go-winio \
+	golang.org/x/sys/windows \
+	github.com/inconshreveable/mousetrap
 
 clean-dist:
 	rm -rf ./dist/${VERSION}
