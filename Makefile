@@ -12,24 +12,24 @@ export GOBIN := ${PWD}/vendor/bin
 
 NAME := gobetween
 VERSION := $(shell cat VERSION)
-LDFLAGS := "-X main.version=${VERSION}"
+LDFLAGS := -X main.version=${VERSION}
 
 default: build
 
 clean:
 	@echo Cleaning up...
-	@rm bin/* -f
-	@rm dist/* -f
+	@rm bin/* -rf
+	@rm dist/* -rf
 	@echo Done.
 
 build:
 	@echo Building...
-	go build -v -o ./bin/$(NAME) -ldflags ${LDFLAGS} ./src/*.go
+	go build -v -o ./bin/$(NAME) -ldflags '${LDFLAGS}' ./src/*.go
 	@echo Done.
 
 build-static:
 	@echo Building...
-	CGO_ENABLED=0 go build -v -o ./bin/$(NAME) -ldflags '-s -w --extldflags "-static"  ${LDFLAGS}' ./src/*.go
+	CGO_ENABLED=1 go build -v -o ./bin/$(NAME) -ldflags '-s -w --extldflags "-static" ${LDFLAGS}' ./src/*.go
 	@echo Done.
 
 run: build
@@ -66,7 +66,6 @@ deps: clean-deps
 	github.com/gin-gonic/gin \
 	github.com/hashicorp/consul/api \
 	github.com/spf13/cobra \
-	github.com/laher/goxc \
 	github.com/gin-contrib/cors \
 	github.com/Microsoft/go-winio \
 	golang.org/x/sys/windows \
@@ -75,17 +74,29 @@ deps: clean-deps
 clean-dist:
 	rm -rf ./dist/${VERSION}
 
+
 dist:
-	@echo Building for all platforms ...
-	./vendor/bin/goxc -d="./dist" \
-		-tasks=xc,archive \
-		-arch="386 amd64" \
-		-pv="${VERSION}" \
-		-os="linux windows darwin" \
-		-include="README.md,LICENSE,CHANGELOG,VERSION,config/gobetween.toml,share" \
-		-build-ldflags=${LDFLAGS}
-	rm ./debian -rf
-	@echo Done.
+	@# For linux 386 when building on linux amd64 you'll need 'libc6-dev-i386' package
+	@echo Building dist
+	
+	@#             os    arch  cgo ext
+	@for arch in "linux   386  1      "  "linux   amd64 1      "  \
+				 "windows 386  0 .exe "  "windows amd64 0 .exe "  \
+				 "darwin  386  0      "  "darwin  amd64 0      "; \
+	do \
+	  set -- $$arch ; \
+	  echo "******************* $$1_$$2 ********************" ;\
+	  distpath="./dist/${VERSION}/$$1_$$2" ;\
+	  mkdir -p $$distpath ; \
+	  CGO_ENABLED=$$3 GOOS=$$1 GOARCH=$$2 go build -v -o $$distpath/$(NAME)$$4 -ldflags '-s -w --extldflags "-static" ${LDFLAGS}' ./src/*.go ;\
+	  cp "README.md" "LICENSE" "CHANGELOG.md" "AUTHORS" $$distpath ;\
+	  mkdir -p $$distpath/config && cp "./config/gobetween.toml" $$distpath/config ;\
+	  if [ "$$1" = "linux" ]; then \
+		  cd $$distpath && tar -zcvf ../../${NAME}_${VERSION}_$$1_$$2.tar.gz * && cd - ;\
+	  else \
+		  cd $$distpath && zip -r ../../${NAME}_${VERSION}_$$1_$$2.zip . && cd - ;\
+	  fi \
+	done 
 
 build-container-latest: build 
 	@echo Building docker container LATEST
@@ -94,3 +105,4 @@ build-container-latest: build
 build-container-tagged: build 
 	@echo Building docker container ${VERSION}
 	docker build -t yyyar/gobetween:${VERSION} .
+
