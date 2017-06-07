@@ -140,6 +140,7 @@ protocol = "udp"
 ## ---------------------- udp properties --------------------- #
 #  [servers.default.udp]             # (optional)
 #  max_responses = 0                 # (required) if > 0 accepts no more responses that max_responses from backend and closes session
+#  track_session_backends = false    # (optional) if true enables tracking backends for existing session if discovers new backends
 #
 #
 ## -------------------- access management -------------------- #
