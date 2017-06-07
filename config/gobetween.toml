@@ -62,7 +62,6 @@ bind = "localhost:3000"
       "localhost:8001"
   ]
 
-
 # ---------- udp example ----------- #
 
 [servers.udpsample]
@@ -236,3 +235,24 @@ protocol = "udp"
 #  consul_tls_key_path = "/path/to/key.pem"
 #  consul_tls_cacert_path = "/path/to/cacert.pem"
 #
+#  # -- lxd -- #
+#  kind = "lxd"
+#  lxd_server_address = "unix:///var/lib/lxd/unix.socket"   # (required) Address of the LXD server. Either unix://<path> or https://<addr>:port
+#  lxd_server_remote_name = ""                              # (optional) Name of the LXD server
+#  lxd_server_remote_password = ""                          # (optional) Password to the remote LXD server. Only used when address scheme is https
+#
+#  lxd_config_directory = "~/.config/lxd"                   # (optional) Directory where LXD server info and certificates are stored
+#  lxd_generate_client_certs = false                        # (optional) Generate client SSL certificates for gobetween if not previously generated. Only used when scheme is https
+#  lxd_accept_server_cert = false                           # (optional) Accept the LXD server certificate. Only used when scheme is https
+#
+#  lxd_container_label_key = "user.label"                   # (optional) Filter containers that have specified setting
+#  lxd_container_label_value = "foo"                        # (optional) Filter continers that have specified value of 'lxd_container_label_key' setting
+#
+#  lxd_container_port = 0                                   # (required) Port of container to use
+#  lxd_container_port_key = "user.gobetween.port"           # (optional) Container setting key that specifies the port.
+#
+#  lxd_container_interface = "eth0"                         # (optional) Interface of container to use
+#  lxd_container_interface_key = "user.gobetween.interface" # (optional) Container setting that specifies the interface.
+#
+#  lxd_container_sni_key = ""                               # (optional) Container setting that specifies the sni name of the container.
+#  lxd_container_address_type = "IPv4"                      # (optional) Container setting that specifies whether to use an IPv4 or IPv6 address. Valid options are IPv4 or IPv6.
