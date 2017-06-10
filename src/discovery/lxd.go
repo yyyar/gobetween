@@ -185,7 +185,7 @@ func lxdBuildClient(cfg config.DiscoveryConfig) (*lxd.Client, error) {
 					var err error
 					client, err = lxdhelpers.GetRemoteCertificate(client, cfg.LXDServerRemoteName)
 					if err != nil {
-						return nil, fmt.Errorf("Could not add the LXD server: ", err)
+						return nil, fmt.Errorf("Could not add the LXD server: %s", err)
 					}
 				} else {
 					err := fmt.Errorf("Unable to communicate with LXD server. Either set " +

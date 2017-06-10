@@ -242,7 +242,6 @@ type LXDDiscoveryConfig struct {
 	LXDContainerLabelKey   string `toml:"lxd_container_label_key" json:"lxd_container_label_key"`
 	LXDContainerLabelValue string `toml:"lxd_container_label_value" json:"lxd_container_label_value"`
 
-	LXDContainerPort    int    `toml:"lxd_container_port" json:"lxd_container_port"`
 	LXDContainerPortKey string `toml:"lxd_container_port_key" json:"lxd_container_port_key"`
 
 	LXDContainerInterface    string `toml:"lxd_container_interface" json:"lxd_container_interface"`
