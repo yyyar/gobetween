@@ -231,25 +231,28 @@ type ConsulDiscoveryConfig struct {
 }
 
 type LXDDiscoveryConfig struct {
-	LXDServerAddress        string `toml:"lxd_server_address" json:"lxd_server_address"`
-	LXDServerRemoteName     string `toml:"lxd_server_remote_name" json:"lxd_server_remote_name"`
-	LXDServerRemotePassword string `toml:"lxd_server_remote_password" json:"lxd_server_remote_password"`
+	LXDServers map[string]*LXDDiscoveryServerConfig `toml:"lxd_servers" json:"lxd_servers"`
 
 	LXDConfigDirectory     string `toml:"lxd_config_directory" json:"lxd_config_directory"`
 	LXDGenerateClientCerts bool   `toml:"lxd_generate_client_certs" json:"lxd_generate_client_certs"`
 	LXDAcceptServerCert    bool   `toml:"lxd_accept_server_cert" json:"lxd_accept_server_cert"`
 
-	LXDContainerLabelKey   string `toml:"lxd_container_label_key" json:"lxd_container_label_key"`
-	LXDContainerLabelValue string `toml:"lxd_container_label_value" json:"lxd_container_label_value"`
+	LXDContainerLabelKey     string `toml:"lxd_container_label_key" json:"lxd_container_label_key"`
+	LXDContainerLabelValue   string `toml:"lxd_container_label_value" json:"lxd_container_label_value"`
+	LXDContainerInterfaceKey string `toml:"lxd_container_interface_key" json:"lxd_container_interface_key"`
 
 	LXDContainerPort    int    `toml:"lxd_container_port" json:"lxd_container_port"`
 	LXDContainerPortKey string `toml:"lxd_container_port_key" json:"lxd_container_port_key"`
 
-	LXDContainerInterface    string `toml:"lxd_container_interface" json:"lxd_container_interface"`
-	LXDContainerInterfaceKey string `toml:"lxd_container_interface_key" json:"lxd_container_interface_key"`
+	LXDContainerSNIKey string `toml:"lxd_container_sni_key" json:"lxd_container_sni_key"`
+}
 
-	LXDContainerSNIKey      string `toml:"lxd_container_sni_key" json:"lxd_container_sni_key"`
-	LXDContainerAddressType string `toml:"lxd_container_address_type" json:"lxd_container_address_type"`
+type LXDDiscoveryServerConfig struct {
+	ServerAddress        string `toml:"server_address" json:"server_address"`
+	ServerRemotePassword string `toml:"server_remote_password" json:"server_remote_password"`
+
+	ContainerInterface   string `toml:"container_interface" json:"container_interface"`
+	ContainerAddressType string `toml:"container_address_type" json:"container_address_type"`
 }
 
 /**

@@ -342,36 +342,38 @@ func prepareConfig(name string, server config.Server, defaults config.Connection
 	/* LXD Discovery */
 	if server.Discovery.Kind == "lxd" {
 
-		if server.Discovery.LXDServerAddress == "" {
-			return config.Server{}, errors.New("lxd_server_address is required" + server.Discovery.LXDServerAddress)
+		if len(server.Discovery.LXDServers) == 0 {
+			return config.Server{}, errors.New("At least one LXD server needs to be defined")
 		}
 
-		if !(strings.HasPrefix(server.Discovery.LXDServerAddress, "https:") ||
-			strings.HasPrefix(server.Discovery.LXDServerAddress, "unix:")) {
+		for _, v := range server.Discovery.LXDServers {
+			if v.ServerAddress == "" {
+				return config.Server{}, errors.New("server_address is required")
+			}
 
-			return config.Server{}, errors.New("lxd_server_address should start with either unix:// or https:// but got " + server.Discovery.LXDServerAddress)
-		}
+			if !(strings.HasPrefix(v.ServerAddress, "https:") ||
+				strings.HasPrefix(v.ServerAddress, "unix:")) {
 
-		if server.Discovery.LXDServerRemoteName == "" {
-			server.Discovery.LXDServerRemoteName = "local"
+				return config.Server{}, errors.New("server_address should start with either unix:// or https:// but got " + v.ServerAddress)
+			}
+
+			if v.ContainerInterface == "" {
+				v.ContainerInterface = "eth0"
+			}
+
+			switch v.ContainerAddressType {
+			case
+				"IPv4",
+				"IPv6":
+			case "":
+				v.ContainerAddressType = "IPv4"
+			default:
+				return config.Server{}, errors.New("Invalid lxd_container_address_type. Must be IPv4 or IPv6")
+			}
 		}
 
 		if server.Discovery.LXDConfigDirectory == "" {
 			server.Discovery.LXDConfigDirectory = os.ExpandEnv("$HOME/.config/lxc")
-		}
-
-		if server.Discovery.LXDContainerInterface == "" {
-			server.Discovery.LXDContainerInterface = "eth0"
-		}
-
-		switch server.Discovery.LXDContainerAddressType {
-		case
-			"IPv4",
-			"IPv6":
-		case "":
-			server.Discovery.LXDContainerAddressType = "IPv4"
-		default:
-			return config.Server{}, errors.New("Invalid lxd_container_address_type. Must be IPv4 or IPv6")
 		}
 
 	}
