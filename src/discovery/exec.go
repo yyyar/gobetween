@@ -19,7 +19,7 @@ import (
 
 const (
 	execRetryWaitDuration   = 2 * time.Second
-	execResponceWaitTimeout = 3 * time.Second
+	execResponseWaitTimeout = 3 * time.Second
 )
 
 /**
@@ -45,7 +45,7 @@ func execFetch(cfg config.DiscoveryConfig) (*[]core.Backend, error) {
 
 	log.Info("Fetching ", cfg.ExecCommand)
 
-	timeout := utils.ParseDurationOrDefault(cfg.Timeout, execResponceWaitTimeout)
+	timeout := utils.ParseDurationOrDefault(cfg.Timeout, execResponseWaitTimeout)
 	out, err := utils.ExecTimeout(timeout, cfg.ExecCommand...)
 	if err != nil {
 		return nil, err
