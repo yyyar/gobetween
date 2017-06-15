@@ -50,6 +50,7 @@ func (this *Backend) MergeFrom(other Backend) *Backend {
 
 	this.Priority = other.Priority
 	this.Weight = other.Weight
+	this.Sni = other.Sni
 
 	return this
 }
