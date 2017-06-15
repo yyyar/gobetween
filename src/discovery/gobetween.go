@@ -42,8 +42,8 @@ func gobetweenFetch(cfg config.DiscoveryConfig) (*[]core.Backend, error) {
 	// Create backends for all API servers
 	var backends []core.Backend
 
-	for serverName, apiConfig := range cfg.GobetweenAPIServers {
-		apiServerBackend, err := gobetweenQueryAPIServer(cfg, *apiConfig, serverName)
+	for apiName, apiConfig := range cfg.GobetweenAPIServers {
+		apiServerBackend, err := gobetweenQueryAPIServer(cfg, *apiConfig, apiName)
 		if err != nil {
 			return nil, err
 		}
@@ -54,7 +54,7 @@ func gobetweenFetch(cfg config.DiscoveryConfig) (*[]core.Backend, error) {
 	return &backends, nil
 }
 
-func gobetweenQueryAPIServer(cfg config.DiscoveryConfig, apiConfig config.GobetweenDiscoveryAPIConfig, serverName string) (*core.Backend, error) {
+func gobetweenQueryAPIServer(cfg config.DiscoveryConfig, apiConfig config.GobetweenDiscoveryAPIConfig, apiName string) (*core.Backend, error) {
 	logLabel := fmt.Sprintf("gobetweenAPIFetch %s", apiConfig.APIAddress)
 	log := logging.For(logLabel)
 
@@ -97,16 +97,16 @@ func gobetweenQueryAPIServer(cfg config.DiscoveryConfig, apiConfig config.Gobetw
 		return nil, fmt.Errorf("Unable to parse gobetween /servers")
 	}
 
-	serverInfo, ok := serversMap[serverName]
+	serverInfo, ok := serversMap[apiConfig.ServerName]
 	if !ok {
 		log.Debugf("Gobetween server %s did not contain server %s",
-			apiConfig.APIAddress, serverName)
+			apiConfig.APIAddress, apiConfig.ServerName)
 		return nil, nil
 	}
 
 	serverInfoMap, ok := serverInfo.(map[string]interface{})
 	if !ok {
-		return nil, fmt.Errorf("Unable to parse %s information", serverName)
+		return nil, fmt.Errorf("Unable to parse %s information", apiName)
 	}
 
 	// Determine the downstream address and port

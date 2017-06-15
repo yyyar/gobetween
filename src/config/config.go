@@ -261,6 +261,7 @@ type GobetweenDiscoveryAPIConfig struct {
 	APIAddress      string `toml:"api_address" json:"api_address"`
 	APIUsername     string `toml:"api_username" json:"api_username"`
 	APIPassword     string `toml:"api_password" json:"api_password"`
+	ServerName      string `toml:"server_name" json:"server_name"`
 	BackendWeight   int    `toml:"backend_weight" json:"backend_weight"`
 	BackendPriority int    `toml:"backend_priority" json:"backend_priority"`
 }
