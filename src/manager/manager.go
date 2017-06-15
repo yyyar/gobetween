@@ -376,6 +376,19 @@ func prepareConfig(name string, server config.Server, defaults config.Connection
 
 	}
 
+	/* Gobetween API Discovery */
+	if server.Discovery.Kind == "gobetween" {
+		for _, v := range server.Discovery.GobetweenAPIServers {
+			if v.BackendWeight == 0 {
+				v.BackendWeight = 1
+			}
+
+			if v.BackendPriority == 0 {
+				v.BackendPriority = 1
+			}
+		}
+	}
+
 	/* TODO: Still need to decide how to get rid of this */
 
 	if defaults.MaxConnections == nil {

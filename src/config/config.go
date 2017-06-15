@@ -172,6 +172,7 @@ type DiscoveryConfig struct {
 	*PlaintextDiscoveryConfig
 	*ConsulDiscoveryConfig
 	*LXDDiscoveryConfig
+	*GobetweenDiscoveryConfig
 }
 
 type StaticDiscoveryConfig struct {
@@ -250,6 +251,18 @@ type LXDDiscoveryConfig struct {
 
 	LXDContainerSNIKey      string `toml:"lxd_container_sni_key" json:"lxd_container_sni_key"`
 	LXDContainerAddressType string `toml:"lxd_container_address_type" json:"lxd_container_address_type"`
+}
+
+type GobetweenDiscoveryConfig struct {
+	GobetweenAPIServers map[string]*GobetweenDiscoveryAPIConfig `toml:"gobetween_api_server" json:"gobetween_api_server"`
+}
+
+type GobetweenDiscoveryAPIConfig struct {
+	APIAddress      string `toml:"api_address" json:"api_address"`
+	APIUsername     string `toml:"api_username" json:"api_username"`
+	APIPassword     string `toml:"api_password" json:"api_password"`
+	BackendWeight   int    `toml:"backend_weight" json:"backend_weight"`
+	BackendPriority int    `toml:"backend_priority" json:"backend_priority"`
 }
 
 /**
