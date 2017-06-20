@@ -70,6 +70,6 @@ func (b *SniBalancer) Elect(ctx core.Context, backends []*core.Backend) (*core.B
 		return b.Delegate.Elect(ctx, backends)
 	}
 
-	return nil, errors.New("Rejecting client due to not matching sni")
+	return nil, errors.New("Rejecting client due to not matching sni [" + sni + "].")
 
 }
