@@ -45,10 +45,31 @@ func NewLXDDiscovery(cfg config.DiscoveryConfig) interface{} {
  * Fetch backends from LXD API
  */
 func lxdFetch(cfg config.DiscoveryConfig) (*[]core.Backend, error) {
-	log := logging.For("lxdFetch")
+	/* Create backends for all LXD servers */
+	backends := []core.Backend{}
+
+	/* For each defined LXD server */
+	for lxdServerRemoteName, lxdServerConfig := range cfg.LXDServers {
+		lxdServerBackends, err := lxdQueryServer(cfg, lxdServerRemoteName, *lxdServerConfig)
+		if err != nil {
+			return nil, err
+		}
+
+		backends = append(backends, lxdServerBackends...)
+	}
+
+	return &backends, nil
+}
+
+func lxdQueryServer(cfg config.DiscoveryConfig, lxdServerRemoteName string, lxdServerConfig config.LXDDiscoveryServerConfig) ([]core.Backend, error) {
+	logLabel := fmt.Sprintf("lxdFetch %s", lxdServerRemoteName)
+	log := logging.For(logLabel)
+
+	/* Create backends for a single LXD server */
+	backends := []core.Backend{}
 
 	/* Get an LXD client */
-	client, err := lxdBuildClient(cfg)
+	client, err := lxdBuildClient(cfg, lxdServerRemoteName, lxdServerConfig)
 	if err != nil {
 		return nil, err
 	}
@@ -56,10 +77,7 @@ func lxdFetch(cfg config.DiscoveryConfig) (*[]core.Backend, error) {
 	/* Set the timeout for the client */
 	client.Http.Timeout = utils.ParseDurationOrDefault(cfg.Timeout, lxdTimeout)
 
-	log.Debug("Fetching containers from ", client.Config.Remotes[cfg.LXDServerRemoteName].Addr)
-
-	/* Create backends from response */
-	backends := []core.Backend{}
+	log.Debug("Fetching containers from ", client.Config.Remotes[lxdServerRemoteName].Addr)
 
 	/* Fetch containers */
 	containers, err := client.ListContainers()
@@ -104,13 +122,13 @@ func lxdFetch(cfg config.DiscoveryConfig) (*[]core.Backend, error) {
 
 		/* iface is the container interface to get an IP address. */
 		/* This isn't exposed by the LXD API, and containers can have multiple interfaces, */
-		iface := cfg.LXDContainerInterface
+		iface := lxdServerConfig.ContainerInterface
 		if v, ok := container.Config[cfg.LXDContainerInterfaceKey]; ok {
 			iface = v
 		}
 
 		ip := ""
-		if ip, err = lxdDetermineContainerIP(client, container.Name, iface, cfg.LXDContainerAddressType); err != nil {
+		if ip, err = lxdDetermineContainerIP(client, container.Name, iface, lxdServerConfig.ContainerAddressType); err != nil {
 			log.Error(fmt.Sprintf("Can't determine %s container ip address: %s. Skipping", container.Name, err))
 			continue
 		}
@@ -134,25 +152,26 @@ func lxdFetch(cfg config.DiscoveryConfig) (*[]core.Backend, error) {
 		})
 	}
 
-	return &backends, nil
+	return backends, nil
 }
 
 /**
  * Create new LXD Client
  */
-func lxdBuildClient(cfg config.DiscoveryConfig) (*lxd.Client, error) {
-	log := logging.For("lxdBuildClient")
+func lxdBuildClient(cfg config.DiscoveryConfig, lxdServerRemoteName string, lxdServerConfig config.LXDDiscoveryServerConfig) (*lxd.Client, error) {
+	logLabel := fmt.Sprintf("lxdBuildClient %s", lxdServerRemoteName)
+	log := logging.For(logLabel)
 
 	/* Make a client to pass around */
 	var client *lxd.Client
 
 	/* Build a configuration with the requested options */
-	lxdConfig, err := lxdBuildConfig(cfg)
+	lxdConfig, err := lxdBuildConfig(cfg, lxdServerRemoteName, lxdServerConfig)
 	if err != nil {
 		return client, err
 	}
 
-	if strings.HasPrefix(cfg.LXDServerAddress, "https:") {
+	if strings.HasPrefix(lxdServerConfig.ServerAddress, "https:") {
 
 		/* Validate or generate certificates on the client side (gobetween) */
 		if err := lxdhelpers.ValidateClientCertificates(lxdConfig, cfg.LXDGenerateClientCerts); err != nil {
@@ -160,7 +179,7 @@ func lxdBuildClient(cfg config.DiscoveryConfig) (*lxd.Client, error) {
 		}
 
 		/* Validate or accept certificates on the server side (LXD) */
-		serverCertf := lxdConfig.ServerCertPath(cfg.LXDServerRemoteName)
+		serverCertf := lxdConfig.ServerCertPath(lxdServerRemoteName)
 		if !shared.PathExists(serverCertf) {
 
 			/* If the server certificate was not found, either gobetween and the LXD server are set
@@ -169,7 +188,7 @@ func lxdBuildClient(cfg config.DiscoveryConfig) (*lxd.Client, error) {
 			 *
 			 * First, create a simple LXD client
 			 */
-			client, err = lxd.NewClient(&lxdConfig, cfg.LXDServerRemoteName)
+			client, err = lxd.NewClient(&lxdConfig, lxdServerRemoteName)
 			if err != nil {
 				return nil, err
 			}
@@ -183,7 +202,7 @@ func lxdBuildClient(cfg config.DiscoveryConfig) (*lxd.Client, error) {
 			if _, err := client.GetServerConfig(); err != nil {
 				if cfg.LXDAcceptServerCert {
 					var err error
-					client, err = lxdhelpers.GetRemoteCertificate(client, cfg.LXDServerRemoteName)
+					client, err = lxdhelpers.GetRemoteCertificate(client, lxdServerRemoteName)
 					if err != nil {
 						return nil, fmt.Errorf("Could not add the LXD server: %s", err)
 					}
@@ -203,7 +222,7 @@ func lxdBuildClient(cfg config.DiscoveryConfig) (*lxd.Client, error) {
 			 * Authentication must happen even if PKI is in use.
 			 */
 			log.Info("Attempting to authenticate")
-			err = lxdhelpers.ValidateRemoteConnection(client, cfg.LXDServerRemoteName, cfg.LXDServerRemotePassword)
+			err = lxdhelpers.ValidateRemoteConnection(client, lxdServerRemoteName, lxdServerConfig.ServerRemotePassword)
 			if err != nil {
 				log.Info("Authentication unsuccessful")
 				return nil, err
@@ -214,7 +233,7 @@ func lxdBuildClient(cfg config.DiscoveryConfig) (*lxd.Client, error) {
 	}
 
 	/* Build a new client */
-	client, err = lxd.NewClient(&lxdConfig, cfg.LXDServerRemoteName)
+	client, err = lxd.NewClient(&lxdConfig, lxdServerRemoteName)
 	if err != nil {
 		return nil, err
 	}
@@ -230,17 +249,18 @@ func lxdBuildClient(cfg config.DiscoveryConfig) (*lxd.Client, error) {
 /**
  * Create LXD Client Config
  */
-func lxdBuildConfig(cfg config.DiscoveryConfig) (lxd.Config, error) {
-	log := logging.For("lxdBuildConfig")
+func lxdBuildConfig(cfg config.DiscoveryConfig, lxdServerRemoteName string, lxdServerConfig config.LXDDiscoveryServerConfig) (lxd.Config, error) {
+	logLabel := fmt.Sprintf("lxdBuildConfig %s", lxdServerRemoteName)
+	log := logging.For(logLabel)
 
-	log.Debug("Using API: ", cfg.LXDServerAddress)
+	log.Debug("Using API: ", lxdServerConfig.ServerAddress)
 
 	/* Build an LXD configuration that will connect to the requested LXD server */
 	config := lxd.Config{
 		ConfigDir: cfg.LXDConfigDirectory,
 		Remotes:   make(map[string]lxd.RemoteConfig),
 	}
-	config.Remotes[cfg.LXDServerRemoteName] = lxd.RemoteConfig{Addr: cfg.LXDServerAddress}
+	config.Remotes[lxdServerRemoteName] = lxd.RemoteConfig{Addr: lxdServerConfig.ServerAddress}
 
 	return config, nil
 }
