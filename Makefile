@@ -70,7 +70,8 @@ deps: clean-deps
 	golang.org/x/sys/windows \
 	github.com/inconshreveable/mousetrap \
 	github.com/gin-contrib/cors \
-	github.com/lxc/lxd \
+	github.com/lxc/lxd/client \
+	github.com/lxc/lxd/lxc/config \
 	github.com/jtopjian/lxdhelpers
 
 clean-dist:
@@ -98,7 +99,7 @@ dist:
 	  else \
 		  cd $$distpath && zip -r ../../${NAME}_${VERSION}_$$1_$$2.zip . && cd - ;\
 	  fi \
-	done 
+	done
 
 build-container-latest: build
 	@echo Building docker container LATEST
