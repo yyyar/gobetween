@@ -72,7 +72,8 @@ deps: clean-deps
 	github.com/gin-contrib/cors \
 	github.com/lxc/lxd/client \
 	github.com/lxc/lxd/lxc/config \
-	github.com/jtopjian/lxdhelpers
+	github.com/jtopjian/lxdhelpers \
+	github.com/pires/go-proxyproto
 
 clean-dist:
 	rm -rf ./dist/${VERSION}
@@ -108,4 +109,3 @@ build-container-latest: build
 build-container-tagged: build
 	@echo Building docker container ${VERSION}
 	docker build -t yyyar/gobetween:${VERSION} .
-

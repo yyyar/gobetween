@@ -73,6 +73,9 @@ type Server struct {
 	// tcp | udp | tls
 	Protocol string `toml:"protocol" json:"protocol"`
 
+	// v1
+	ProxyProtocol string `toml:"proxy_protocol" json:"proxy_protocol"`
+
 	// weight | leastconn | roundrobin
 	Balance string `toml:"balance" json:"balance"`
 
