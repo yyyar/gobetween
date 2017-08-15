@@ -73,7 +73,8 @@ deps: clean-deps
 	github.com/lxc/lxd/client \
 	github.com/lxc/lxd/lxc/config \
 	github.com/jtopjian/lxdhelpers \
-	github.com/pires/go-proxyproto
+	github.com/pires/go-proxyproto \
+	golang.org/x/crypto/acme/autocert
 
 clean-dist:
 	rm -rf ./dist/${VERSION}

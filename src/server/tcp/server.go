@@ -8,9 +8,8 @@ package tcp
 
 import (
 	"crypto/tls"
-	"crypto/x509"
-	"io/ioutil"
 	"net"
+	"strings"
 	"time"
 
 	"../../balance"
@@ -66,6 +65,9 @@ type Server struct {
 	/* Tls config used to connect to backends */
 	backendsTlsConfg *tls.Config
 
+	/* Tls config used for incoming connections */
+	tlsConfig *tls.Config
+
 	/* ----- modules ----- */
 
 	/* Access module checks if client is allowed to connect */
@@ -107,12 +109,16 @@ func New(name string, cfg config.Server) (*Server, error) {
 		}
 	}
 
-	/* Add backend tls config if needed */
-	if cfg.BackendsTls != nil {
-		server.backendsTlsConfg, err = prepareBackendsTlsConfig(cfg)
-		if err != nil {
-			return nil, err
-		}
+	/* Add tls configs if needed */
+
+	server.backendsTlsConfg, err = tlsutil.MakeBackendTLSConfig(cfg.BackendsTls)
+	if err != nil {
+		return nil, err
+	}
+
+	server.tlsConfig, err = tlsutil.MakeTlsConfig(cfg.Tls)
+	if err != nil {
+		return nil, err
 	}
 
 	log.Info("Creating '", name, "': ", cfg.Bind, " ", cfg.Balance, " ", cfg.Discovery.Kind, " ", cfg.Healthcheck.Kind)
@@ -213,7 +219,7 @@ func (this *Server) Stop() {
 	this.stop <- true
 }
 
-func (this *Server) wrap(conn net.Conn, sniEnabled bool, tlsConfig *tls.Config) {
+func (this *Server) wrap(conn net.Conn, sniEnabled bool) {
 	log := logging.For("server.Listen.wrap")
 
 	var hostname string
@@ -229,11 +235,28 @@ func (this *Server) wrap(conn net.Conn, sniEnabled bool, tlsConfig *tls.Config) 
 			return
 		}
 
+		// Acme and Sni support features overlap - sni middleware can drop connections to *.acme.invalid, but they
+		// should be processed in order to obtain/renew certificates
+		if this.cfg.Tls != nil && this.cfg.Tls.AcmeEnabled {
+			if strings.HasSuffix(hostname, ".acme.invalid") {
+				conn = tls.Server(sniConn, this.tlsConfig)
+
+				_, err := conn.Write([]byte{0})
+
+				if err != nil {
+					log.Error("Error while communicating with acme server", err)
+				}
+
+				conn.Close()
+				return
+			}
+		}
+
 		conn = sniConn
 	}
 
-	if tlsConfig != nil {
-		conn = tls.Server(conn, tlsConfig)
+	if this.tlsConfig != nil {
+		conn = tls.Server(conn, this.tlsConfig)
 	}
 
 	this.connect <- &core.TcpContext{
@@ -253,32 +276,12 @@ func (this *Server) Listen() (err error) {
 	// create tcp listener
 	this.listener, err = net.Listen("tcp", this.cfg.Bind)
 
-	var tlsConfig *tls.Config
-	sniEnabled := this.cfg.Sni != nil
-
-	if this.cfg.Protocol == "tls" {
-
-		// Create tls listener
-		var crt tls.Certificate
-		if crt, err = tls.LoadX509KeyPair(this.cfg.Tls.CertPath, this.cfg.Tls.KeyPath); err != nil {
-			log.Error(err)
-			return err
-		}
-
-		tlsConfig = &tls.Config{
-			Certificates:             []tls.Certificate{crt},
-			CipherSuites:             tlsutil.MapCiphers(this.cfg.Tls.Ciphers),
-			PreferServerCipherSuites: this.cfg.Tls.PreferServerCiphers,
-			MinVersion:               tlsutil.MapVersion(this.cfg.Tls.MinVersion),
-			MaxVersion:               tlsutil.MapVersion(this.cfg.Tls.MaxVersion),
-			SessionTicketsDisabled:   !this.cfg.Tls.SessionTickets,
-		}
-	}
-
 	if err != nil {
 		log.Error("Error starting ", this.cfg.Protocol+" server: ", err)
 		return err
 	}
+
+	sniEnabled := this.cfg.Sni != nil
 
 	go func() {
 		for {
@@ -289,7 +292,7 @@ func (this *Server) Listen() (err error) {
 				return
 			}
 
-			go this.wrap(conn, sniEnabled, tlsConfig)
+			go this.wrap(conn, sniEnabled)
 		}
 	}()
 
@@ -377,52 +380,4 @@ func (this *Server) handle(ctx *core.TcpContext) {
 	}
 
 	log.Debug("End ", clientConn.RemoteAddr(), " -> ", this.listener.Addr(), " -> ", backendConn.RemoteAddr())
-}
-
-func prepareBackendsTlsConfig(cfg config.Server) (*tls.Config, error) {
-
-	log := logging.For("server.prepareBackendsTlsConfig")
-	var err error
-
-	result := &tls.Config{
-		InsecureSkipVerify:       cfg.BackendsTls.IgnoreVerify,
-		CipherSuites:             tlsutil.MapCiphers(cfg.BackendsTls.Ciphers),
-		PreferServerCipherSuites: cfg.BackendsTls.PreferServerCiphers,
-		MinVersion:               tlsutil.MapVersion(cfg.BackendsTls.MinVersion),
-		MaxVersion:               tlsutil.MapVersion(cfg.BackendsTls.MaxVersion),
-		SessionTicketsDisabled:   !cfg.BackendsTls.SessionTickets,
-	}
-
-	if cfg.BackendsTls.CertPath != nil && cfg.BackendsTls.KeyPath != nil {
-
-		var crt tls.Certificate
-
-		if crt, err = tls.LoadX509KeyPair(*cfg.BackendsTls.CertPath, *cfg.BackendsTls.KeyPath); err != nil {
-			log.Error(err)
-			return nil, err
-		}
-
-		result.Certificates = []tls.Certificate{crt}
-	}
-
-	if cfg.BackendsTls.RootCaCertPath != nil {
-
-		var caCertPem []byte
-
-		if caCertPem, err = ioutil.ReadFile(*cfg.BackendsTls.RootCaCertPath); err != nil {
-			log.Error(err)
-			return nil, err
-		}
-
-		caCertPool := x509.NewCertPool()
-		if ok := caCertPool.AppendCertsFromPEM(caCertPem); !ok {
-			log.Error("Unable to load root pem")
-		}
-
-		result.RootCAs = caCertPool
-
-	}
-
-	return result, nil
-
 }

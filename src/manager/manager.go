@@ -282,6 +282,14 @@ func prepareConfig(name string, server config.Server, defaults config.Connection
 		return config.Server{}, errors.New("backend_tls.cert_path and .key_path should be specified together")
 	}
 
+	if server.Tls != nil && server.Tls.AcmeEnabled {
+		
+		if server.Tls.AcmeCacheDir == "" {
+			server.Tls.AcmeCacheDir = "/tmp"
+		}
+
+	}
+
 	/* ----- Connections params and overrides ----- */
 
 	/* Protocol */
