@@ -283,9 +283,17 @@ func prepareConfig(name string, server config.Server, defaults config.Connection
 	}
 
 	if server.Tls != nil && server.Tls.AcmeEnabled {
-		
+
 		if server.Tls.AcmeCacheDir == "" {
 			server.Tls.AcmeCacheDir = "/tmp"
+		}
+
+		if len(server.Tls.AcmeHosts) == 0 {
+			return config.Server{}, errors.New("Need to provide at least one host in acme_hosts")
+		}
+
+		if !strings.HasSuffix(server.Bind, ":443") {
+			return config.Server{}, errors.New("Enabled acme support requires to bind on default https port :443")
 		}
 
 	}
