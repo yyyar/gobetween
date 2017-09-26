@@ -1,3 +1,10 @@
+/**
+ * sni.go - sni middleware
+ *
+ * @author Illarion Kovalchuk <illarion.kovalchuk@gmail.com>
+ * @author Yaroslav Pogrebnyak <yyyaroslav@gmail.com>
+ */
+
 package middleware
 
 import (
@@ -7,69 +14,100 @@ import (
 
 	"../../config"
 	"../../core"
+	"../../logging"
 )
 
+/**
+ * SniBalancer middleware delegate
+ */
 type SniBalancer struct {
 	SniConf  *config.Sni
 	Delegate core.Balancer
 }
 
-func (b *SniBalancer) compareSni(requestedSni string, backendSni string) (bool, error) {
+/**
+ * Elect backend using sni pre-processing
+ */
+func (sniBalancer *SniBalancer) Elect(ctx core.Context, backends []*core.Backend) (*core.Backend, error) {
 
-	sniMatching := b.SniConf.HostnameMatchingStrategy
+	/* ------ try find matching to requesedSni backends ------ */
+
+	matchedBackends := sniBalancer.matchingBackends(ctx.Sni(), backends)
+	if len(matchedBackends) > 0 {
+		return sniBalancer.Delegate.Elect(ctx, matchedBackends)
+	}
+
+	/* ------ if no matched backends, fallback to unexpected hostname strategy ------ */
+
+	switch sniBalancer.SniConf.UnexpectedHostnameStrategy {
+	case "reject":
+		return nil, errors.New("No matching sni found, rejecting due to 'reject' unexpected hostname strategy")
+
+	case "any":
+		return sniBalancer.Delegate.Elect(ctx, backends)
+
+	default:
+		if ctx.Sni() == "" {
+			return sniBalancer.Delegate.Elect(ctx, []*core.Backend{})
+		}
+
+		// default, select only from backends without any sni
+		return sniBalancer.Delegate.Elect(ctx, sniBalancer.matchingBackends("", backends))
+	}
+}
+
+/**
+ * Filter out backends that match requestedSni
+ */
+func (sniBalancer *SniBalancer) matchingBackends(requestedSni string, backends []*core.Backend) []*core.Backend {
+
+	log := logging.For("balance/middleware/sni")
+
+	var matchedBackends []*core.Backend
+
+	for _, backend := range backends {
+
+		match, err := sniBalancer.matchSni(requestedSni, backend.Sni)
+
+		if err != nil {
+			log.Error(err)
+			continue
+		}
+
+		if match {
+			matchedBackends = append(matchedBackends, backend)
+		}
+	}
+
+	return matchedBackends
+}
+
+/**
+ * Try match requested sni to actual backend sni
+ */
+func (sniBalancer *SniBalancer) matchSni(requestedSni string, backendSni string) (bool, error) {
+
+	sniMatching := sniBalancer.SniConf.HostnameMatchingStrategy
 
 	switch sniMatching {
 	case "regexp":
+
+		if backendSni == "" && requestedSni != "" {
+			return false, nil
+		}
+
 		regexp, err := regexp.Compile(backendSni)
 		if err != nil {
 			return false, err
 		}
+
 		return regexp.MatchString(requestedSni), nil
+
 	case "exact":
 		return strings.ToLower(requestedSni) == strings.ToLower(backendSni), nil
+
 	default:
 		return false, errors.New("Unsupported sni matching mechanism: " + sniMatching)
 	}
-
-}
-
-func (b *SniBalancer) Elect(ctx core.Context, backends []*core.Backend) (*core.Backend, error) {
-
-	sni := ctx.Sni()
-	strategy := b.SniConf.UnexpectedHostnameStrategy
-
-	if sni == "" && strategy == "reject" {
-		return nil, errors.New("Rejecting client due to an empty sni")
-	}
-
-	if sni == "" && strategy == "any" {
-		return b.Delegate.Elect(ctx, backends)
-	}
-
-	var filtered []*core.Backend
-
-	for _, backend := range backends {
-
-		match, err := b.compareSni(sni, backend.Sni)
-
-		if err != nil {
-			return nil, err
-		}
-
-		if match {
-			filtered = append(filtered, backend)
-		}
-
-	}
-
-	if len(filtered) > 0 {
-		return b.Delegate.Elect(ctx, filtered)
-	}
-
-	if strategy == "any" {
-		return b.Delegate.Elect(ctx, backends)
-	}
-
-	return nil, errors.New("Rejecting client due to not matching sni [" + sni + "].")
 
 }
