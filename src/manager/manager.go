@@ -12,6 +12,7 @@ import (
 	"sync"
 	"time"
 
+	"../info"
 	"../config"
 	"../core"
 	"../logging"
@@ -37,7 +38,12 @@ var originalCfg config.Config
 func Initialize(cfg config.Config) {
 
 	log := logging.For("manager")
+	var versionStr string
+	
+	versionStr = "gobetween version [" + info.Version + "]"
+	
 	log.Info("Initializing...")
+	log.Info(versionStr)
 
 	originalCfg = cfg
 
