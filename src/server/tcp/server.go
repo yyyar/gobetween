@@ -301,7 +301,7 @@ func (this *Server) Listen() (err error) {
  */
 func (this *Server) handle(ctx *core.TcpContext) {
 	clientConn := ctx.Conn
-	log := logging.For("server.handle")
+	log := logging.For("server.handle [" + this.cfg.Bind + "]")
 
 	/* Check access if needed */
 	if this.access != nil {
@@ -318,7 +318,7 @@ func (this *Server) handle(ctx *core.TcpContext) {
 	var err error
 	backend, err := this.scheduler.TakeBackend(ctx)
 	if err != nil {
-		log.Error(err, " Closing connection ", clientConn.RemoteAddr())
+		log.Error(err, "; Closing connection: ", clientConn.RemoteAddr())
 		return
 	}
 

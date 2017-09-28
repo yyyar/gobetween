@@ -41,7 +41,7 @@ func (sniBalancer *SniBalancer) Elect(ctx core.Context, backends []*core.Backend
 
 	switch sniBalancer.SniConf.UnexpectedHostnameStrategy {
 	case "reject":
-		return nil, errors.New("No matching sni found, rejecting due to 'reject' unexpected hostname strategy")
+		return nil, errors.New("No matching sni [" + ctx.Sni() + "] found, rejecting due to 'reject' unexpected hostname strategy")
 
 	case "any":
 		return sniBalancer.Delegate.Elect(ctx, backends)
