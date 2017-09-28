@@ -16,8 +16,9 @@
 
 * [Fast L4 Load Balancing](https://github.com/yyyar/gobetween/wiki)
   * **TCP** - with optional [The PROXY Protocol](https://github.com/yyyar/gobetween/wiki/Proxy-Protocol) support
-  * **UDP**
   * **TLS** - [TLS Termination](https://github.com/yyyar/gobetween/wiki/Protocols#tls) & [TLS Proxy](https://github.com/yyyar/gobetween/wiki/Tls-Proxying)
+  * **UDP**
+
   
 * [Clear & Flexible Configuration](https://github.com/yyyar/gobetween/wiki/Configuration) with [TOML](config/gobetween.toml) or [JSON](config/gobetween.json)
   * **File** - read configuration from the file
