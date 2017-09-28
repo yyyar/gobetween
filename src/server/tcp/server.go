@@ -21,6 +21,7 @@ import (
 	"../../logging"
 	"../../stats"
 	"../../utils"
+	"../../utils/proxyprotocol"
 	tlsutil "../../utils/tls"
 	"../../utils/tls/sni"
 	"../modules/access"
@@ -341,7 +342,24 @@ func (this *Server) handle(ctx *core.TcpContext) {
 	this.scheduler.IncrementConnection(*backend)
 	defer this.scheduler.DecrementConnection(*backend)
 
-	/* Stat proxying */
+	/* Send proxy protocol header if configured */
+	if this.cfg.ProxyProtocol != nil {
+		switch this.cfg.ProxyProtocol.Version {
+		case "1":
+			log.Debug("Sending proxy_protocol v1 header ", clientConn.RemoteAddr(), " -> ", this.listener.Addr(), " -> ", backendConn.RemoteAddr())
+			err := proxyprotocol.SendProxyProtocolV1(clientConn, backendConn)
+			if err != nil {
+				log.Error(err)
+				return
+			}
+		default:
+			log.Error("Unsupported proxy_protocol version " + this.cfg.ProxyProtocol.Version + ", aborting connection")
+			return
+		}
+	}
+
+	/* ----- Stat proxying ----- */
+
 	log.Debug("Begin ", clientConn.RemoteAddr(), " -> ", this.listener.Addr(), " -> ", backendConn.RemoteAddr())
 	cs := proxy(clientConn, backendConn, utils.ParseDurationOrDefault(*this.cfg.BackendIdleTimeout, 0))
 	bs := proxy(backendConn, clientConn, utils.ParseDurationOrDefault(*this.cfg.ClientIdleTimeout, 0))

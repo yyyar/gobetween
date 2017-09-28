@@ -53,7 +53,7 @@ backend_connection_timeout = "0" # Backend connection timeout (ignored in udp)
 
 [servers.sample]
 protocol = "tcp"
-bind = "localhost:3000"
+bind = "0.0.0.0:3000"
 
   [servers.sample.discovery]
   kind = "static"
@@ -152,6 +152,13 @@ protocol = "udp"
 #    "deny 192.168.0.1",     #   are checked in sequence until match,
 #    "allow 192.168.0.1/24"  #   if no match, use 'default' order. ipv4 and ipv6 are supported
 #  ]
+#
+## -------------------- proxy protocol properties -------------------- #
+#
+## For more details on PROXYPROTOCOL see https://www.haproxy.org/download/1.8/doc/proxy-protocol.txt
+#
+#  [servers.default.proxy_protocol]  # (optional)
+#  version = "1"                     # (required) proxy protocol version. only "1" for now.
 #
 ## -------------------- healthchecks ------------------------- #
 #

@@ -91,11 +91,21 @@ type Server struct {
 	// Access configuration
 	Access *AccessConfig `toml:"access" json:"access"`
 
+	// ProxyProtocol configuration
+	ProxyProtocol *ProxyProtocol `toml:"proxy_protocol" json:"proxy_protocol"`
+
 	// Discovery configuration
 	Discovery *DiscoveryConfig `toml:"discovery" json:"discovery"`
 
 	// Healthcheck configuration
 	Healthcheck *HealthcheckConfig `toml:"healthcheck" json:"healthcheck"`
+}
+
+/**
+ * ProxyProtocol configurtion
+ */
+type ProxyProtocol struct {
+	Version string `toml:"version" json:"version"`
 }
 
 /**

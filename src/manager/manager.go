@@ -219,6 +219,21 @@ func prepareConfig(name string, server config.Server, defaults config.Connection
 		server.Healthcheck.Passes = 1
 	}
 
+	if server.ProxyProtocol != nil {
+
+		if server.Protocol != "tcp" {
+			return config.Server{}, errors.New("proxy_protocol may be used only with 'tcp' protocol, not with " + server.Protocol)
+		}
+
+		if server.ProxyProtocol.Version == "" {
+			return config.Server{}, errors.New("version field for proxy_protocol is not specified")
+		}
+
+		if server.ProxyProtocol.Version != "1" {
+			return config.Server{}, errors.New("Unsupported proxy_protocol version " + server.ProxyProtocol.Version)
+		}
+	}
+
 	if server.Sni != nil {
 
 		if server.Sni.ReadTimeout == "" {
