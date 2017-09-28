@@ -48,6 +48,8 @@ func init() {
  */
 func main() {
 
+	log.Printf("gobetween v%s", version)
+
 	env := os.Getenv("GOBETWEEN")
 	if env != "" && len(os.Args) > 1 {
 		log.Fatal("Passed GOBETWEEN env var and command-line arguments: only one allowed")
