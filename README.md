@@ -15,7 +15,7 @@
 ## Features
 
 * [Fast L4 Load Balancing](https://github.com/yyyar/gobetween/wiki)
-  * **TCP**
+  * **TCP** - with optional [The PROXY Protocol](https://github.com/yyyar/gobetween/wiki/Proxy-Protocol) support
   * **UDP**
   * **TLS** - [TLS Termination](https://github.com/yyyar/gobetween/wiki/Protocols#tls) & [TLS Proxy](https://github.com/yyyar/gobetween/wiki/Tls-Proxying)
   
