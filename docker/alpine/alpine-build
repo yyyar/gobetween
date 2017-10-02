@@ -1,0 +1,9 @@
+FROM golang:1.9.0-alpine3.6
+
+RUN apk add --update make git g++ gcc 
+
+VOLUME /go/src/app
+
+WORKDIR /go/src/app
+
+CMD make deps && make run
