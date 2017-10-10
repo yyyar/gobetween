@@ -96,11 +96,14 @@ Also, it's written in Go, and it's a proxy so it's something that stays between 
 ## License
 MIT. See LICENSE file for more details.
 
-## Authors & Contributors
+## Authors & Maintainers
 - [Yaroslav Pogrebnyak](http://pogrebnyak.info)
 - [Nick Doikov](https://github.com/nickdoikov)
 - [Ievgen Ponomarenko](https://github.com/kikom)
 - [Illarion Kovalchuk](https://github.com/illarion)
+
+## All Contributors
+- See [AUTHORS](AUTHORS)
 
 ## Logo
 Logo by [Max Demchenko](https://www.linkedin.com/in/max-demchenko-116170112)
