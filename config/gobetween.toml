@@ -127,16 +127,18 @@ protocol = "udp"
 #
 ## ---------------------- tls properties --------------------- #
 #
+#  # Either both cert_path and key_path or acme_enabled and acme_hosts should be specified
+#
 #  [servers.default.tls]             # (required) if protocol == "tls"
-#  cert_path = "/path/to/file.crt"   # (required) path to crt file
-#  key_path = "/path/to/file.key"    # (required) path to key file
+#  cert_path = "/path/to/file.crt"   # (*required) path to crt file
+#  key_path = "/path/to/file.key"    # (*required) path to key file
 #  min_version = "tls1"              # (optional) "ssl3" | "tls1" | "tls1.1" | "tls1.2" - minimum allowed tls version
 #  max_version = "tls1.2"            # (optional) maximum allowed tls version
 #  ciphers = []                      # (optional) list of supported ciphers. Empty means all supported. For a list see https://golang.org/pkg/crypto/tls/#pkg-constants
 #  prefer_server_ciphers = false     # (optional) if true server selects server's most preferred cipher
 #  session_tickets = true            # (optional) if true enables session tickets
-#  acme_enabled = false              # (optional) if true enables acme/letsecrypt
-#  acme_hosts = []                   # (optional) list of acme hosts, to provide certificates for
+#  acme_enabled = false              # (*optional) if true enables acme/letsecrypt
+#  acme_hosts = []                   # (*optional) list of acme hosts, to provide certificates for
 #  acme_cache_dir = "/tmp"           # (optional) directory to put acme certificates
 #
 #
