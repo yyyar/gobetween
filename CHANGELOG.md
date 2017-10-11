@@ -1,5 +1,31 @@
 # Changelog
 
+## [0.5.0] - 2017-10-13
+This release brings several new features and various fixes and improvements.
+
+### New Features
+- ACME (Letsencrypt) protocol support for TLS server
+- PROXY protocol v1 support (PR #101 by Nico Schieder)
+- LXD Discovery (PR #76 by Joe Topjian)
+
+
+### Added
+- Added more info to server and sni logging errors
+- Version number first line to output on startup
+- Add sni value to 'not-matching' SNI error message
+- Version flags (--version and -v)
+- Implemented max requests and responses parameters in UDP
+
+### Fixed
+- Dns discovery when A records are not presented in additional section of SRV response
+- Sni middleware to work fine with default unexpected hostname strategy
+- Propagating sni backend value in scheduler after discovery
+
+### Changed
+- Optimizing Docker image (now FROM stratch)
+
+
+
 ## [0.4.0] - 2017-04-07
 This release brings many new features and improvemets, as well as bugfixes.
 Major things are UDP support, TLS termination, TLS proxy, SNI-aware balancing.
