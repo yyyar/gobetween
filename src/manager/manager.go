@@ -282,6 +282,29 @@ func prepareConfig(name string, server config.Server, defaults config.Connection
 		return config.Server{}, errors.New("backend_tls.cert_path and .key_path should be specified together")
 	}
 
+	if server.Tls != nil {
+
+		if !server.Tls.AcmeEnabled && ((server.Tls.KeyPath == "") || (server.Tls.CertPath == "")) {
+			return config.Server{}, errors.New("tls requires specify either acme configuration or both key and cert paths")
+		}
+
+		if server.Tls.AcmeEnabled {
+
+			if server.Tls.AcmeCacheDir == "" {
+				server.Tls.AcmeCacheDir = os.TempDir()
+			}
+
+			if len(server.Tls.AcmeHosts) == 0 {
+				return config.Server{}, errors.New("Need to provide at least one host in acme_hosts")
+			}
+
+			if !strings.HasSuffix(server.Bind, ":443") {
+				return config.Server{}, errors.New("Enabled acme support requires to bind on default https port :443")
+			}
+		}
+
+	}
+
 	/* ----- Connections params and overrides ----- */
 
 	/* Protocol */
