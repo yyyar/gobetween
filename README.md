@@ -16,7 +16,7 @@
 
 * [Fast L4 Load Balancing](https://github.com/yyyar/gobetween/wiki)
   * **TCP** - with optional [The PROXY Protocol](https://github.com/yyyar/gobetween/wiki/Proxy-Protocol) support
-  * **TLS** - [TLS Termination](https://github.com/yyyar/gobetween/wiki/Protocols#tls) & [TLS Proxy](https://github.com/yyyar/gobetween/wiki/Tls-Proxying)
+  * **TLS** - [TLS Termination](https://github.com/yyyar/gobetween/wiki/Protocols#tls) + [ACME](https://github.com/yyyar/gobetween/wiki/Protocols#tls) & [TLS Proxy](https://github.com/yyyar/gobetween/wiki/Tls-Proxying)
   * **UDP**
 
   
@@ -39,6 +39,7 @@
   * **Plaintext** - query arbitrary http and parse backends from response text with customized regexp
   * **SRV** - query DNS server and get backends from SRV records
   * **Consul** - query Consul Services API for backends 
+  * **LXD** - query backands from LXD
 
 * [Healthchecks](https://github.com/yyyar/gobetween/wiki/Healthchecks)
   * **Ping** - simple TCP ping healtcheck
