@@ -72,7 +72,8 @@ deps: clean-deps
 	github.com/gin-contrib/cors \
 	github.com/lxc/lxd/client \
 	github.com/lxc/lxd/lxc/config \
-	github.com/jtopjian/lxdhelpers \
+	github.com/lxc/lxd/shared \
+	github.com/lxc/lxd/shared/api \
 	github.com/pires/go-proxyproto \
 	golang.org/x/crypto/acme/autocert
 
