@@ -164,9 +164,11 @@ type tlsCommon struct {
  * for protocol = "tls"
  */
 type Tls struct {
-	AcmeHosts []string `toml:"acme_hosts" json:"acme_hosts"`
-	CertPath  string   `toml:"cert_path" json:"cert_path"`
-	KeyPath   string   `toml:"key_path" json:"key_path"`
+	AcmeEnabled  bool     `toml:"acme_enabled" json:"acme_enabled"`
+	AcmeHosts    []string `toml:"acme_hosts" json:"acme_hosts"`
+	AcmeCacheDir string   `toml:"acme_cache_dir" json:"acme_cache_dir"`
+	CertPath     string   `toml:"cert_path" json:"cert_path"`
+	KeyPath      string   `toml:"key_path" json:"key_path"`
 	tlsCommon
 }
 
@@ -201,9 +203,9 @@ type AccessConfig struct {
  */
 type DiscoveryConfig struct {
 	Kind       string `toml:"kind" json:"kind"`
-	Failpolicy string `toml:"failpolicy" json:"failpolicy"`
-	Interval   string `toml:"interval" json:"interval"`
-	Timeout    string `toml:"timeout" json:"timeout"`
+	Failpolicy string `toml:"failpolicy" json:"failpolicy,omitempty"`
+	Interval   string `toml:"interval" json:"interval,omitempty"`
+	Timeout    string `toml:"timeout" json:"timeout,omitempty"`
 
 	/* Depends on Kind */
 
@@ -215,6 +217,11 @@ type DiscoveryConfig struct {
 	*PlaintextDiscoveryConfig
 	*ConsulDiscoveryConfig
 	*LXDDiscoveryConfig
+	*MultiDiscoveryConfig
+}
+
+type MultiDiscoveryConfig struct {
+	Multi []DiscoveryConfig `toml:"multi" json:"multi"`
 }
 
 type StaticDiscoveryConfig struct {

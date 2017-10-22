@@ -77,14 +77,30 @@ backend_connection_timeout = "0" # Backend connection timeout (ignored in udp)
 [servers.sample]
 protocol = "tcp"
 bind = "0.0.0.0:3000"
+balance="weight"
 
   [servers.sample.discovery]
-  kind = "static"
-  static_list = [
-      "localhost:8000 weight=40 priority=1",
-      "localhost:8001 weight=60 priority=1",
-      "localhost:8002 weight=100 priority=0"
-  ]
+  kind = "multi"
+  interval = "2s"
+  failpolicy = "keeplast"
+
+    [[servers.sample.discovery.multi]]
+    kind = "static"
+    static_list = [
+        "localhost:8000"
+    ]
+
+    [[servers.sample.discovery.multi]]
+    kind = "static"
+    static_list = [
+        "localhost:8000"
+    ]
+
+    #[[servers.sample.discovery.multi]]
+    #kind = "docker"
+    #interval = "2s"
+    #docker_endpoint = "unix:///var/run/docker.sock" # (required) Endpoint to docker API
+    #docker_container_private_port = 80        # (required) Private port of container to use
 
 # ---------- udp example ----------- #
 
