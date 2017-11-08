@@ -172,6 +172,7 @@ protocol = "udp"
 #  timeout = "0s"                  # (required) max time for healthcheck to execute until mark as failed
 #  fails = 1                       # (optional) successfull checks to mark backend as inactive
 #  passes = 1                      # (optional) successfull checks to mark backend as active
+#  force_disconnect = false # optional, if true - drop connections to backends that didn't pass healthcheck
 #
 #  # -- ping -- #
 #  kind = "ping"                   # Unavailable if server.protocol is udp
