@@ -227,8 +227,7 @@ func (this *Scheduler) HandleBackendsUpdate(backends []core.Backend) {
 	updated := map[core.Target]*core.Backend{}
 	updatedList := make([]*core.Backend, len(backends))
 
-	for i := range backends {
-		b := backends[i]
+	for i, b := range backends {
 		oldB, ok := this.backends[b.Target]
 
 		if ok {

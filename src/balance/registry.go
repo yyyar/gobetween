@@ -28,6 +28,7 @@ func init() {
 	typeRegistry["roundrobin"] = reflect.TypeOf(RoundrobinBalancer{})
 	typeRegistry["weight"] = reflect.TypeOf(WeightBalancer{})
 	typeRegistry["iphash"] = reflect.TypeOf(IphashBalancer{})
+	typeRegistry["iphash1"] = reflect.TypeOf(Iphash1Balancer{})
 	typeRegistry["leastbandwidth"] = reflect.TypeOf(LeastbandwidthBalancer{})
 }
 

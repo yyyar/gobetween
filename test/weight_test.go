@@ -3,31 +3,12 @@ package test
 import (
 	"math"
 	"math/rand"
-	"net"
 	"testing"
 	"time"
 
 	"../src/balance"
 	"../src/core"
 )
-
-type DummyContext struct{}
-
-func (d DummyContext) String() string {
-	return "123"
-}
-
-func (d DummyContext) Ip() net.IP {
-	return make(net.IP, 1)
-}
-
-func (d DummyContext) Port() int {
-	return 0
-}
-
-func (d DummyContext) Sni() string {
-	return ""
-}
 
 func TestWeightDistribution(t *testing.T) {
 	rand.Seed(time.Now().Unix())
