@@ -109,9 +109,16 @@ func consulFetch(cfg config.DiscoveryConfig) (*[]core.Backend, error) {
 			sni = split[1]
 		}
 
+		var host string
+		if s.Address != "" {
+			host = s.Address
+		} else {
+			host = entry.Node.Address
+		}
+		
 		backends = append(backends, core.Backend{
 			Target: core.Target{
-				Host: s.Address,
+				Host: host,
 				Port: fmt.Sprintf("%v", s.Port),
 			},
 			Priority: 1,
