@@ -62,6 +62,10 @@ func Start(cfg config.ApiConfig) {
 	attachRoot(r)
 	attachServers(r)
 
+	/* attach endpoints with no auth */
+	p := app.Group("/")
+	attachPublic(p)
+
 	var err error
 	/* start rest api server */
 	if cfg.Tls != nil {
