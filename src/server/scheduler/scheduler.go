@@ -303,7 +303,10 @@ func (this *Scheduler) HandleOp(op Op) {
 		backend.Stats.ActiveConnections++
 		backend.Stats.TotalConnections++
 	case DecrementConnection:
-		backend.Stats.ActiveConnections--
+		// we should not underflow
+		if backend.Stats.ActiveConnections-1 < backend.Stats.ActiveConnections {
+			backend.Stats.ActiveConnections--
+		}
 	default:
 		log.Warn("Don't know how to handle op ", op.op)
 	}
