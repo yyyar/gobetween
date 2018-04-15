@@ -81,6 +81,12 @@ Run several web servers for tests in different terminals:
 * `$ python -m SimpleHTTPServer 8000`
 * `$ python -m SimpleHTTPServer 8001`
 
+Instead of Python's internal HTTP module, you can also use a single binary (Go based) webserver like:
+https://github.com/udhos/gowebhello
+
+**gowebhello** has support for SSL sertificates as well (**HTTPS** mode), in case you want to do quick demos
+of the **TLS+SNI** capabilities of gobetween.
+
 Put `localhost:8000` and `localhost:8001` to `static_list` of static discovery in config file, then try it:
 
 * `$ gobetween -c gobetween.toml`
