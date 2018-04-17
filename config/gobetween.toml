@@ -43,6 +43,17 @@ client_idle_timeout = "0"        # Client inactivity duration before forced conn
 backend_idle_timeout = "0"       # Backend inactivity duration before forced connection drop
 backend_connection_timeout = "0" # Backend connection timeout (ignored in udp)
 
+#
+## Acme (letsencrypt) configuration.
+## Letsencrypt allows server obtain free TLS certificates automagically.
+## See https://letsencrypt.org for details.
+##
+## Each server that requires acme certificates should have acme_hosts configured in tls section.
+#
+#[acme]                           # (optional)
+#challenge = "http"               # (optional) http | sni | dns
+#http_bind = "0.0.0.0:80"         # (optional) It is possible to bind to other port, but letsencrypt will send requests to http(80) anyway
+#cache_dir = "/tmp"               # (optional) directory to put acme certificates
 
 #
 # Servers contains as many [server.<name>] sections as needed.
@@ -127,7 +138,7 @@ protocol = "udp"
 #
 ## ---------------------- tls properties --------------------- #
 #
-#  # Either both cert_path and key_path or acme_enabled and acme_hosts should be specified
+#  # *Either both cert_path and key_path or acme_hosts should be specified (and configured global [acme] section
 #
 #  [servers.default.tls]             # (required) if protocol == "tls"
 #  cert_path = "/path/to/file.crt"   # (*required) path to crt file
@@ -137,9 +148,7 @@ protocol = "udp"
 #  ciphers = []                      # (optional) list of supported ciphers. Empty means all supported. For a list see https://golang.org/pkg/crypto/tls/#pkg-constants
 #  prefer_server_ciphers = false     # (optional) if true server selects server's most preferred cipher
 #  session_tickets = true            # (optional) if true enables session tickets
-#  acme_enabled = false              # (*optional) if true enables acme/letsecrypt
 #  acme_hosts = []                   # (*optional) list of acme hosts, to provide certificates for
-#  acme_cache_dir = "/tmp"           # (optional) directory to put acme certificates
 #
 #
 ## ---------------------- udp properties --------------------- #

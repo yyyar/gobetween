@@ -9,7 +9,6 @@ package tcp
 import (
 	"crypto/tls"
 	"net"
-	"strings"
 	"time"
 
 	"../../balance"
@@ -68,6 +67,9 @@ type Server struct {
 	/* Tls config used for incoming connections */
 	tlsConfig *tls.Config
 
+	/* Get certificate filled by external service */
+	GetCertificate func(*tls.ClientHelloInfo) (*tls.Certificate, error)
+
 	/* ----- modules ----- */
 
 	/* Access module checks if client is allowed to connect */
@@ -116,7 +118,7 @@ func New(name string, cfg config.Server) (*Server, error) {
 		return nil, err
 	}
 
-	server.tlsConfig, err = tlsutil.MakeTlsConfig(cfg.Tls)
+	server.tlsConfig, err = tlsutil.MakeTlsConfig(cfg.Tls, server.GetCertificate)
 	if err != nil {
 		return nil, err
 	}
@@ -233,23 +235,6 @@ func (this *Server) wrap(conn net.Conn, sniEnabled bool) {
 			log.Error("Failed to get / parse ClientHello for sni: ", err)
 			conn.Close()
 			return
-		}
-
-		// Acme and Sni support features overlap - sni middleware can drop connections to *.acme.invalid, but they
-		// should be processed in order to obtain/renew certificates
-		if this.cfg.Tls != nil && this.cfg.Tls.AcmeEnabled {
-			if strings.HasSuffix(hostname, ".acme.invalid") {
-				conn = tls.Server(sniConn, this.tlsConfig)
-
-				_, err := conn.Write([]byte{0})
-
-				if err != nil {
-					log.Error("Error while communicating with acme server", err)
-				}
-
-				conn.Close()
-				return
-			}
 		}
 
 		conn = sniConn

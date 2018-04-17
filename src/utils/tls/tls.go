@@ -11,8 +11,6 @@ import (
 	"crypto/x509"
 	"io/ioutil"
 
-	"golang.org/x/crypto/acme/autocert"
-
 	"../../config"
 )
 
@@ -78,7 +76,7 @@ func MapCiphers(ciphers []string) []uint16 {
 	return result
 }
 
-func MakeTlsConfig(tlsC *config.Tls) (*tls.Config, error) {
+func MakeTlsConfig(tlsC *config.Tls, getCertificate func(*tls.ClientHelloInfo) (*tls.Certificate, error)) (*tls.Config, error) {
 
 	if tlsC == nil {
 		return nil, nil
@@ -86,33 +84,24 @@ func MakeTlsConfig(tlsC *config.Tls) (*tls.Config, error) {
 
 	tlsConfig := &tls.Config{}
 
-	var err error
-
-	if tlsC.AcmeEnabled {
-
-		certManager := autocert.Manager{
-			Prompt:     autocert.AcceptTOS,
-			HostPolicy: autocert.HostWhitelist(tlsC.AcmeHosts...),
-			Cache:      autocert.DirCache(tlsC.AcmeCacheDir),
-		}
-
-		tlsConfig.GetCertificate = certManager.GetCertificate
-
-	} else {
-		var crt tls.Certificate
-		if crt, err = tls.LoadX509KeyPair(tlsC.CertPath, tlsC.KeyPath); err != nil {
-			return nil, err
-		}
-
-		tlsConfig.Certificates = []tls.Certificate{crt}
-
-	}
-
 	tlsConfig.CipherSuites = MapCiphers(tlsC.Ciphers)
 	tlsConfig.PreferServerCipherSuites = tlsC.PreferServerCiphers
 	tlsConfig.MinVersion = MapVersion(tlsC.MinVersion)
 	tlsConfig.MaxVersion = MapVersion(tlsC.MaxVersion)
 	tlsConfig.SessionTicketsDisabled = !tlsC.SessionTickets
+
+	if getCertificate != nil {
+		tlsConfig.GetCertificate = getCertificate
+		return tlsConfig, nil
+	}
+
+	var crt tls.Certificate
+	var err error
+	if crt, err = tls.LoadX509KeyPair(tlsC.CertPath, tlsC.KeyPath); err != nil {
+		return nil, err
+	}
+
+	tlsConfig.Certificates = []tls.Certificate{crt}
 
 	return tlsConfig, nil
 }
