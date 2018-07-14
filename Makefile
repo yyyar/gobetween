@@ -57,25 +57,25 @@ clean-deps:
 	rm -rf ./vendor/bin
 
 deps: clean-deps
-	GOPATH=${PWD}/vendor go get -u -v \
-	github.com/BurntSushi/toml \
-	github.com/miekg/dns \
-	github.com/fsouza/go-dockerclient \
-	github.com/Sirupsen/logrus \
-	github.com/elgs/gojq \
-	github.com/gin-gonic/gin \
-	github.com/hashicorp/consul/api \
-	github.com/spf13/cobra \
-	github.com/Microsoft/go-winio \
-	golang.org/x/sys/windows \
-	github.com/inconshreveable/mousetrap \
-	github.com/gin-contrib/cors \
-	github.com/lxc/lxd/client \
-	github.com/lxc/lxd/lxc/config \
-	github.com/lxc/lxd/shared \
-	github.com/lxc/lxd/shared/api \
-	github.com/pires/go-proxyproto \
-	golang.org/x/crypto/acme/autocert
+	go get -v github.com/burntsushi/toml
+	go get -v github.com/miekg/dns
+	go get -v github.com/fsouza/go-dockerclient
+	go get -v github.com/sirupsen/logrus
+	go get -v github.com/elgs/gojq
+	go get -v github.com/gin-gonic/gin
+	go get -v github.com/hashicorp/consul/api
+	go get -v github.com/spf13/cobra
+	go get -v github.com/Microsoft/go-winio
+	go get -v github.com/Azure/go-ansiterm
+	go get -v golang.org/x/sys/windows
+	go get -v github.com/inconshreveable/mousetrap
+	go get -v github.com/gin-contrib/cors
+	go get -v github.com/lxc/lxd/client
+	go get -v github.com/lxc/lxd/lxc/config
+	go get -v github.com/lxc/lxd/shared
+	go get -v github.com/lxc/lxd/shared/api
+	go get -v github.com/pires/go-proxyproto
+	go get -v golang.org/x/crypto/acme/autocert
 
 clean-dist:
 	rm -rf ./dist/${VERSION}
