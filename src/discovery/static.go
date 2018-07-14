@@ -34,8 +34,6 @@ func staticFetch(cfg config.DiscoveryConfig) (*[]core.Backend, error) {
 
 	log := logging.For("discovery/static")
 
-	log.Info("Fetching")
-
 	var backends []core.Backend
 	for _, s := range cfg.StaticList {
 		backend, err := parsers.ParseBackendDefault(s)

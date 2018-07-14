@@ -10,11 +10,11 @@ import (
 	"../config"
 	"../core"
 	"../logging"
+	"sync"
 )
 
-var multiSubDiscoveries []*Discovery
-
 var backends = make(map[int][]core.Backend)
+var mu = sync.RWMutex{}
 
 /**
  * Creates new static discovery
@@ -48,16 +48,18 @@ func NewMultiDiscovery(cfg config.DiscoveryConfig) interface{} {
 			discoveryCfg.Timeout = cfg.Timeout
 		}
 
-		d := New(discoveryCfg.Kind, discoveryCfg)
+		subDiscovery := New(discoveryCfg.Kind, discoveryCfg)
+		subDiscovery.Start()
 
-		multiSubDiscoveries = append(multiSubDiscoveries, d)
-		d.Start()
-		go (func(i int) {
+		go func(i int) {
+			c := subDiscovery.Discover()
 			for {
-				b := <-d.out
+				b := <-c
+				mu.Lock()
 				backends[i] = b
+				mu.Unlock()
 			}
-		})(i)
+		}(i)
 	}
 
 	return &d
@@ -67,16 +69,16 @@ func NewMultiDiscovery(cfg config.DiscoveryConfig) interface{} {
  * Start discovery
  */
 func multiFetch(cfg config.DiscoveryConfig) (*[]core.Backend, error) {
-
 	//	log := logging.For("discovery/multi")
 	var result []core.Backend
 
+	mu.RLock()
 	for _, bs := range backends {
-
 		for _, bss := range bs {
 			result = append(result, bss)
 		}
 	}
+	mu.RUnlock()
 
 	return &result, nil
 }
