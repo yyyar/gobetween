@@ -1,4 +1,4 @@
-## HealthCheck For Kerberos V5
+## HealthCheck For KerberosV
 
 Example for gobetween.toml:
 
@@ -34,7 +34,7 @@ For Kerberos/KDC health check, you should use string `krb5` always.
 
 Directory for locate [KRB5_CONFIG](http://web.mit.edu/kerberos/krb5-latest/doc/admin/env_variables.html) to check Kerberos/KDC health.
 
-1. One host shoud have one config file here, named as: `krb5.${host}.conf`, for example above ,shoud have: `krb5.kdc01.chenxiaosheng.com.conf` and `krb5.10.176.42.204.conf`;
+1. One host should have one config file here, named as: `krb5.${host}.conf`, for example above, should have: `krb5.kdc01.chenxiaosheng.com.conf` and `krb5.10.176.42.204.conf`;
 2. More about kerberos's configure, read [here](http://web.mit.edu/kerberos/krb5-1.12/doc/admin/conf_files/krb5_conf.html) please;
 
 ### krb5_realm
