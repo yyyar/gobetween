@@ -65,7 +65,7 @@ var registry = make(map[string]CheckFunc)
 func init() {
 	registry["ping"] = ping
 	registry["exec"] = exec
-    registry["krb5"] = krb5
+	registry["krb5"] = krb5
 	registry["none"] = nil
 }
 
