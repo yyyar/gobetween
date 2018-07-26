@@ -75,7 +75,13 @@ deps: clean-deps
 	github.com/lxc/lxd/shared \
 	github.com/lxc/lxd/shared/api \
 	github.com/pires/go-proxyproto \
-	golang.org/x/crypto/acme/autocert
+	golang.org/x/crypto/acme/autocert \
+	gopkg.in/jcmturner/gokrb5.v5 \
+	github.com/hashicorp/go-uuid \
+	github.com/jcmturner/gofork/encoding/asn1 \
+	github.com/jcmturner/gofork/x/crypto/pbkdf2 \
+	gopkg.in/jcmturner/aescts.v1 \
+	gopkg.in/jcmturner/dnsutils.v1 \
 
 clean-dist:
 	rm -rf ./dist/${VERSION}

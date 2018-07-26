@@ -279,6 +279,7 @@ type HealthcheckConfig struct {
 
 	*PingHealthcheckConfig
 	*ExecHealthcheckConfig
+	*Krb5HealthcheckConfig
 }
 
 type PingHealthcheckConfig struct{}
@@ -287,4 +288,11 @@ type ExecHealthcheckConfig struct {
 	ExecCommand                string `toml:"exec_command" json:"exec_command,omitempty"`
 	ExecExpectedPositiveOutput string `toml:"exec_expected_positive_output" json:"exec_expected_positive_output"`
 	ExecExpectedNegativeOutput string `toml:"exec_expected_negative_output" json:"exec_expected_negative_output"`
+}
+
+type Krb5HealthcheckConfig struct {
+	Krb5Conf        string `toml:"krb5_conf" json:"krb5_conf"`
+	Krb5Realm       string `toml:"krb5_realm" json:"krb5_realm"`
+	Krb5Username    string `toml:"krb5_username" json:"krb5_username"`
+	Krb5Keytab      string `toml:"krb5_keytab" json:"krb5_keytab"`
 }

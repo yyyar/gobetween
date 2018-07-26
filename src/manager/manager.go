@@ -198,6 +198,7 @@ func prepareConfig(name string, server config.Server, defaults config.Connection
 	case
 		"ping",
 		"exec",
+		"krb5",
 		"none":
 	default:
 		return config.Server{}, errors.New("Not supported healthcheck type " + server.Healthcheck.Kind)
