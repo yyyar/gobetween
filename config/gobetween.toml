@@ -182,6 +182,13 @@ protocol = "udp"
 #  exec_expected_positive_output = "1"           # (required) expected output of command in case of success
 #  exec_expected_negative_output = "0"           # (required) expected output of command in case of failure
 #
+# # -- krb5 -- #
+# kind = "krb5"
+# krb5_conf = "/path/to/krb.%host%.conf"	# (required) KRB5_CONFIG for Kerberos Auth, `%host%` will be replaced by backend hostname or ip
+# krb5_realm = "CHENXIAOSHENG.COM"		# (required) Kerberos REALM
+# krb5_username = "kdc.healthcheck"		# (required) Kerberos Principal
+# krb5_keytab = "/path/to/keytab"		# (required) Keytab for Kerberos Principal
+#
 ## -------------------- discovery ---------------------------- #
 #
 #  [servers.default.discovery]      # (required)

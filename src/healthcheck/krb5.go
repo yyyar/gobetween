@@ -10,8 +10,8 @@ import (
 	"../config"
 	"../core"
 	"../logging"
-	"fmt"
 	"time"
+	"strings"
 	"context"
 	"gopkg.in/jcmturner/gokrb5.v5/client"
 	"gopkg.in/jcmturner/gokrb5.v5/keytab"
@@ -25,7 +25,8 @@ func krb5(t core.Target, cfg config.HealthcheckConfig, result chan<- CheckResult
 	log := logging.For("healthcheck/krb5")
 
 	krb5Timeout, _ := time.ParseDuration(cfg.Timeout)
-	krb5Conf, err := krb5config.Load(fmt.Sprintf("%s/krb5.%s.conf", cfg.Krb5Conf, t.Host))
+	krb5Conf, err := krb5config.Load(
+		strings.Replace(cfg.Krb5Conf, "%host%", t.Host, -1))
 	if err != nil {
 		panic(err)
 	}
