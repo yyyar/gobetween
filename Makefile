@@ -61,7 +61,7 @@ deps: clean-deps
 	github.com/BurntSushi/toml \
 	github.com/miekg/dns \
 	github.com/fsouza/go-dockerclient \
-	github.com/Sirupsen/logrus \
+	github.com/sirupsen/logrus \
 	github.com/elgs/gojq \
 	github.com/gin-gonic/gin \
 	github.com/hashicorp/consul/api \
