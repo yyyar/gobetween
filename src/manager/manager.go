@@ -369,6 +369,15 @@ func prepareConfig(name string, server config.Server, defaults config.Connection
 		if server.BackendsTls != nil {
 			return config.Server{}, errors.New("backends_tls should not be enabled for udp protocol")
 		}
+
+		if server.Udp == nil {
+			server.Udp = &config.Udp{}
+		}
+
+		if server.Udp.MaxRequests == 0 && server.Udp.MaxResponses == 0 && server.ClientIdleTimeout == nil && server.BackendIdleTimeout == nil {
+			return config.Server{}, errors.New("udp protocol requires to specify at least one of (client|backend)_idle_timeout, udp.max_requests, udp.max_responses")
+		}
+
 	default:
 		return config.Server{}, errors.New("Not supported protocol " + server.Protocol)
 	}

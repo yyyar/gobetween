@@ -50,19 +50,19 @@ type UdpContext struct {
 	/**
 	 * Current client remote address
 	 */
-	RemoteAddr net.UDPAddr
+	ClientAddr net.UDPAddr
 }
 
 func (u UdpContext) String() string {
-	return u.RemoteAddr.String()
+	return u.ClientAddr.String()
 }
 
 func (u UdpContext) Ip() net.IP {
-	return u.RemoteAddr.IP
+	return u.ClientAddr.IP
 }
 
 func (u UdpContext) Port() int {
-	return u.RemoteAddr.Port
+	return u.ClientAddr.Port
 }
 
 func (u UdpContext) Sni() string {

@@ -80,7 +80,7 @@ bind = "localhost:4000"
 protocol = "udp"
 
   [servers.udpsample.udp]
-  max_responses = 0
+  max_responses = 1
 
   [servers.udpsample.discovery]
   kind = "static"
