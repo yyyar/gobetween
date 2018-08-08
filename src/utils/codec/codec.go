@@ -9,7 +9,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
-	"github.com/BurntSushi/toml"
+	"github.com/burntsushi/toml"
 )
 
 /**

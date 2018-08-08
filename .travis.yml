@@ -1,15 +1,14 @@
 language: go
 
 go:
-  - 1.8
+  - "1.10"
 
 env:
  - GOMAXPROCS=2
 
 before_install:
   - sudo apt-get -qq update
-  - sudo apt-get install -y libacl1-dev
-  
+
 install:
     - make deps
 

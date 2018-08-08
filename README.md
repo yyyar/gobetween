@@ -6,7 +6,7 @@
 [![Docs](https://img.shields.io/badge/docs-current-brightgreen.svg)](https://github.com/yyyar/gobetween/wiki)
 [![Docker](https://img.shields.io/docker/pulls/yyyar/gobetween.svg)](https://hub.docker.com/r/yyyar/gobetween/)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](/LICENSE)
-[![Bountysource](https://img.shields.io/bountysource/team/gobetween/activity.svg)](https://www.bountysource.com/teams/gobetween)
+
 
 **gobetween** -  modern & minimalistic load balancer and reverse-proxy for the :cloud: Cloud era.
 
