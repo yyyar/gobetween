@@ -5,6 +5,7 @@
 [![Go Report Card](https://goreportcard.com/badge/github.com/yyyar/gobetween)](https://goreportcard.com/report/github.com/yyyar/gobetween)
 [![Docs](https://img.shields.io/badge/docs-current-brightgreen.svg)](https://github.com/yyyar/gobetween/wiki)
 [![Docker](https://img.shields.io/docker/pulls/yyyar/gobetween.svg)](https://hub.docker.com/r/yyyar/gobetween/)
+[![Telegram](https://img.shields.io/badge/telegram-chat-blue.svg)](https://t.me/joinchat/GdlUlg_gRfchk1BORU82PA)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](/LICENSE)
 
 
@@ -105,6 +106,9 @@ MIT. See LICENSE file for more details.
 
 ## All Contributors
 - See [AUTHORS](AUTHORS)
+
+## Community
+- Join gobetween Telegram group [here](https://t.me/joinchat/GdlUlg_gRfchk1BORU82PA).
 
 ## Logo
 Logo by [Max Demchenko](https://www.linkedin.com/in/max-demchenko-116170112)
