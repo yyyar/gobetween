@@ -1,5 +1,23 @@
 # Changelog
 
+## [0.6.0] - 2018-08-11
+This release brings some improvements and bugfixes.
+
+### New Features
+- ACME (Letsencrypt) http challenge support (sni challenge is disabled due to security considerations)
+
+### Added
+- iphash1 algorithm (consistent on backend removal)
+- More strict check of UDP server configuration
+
+### Fixed
+- Fixed iphash algorithm
+- Fixed UDP 'session' tracking problems
+
+### Changed
+- Removed not necessary dependency on libacl1-dev
+- Replaced missing dependencies
+
 ## [0.5.0] - 2017-10-13
 This release brings several new features and various fixes and improvements.
 

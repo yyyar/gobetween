@@ -18,7 +18,7 @@
 * [Fast L4 Load Balancing](https://github.com/yyyar/gobetween/wiki)
   * **TCP** - with optional [The PROXY Protocol](https://github.com/yyyar/gobetween/wiki/Proxy-Protocol) support
   * **TLS** - [TLS Termination](https://github.com/yyyar/gobetween/wiki/Protocols#tls) + [ACME](https://github.com/yyyar/gobetween/wiki/Protocols#tls) & [TLS Proxy](https://github.com/yyyar/gobetween/wiki/Tls-Proxying)
-  * **UDP**
+  * **UDP** - with optional virtual sessions
 
   
 * [Clear & Flexible Configuration](https://github.com/yyyar/gobetween/wiki/Configuration) with [TOML](config/gobetween.toml) or [JSON](config/gobetween.json)
@@ -70,7 +70,7 @@
 
 ## Hacking
 
-* Install Go 1.8+ https://golang.org/
+* Install Go 1.10+ https://golang.org/
 * `$ git clone git@github.com:yyyar/gobetween.git`
 * `$ make deps`
 * `$ make run`
