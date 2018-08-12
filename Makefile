@@ -76,6 +76,13 @@ deps: clean-deps
 	go get -v github.com/lxc/lxd/shared/api
 	go get -v github.com/pires/go-proxyproto
 	go get -v golang.org/x/crypto/acme/autocert
+	go get -v gopkg.in/jcmturner/gokrb5.v5
+	go get -v gopkg.in/jcmturner/rpc.v0/ndr
+	go get -v github.com/jcmturner/gofork/encoding/asn1
+	go get -v github.com/jcmturner/gofork/x/crypto/pbkdf2
+	go get -v gopkg.in/jcmturner/aescts.v1
+	go get -v gopkg.in/jcmturner/dnsutils.v1
+	go get -v github.com/hashicorp/go-uuid
 
 clean-dist:
 	rm -rf ./dist/${VERSION}
