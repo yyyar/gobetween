@@ -1,6 +1,8 @@
 # Changelog
 
-## [0.6.0] - 2018-08-11
+
+
+## [0.6.0] - 2018-08-XX
 This release brings some improvements and bugfixes.
 
 ### New Features
@@ -9,14 +11,20 @@ This release brings some improvements and bugfixes.
 ### Added
 - iphash1 algorithm (consistent on backend removal)
 - More strict check of UDP server configuration
+- /ping public endpoint for healthcheck (PR #127 by Mike Schroeder)
+- Support for using the Host Address (PR #123 by David Beck)
+- Mentioned gowebhello as an alternative webserver (PR #137 by Shantanu Gadgil)
 
 ### Fixed
-- Fixed iphash algorithm
+- Fixed iphash algorithm. It was not working properly at all
 - Fixed UDP 'session' tracking problems
 
 ### Changed
 - Removed not necessary dependency on libacl1-dev
 - Replaced missing dependencies
+- Removed lxdhelpers (PR #113 by Joe Topjian)
+
+
 
 ## [0.5.0] - 2017-10-13
 This release brings several new features and various fixes and improvements.
