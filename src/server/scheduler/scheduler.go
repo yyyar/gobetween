@@ -97,6 +97,7 @@ func (this *Scheduler) Start() {
 	this.ops = make(chan Op)
 	this.elect = make(chan ElectRequest)
 	this.stop = make(chan bool)
+	this.backends = make(map[core.Target]*core.Backend)
 
 	this.Discovery.Start()
 	this.Healthcheck.Start()
@@ -221,23 +222,35 @@ func (this *Scheduler) HandleBackendLiveChange(target core.Target, live bool) {
  */
 func (this *Scheduler) HandleBackendsUpdate(backends []core.Backend) {
 
-	updated := map[core.Target]*core.Backend{}
+	// first mark all existing backends as not discovered
+	for _, b := range this.backends {
+		b.Stats.Discovered = false
+	}
 
 	for _, b := range backends {
 		oldB, ok := this.backends[b.Target]
 
 		if ok {
 			// if we have this backend, update it's discovery properties
-			updatedB := oldB.MergeFrom(b)
-			updated[oldB.Target] = updatedB
+			oldB.MergeFrom(b)
+			// mark found backend as discovered
+			oldB.Stats.Discovered = true
 			continue
 		}
 
 		b := b // b has to be local variable in order to make unique pointers
-		updated[b.Target] = &b
+		b.Stats.Discovered = true
+		this.backends[b.Target] = &b
 	}
 
-	this.backends = updated
+	//remove not discovered backends without active connections
+	for t, b := range this.backends {
+		if b.Stats.Discovered || b.Stats.ActiveConnections > 0 {
+			continue
+		}
+		delete(this.backends, t)
+	}
+
 }
 
 /**
@@ -245,11 +258,15 @@ func (this *Scheduler) HandleBackendsUpdate(backends []core.Backend) {
  */
 func (this *Scheduler) HandleBackendElect(req ElectRequest) {
 
-	// Filter only live backends
+	// Filter only live and discovered backends
 	var backends []*core.Backend
 	for _, b := range this.backends {
 
 		if !b.Stats.Live {
+			continue
+		}
+
+		if !b.Stats.Discovered {
 			continue
 		}
 

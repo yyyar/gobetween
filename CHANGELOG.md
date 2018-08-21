@@ -18,6 +18,7 @@ This release brings some improvements and bugfixes.
 ### Fixed
 - Fixed iphash algorithm. It was not working properly at all
 - Fixed UDP 'session' tracking problems
+- Fixed active connections underflow on backend removed and added back, but connections remain established
 
 ### Changed
 - Removed not necessary dependency on libacl1-dev
