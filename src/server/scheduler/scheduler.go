@@ -70,9 +70,6 @@ type Scheduler struct {
 	/* Current cached backends map */
 	backends map[core.Target]*core.Backend
 
-	/* Current cached backends list (same as backends.list) but preserving order */
-	backendsList []*core.Backend
-
 	/* Stats */
 	StatsHandler *stats.Handler
 
@@ -225,24 +222,22 @@ func (this *Scheduler) HandleBackendLiveChange(target core.Target, live bool) {
 func (this *Scheduler) HandleBackendsUpdate(backends []core.Backend) {
 
 	updated := map[core.Target]*core.Backend{}
-	updatedList := make([]*core.Backend, len(backends))
 
-	for i, b := range backends {
+	for _, b := range backends {
 		oldB, ok := this.backends[b.Target]
 
 		if ok {
 			// if we have this backend, update it's discovery properties
 			updatedB := oldB.MergeFrom(b)
 			updated[oldB.Target] = updatedB
-			updatedList[i] = updatedB
-		} else {
-			updated[b.Target] = &b
-			updatedList[i] = &b
+			continue
 		}
+
+		b := b // b has to be local variable in order to make unique pointers
+		updated[b.Target] = &b
 	}
 
 	this.backends = updated
-	this.backendsList = updatedList
 }
 
 /**
@@ -252,7 +247,7 @@ func (this *Scheduler) HandleBackendElect(req ElectRequest) {
 
 	// Filter only live backends
 	var backends []*core.Backend
-	for _, b := range this.backendsList {
+	for _, b := range this.backends {
 
 		if !b.Stats.Live {
 			continue
