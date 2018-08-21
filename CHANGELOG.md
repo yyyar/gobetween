@@ -2,7 +2,7 @@
 
 
 
-## [0.6.0] - 2018-08-XX
+## [0.6.0] - 2018-08-21
 This release brings some improvements and bugfixes.
 
 ### New Features
