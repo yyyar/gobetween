@@ -104,10 +104,10 @@ dist:
 	  fi \
 	done
 
-build-container-latest: build
+build-container-latest: build-static
 	@echo Building docker container LATEST
 	docker build -t yyyar/gobetween .
 
-build-container-tagged: build
+build-container-tagged: build-static
 	@echo Building docker container ${VERSION}
 	docker build -t yyyar/gobetween:${VERSION} .
