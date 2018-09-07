@@ -8,6 +8,7 @@ package balance
 
 import (
 	"errors"
+	"sort"
 
 	"../core"
 )
@@ -30,11 +31,18 @@ func (b *RoundrobinBalancer) Elect(context core.Context, backends []*core.Backen
 		return nil, errors.New("Can't elect backend, Backends empty")
 	}
 
-	if b.current >= len(backends) {
+	sorted := make([]*core.Backend, len(backends))
+	copy(sorted, backends)
+
+	sort.SliceStable(sorted, func(i, j int) bool {
+		return sorted[i].Target.String() < sorted[j].Target.String()
+	})
+
+	if b.current >= len(sorted) {
 		b.current = 0
 	}
 
-	backend := backends[b.current]
+	backend := sorted[b.current]
 	b.current += 1
 
 	return backend, nil

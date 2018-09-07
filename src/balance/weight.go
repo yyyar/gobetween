@@ -7,11 +7,9 @@
 package balance
 
 import (
+	"../core"
 	"errors"
 	"math/rand"
-	"sort"
-
-	"../core"
 )
 
 /**
@@ -28,15 +26,8 @@ func (b *WeightBalancer) Elect(context core.Context, backends []*core.Backend) (
 		return nil, errors.New("Can't elect backend, Backends empty")
 	}
 
-	sorted := make([]*core.Backend, len(backends))
-	copy(sorted, backends)
-
-	sort.SliceStable(sorted, func(i, j int) bool {
-		return sorted[i].Target.String() < sorted[j].Target.String()
-	})
-
 	totalWeight := 0
-	for _, backend := range sorted {
+	for _, backend := range backends {
 		if backend.Weight <= 0 {
 			return nil, errors.New("Invalid backend weight 0")
 		}
@@ -46,7 +37,7 @@ func (b *WeightBalancer) Elect(context core.Context, backends []*core.Backend) (
 	r := rand.Intn(totalWeight)
 	pos := 0
 
-	for _, backend := range sorted {
+	for _, backend := range backends {
 		pos += backend.Weight
 		if r >= pos {
 			continue
@@ -54,5 +45,5 @@ func (b *WeightBalancer) Elect(context core.Context, backends []*core.Backend) (
 		return backend, nil
 	}
 
-	return nil, errors.New("Cant elect backend")
+	return nil, errors.New("Can't elect backend")
 }

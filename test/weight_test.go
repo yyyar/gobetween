@@ -32,6 +32,16 @@ func TestWeightDistribution(t *testing.T) {
 		},
 	}
 
+	//shuffle
+	for s := 0; s < 100; s++ {
+		i := rand.Intn(len(backends))
+		j := rand.Intn(len(backends))
+		if i == j {
+			continue
+		}
+		backends[i], backends[j] = backends[j], backends[i]
+	}
+
 	quantity := make(map[int]int)
 
 	for _, backend := range backends {
