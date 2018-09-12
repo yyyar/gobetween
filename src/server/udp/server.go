@@ -289,8 +289,6 @@ func (this *Server) electAndConnect(clientAddr *net.UDPAddr) (*net.UDPConn, *cor
  */
 func (this *Server) proxy(cfg session.Config, clientAddr *net.UDPAddr, buf *bytes.Buffer) error {
 
-	defer this.bufPool.Put(buf)
-
 	log := logging.For("udp/server")
 
 	getOrCreateSession := func() (*session.Session, error) {
@@ -325,6 +323,9 @@ func (this *Server) proxy(cfg session.Config, clientAddr *net.UDPAddr, buf *byte
 	}
 
 	go func() {
+
+		defer this.bufPool.Put(buf)
+
 		s, err := getOrCreateSession()
 
 		if err != nil {
@@ -349,8 +350,6 @@ func (this *Server) proxy(cfg session.Config, clientAddr *net.UDPAddr, buf *byte
  */
 func (this *Server) fireAndForget(clientAddr *net.UDPAddr, buf *bytes.Buffer) error {
 
-	defer this.bufPool.Put(buf)
-
 	log := logging.For("udp/server")
 	conn, backend, err := this.electAndConnect(clientAddr)
 	if err != nil {
@@ -358,6 +357,8 @@ func (this *Server) fireAndForget(clientAddr *net.UDPAddr, buf *bytes.Buffer) er
 	}
 
 	go func() {
+
+		defer this.bufPool.Put(buf)
 
 		n, err := conn.Write(buf.Bytes())
 		if err != nil {
