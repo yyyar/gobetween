@@ -353,6 +353,7 @@ func (this *Server) fireAndForget(clientAddr *net.UDPAddr, buf *bytes.Buffer) er
 	log := logging.For("udp/server")
 	conn, backend, err := this.electAndConnect(clientAddr)
 	if err != nil {
+		this.bufPool.Put(buf)
 		return fmt.Errorf("Could not elect or connect to backend: %v", err)
 	}
 
