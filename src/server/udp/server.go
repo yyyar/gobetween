@@ -7,6 +7,7 @@
 package udp
 
 import (
+	"bytes"
 	"fmt"
 	"net"
 	"sync"
@@ -59,6 +60,8 @@ type Server struct {
 	/* ----- sessions ----- */
 	sessions map[string]*session.Session
 	mu       sync.Mutex
+
+	bufPool sync.Pool
 }
 
 /**
@@ -82,6 +85,11 @@ func New(name string, cfg config.Server) (*Server, error) {
 		scheduler: scheduler,
 		stop:      make(chan bool),
 		sessions:  make(map[string]*session.Session),
+		bufPool: sync.Pool{
+			New: func() interface{} {
+				return new(bytes.Buffer)
+			},
+		},
 	}
 
 	/* Add access if needed */
@@ -189,8 +197,8 @@ func (this *Server) serve() {
 	// Main loop goroutine - reads incoming data and decides what to do
 	go func() {
 
+		buf := make([]byte, UDP_PACKET_SIZE)
 		for {
-			buf := make([]byte, UDP_PACKET_SIZE)
 			n, clientAddr, err := this.serverConn.ReadFromUDP(buf)
 
 			if err != nil {
@@ -203,9 +211,13 @@ func (this *Server) serve() {
 				continue
 			}
 
+			b := this.bufPool.Get().(*bytes.Buffer)
+			b.Reset()
+			b.Write(buf[:n])
+
 			//special case for single request mode
 			if cfg.MaxRequests == 1 {
-				err := this.fireAndForget(clientAddr, buf[0:n])
+				err := this.fireAndForget(clientAddr, b)
 
 				if err != nil {
 					log.Errorf("Error sending data to backend: %v ", err)
@@ -214,7 +226,7 @@ func (this *Server) serve() {
 				continue
 			}
 
-			err = this.proxy(cfg, clientAddr, buf[0:n])
+			err = this.proxy(cfg, clientAddr, b)
 
 			if err != nil {
 				log.Errorf("Failed to proxy packet from client %v: %v", clientAddr, err)
@@ -275,7 +287,7 @@ func (this *Server) electAndConnect(clientAddr *net.UDPAddr) (*net.UDPConn, *cor
 /**
  * Get the session and send data via chosen session
  */
-func (this *Server) proxy(cfg session.Config, clientAddr *net.UDPAddr, buf []byte) error {
+func (this *Server) proxy(cfg session.Config, clientAddr *net.UDPAddr, buf *bytes.Buffer) error {
 
 	log := logging.For("udp/server")
 
@@ -311,6 +323,9 @@ func (this *Server) proxy(cfg session.Config, clientAddr *net.UDPAddr, buf []byt
 	}
 
 	go func() {
+
+		defer this.bufPool.Put(buf)
+
 		s, err := getOrCreateSession()
 
 		if err != nil {
@@ -318,7 +333,7 @@ func (this *Server) proxy(cfg session.Config, clientAddr *net.UDPAddr, buf []byt
 			return
 		}
 
-		err = s.Write(buf)
+		err = s.Write(buf.Bytes())
 		if err != nil {
 			log.Errorf("Could not write data to UDP 'session' %v: %v", s, err)
 			return
@@ -333,24 +348,27 @@ func (this *Server) proxy(cfg session.Config, clientAddr *net.UDPAddr, buf []byt
 /**
  * Omit creating session, just send one packet of data
  */
-func (this *Server) fireAndForget(clientAddr *net.UDPAddr, buf []byte) error {
+func (this *Server) fireAndForget(clientAddr *net.UDPAddr, buf *bytes.Buffer) error {
 
 	log := logging.For("udp/server")
 	conn, backend, err := this.electAndConnect(clientAddr)
 	if err != nil {
+		this.bufPool.Put(buf)
 		return fmt.Errorf("Could not elect or connect to backend: %v", err)
 	}
 
 	go func() {
 
-		n, err := conn.Write(buf)
+		defer this.bufPool.Put(buf)
+
+		n, err := conn.Write(buf.Bytes())
 		if err != nil {
 			log.Errorf("Could not write data to %v: %v", clientAddr, err)
 			return
 		}
 
-		if n != len(buf) {
-			log.Errorf("Failed to send full packet, expected size %d, actually sent %d", len(buf), n)
+		if n != buf.Len() {
+			log.Errorf("Failed to send full packet, expected size %d, actually sent %d", buf.Len(), n)
 			return
 		}
 
