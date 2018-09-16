@@ -40,7 +40,7 @@
   * **Plaintext** - query arbitrary http and parse backends from response text with customized regexp
   * **SRV** - query DNS server and get backends from SRV records
   * **Consul** - query Consul Services API for backends 
-  * **LXD** - query backands from LXD
+  * **LXD** - query backends from LXD
 
 * [Healthchecks](https://github.com/yyyar/gobetween/wiki/Healthchecks)
   * **Ping** - simple TCP ping healtcheck
