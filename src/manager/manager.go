@@ -260,6 +260,7 @@ func prepareConfig(name string, server config.Server, defaults config.Connection
 	switch server.Healthcheck.Kind {
 	case
 		"ping",
+		"pingudp",
 		"exec",
 		"none":
 	default:

@@ -185,6 +185,11 @@ protocol = "udp"
 #  # -- ping -- #
 #  kind = "ping"                   # Unavailable if server.protocol is udp
 #
+#  # -- pingudp -- #
+#  kind = "pingudp"
+#  send = "ping"                   # (required) message content to send
+#  receive = "pong"                # (required) expected content of reply message in case of success
+#
 #  # -- exec -- #
 #  kind = "exec"
 #  exec_command = "/path/to/healthcheck.sh"      # (required) command to execute

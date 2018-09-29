@@ -64,6 +64,7 @@ var registry = make(map[string]CheckFunc)
  */
 func init() {
 	registry["ping"] = ping
+	registry["pingudp"] = pingudp
 	registry["exec"] = exec
 	registry["none"] = nil
 }
