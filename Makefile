@@ -76,17 +76,20 @@ deps: clean-deps
 	go get -v github.com/lxc/lxd/shared/api
 	go get -v github.com/pires/go-proxyproto
 	go get -v golang.org/x/crypto/acme/autocert
+	GOOS=windows GOARCH=386 CGO=0   go get -v github.com/konsorten/go-windows-terminal-sequences
+	GOOS=windows GOARCH=amd64 CGO=0 go get -v github.com/konsorten/go-windows-terminal-sequences
 
 clean-dist:
 	rm -rf ./dist/${VERSION}
 
-
+#
 dist:
 	@# For linux 386 when building on linux amd64 you'll need 'libc6-dev-i386' package
 	@echo Building dist
 
 	@#             os    arch  cgo ext
-	@for arch in "linux   386  1      "  "linux   amd64 1      "  \
+	@set -e ;\
+	for arch in  "linux   386  0      "  "linux   amd64 1      "  \
 				 "windows 386  0 .exe "  "windows amd64 0 .exe "  \
 				 "darwin  386  0      "  "darwin  amd64 0      "; \
 	do \
