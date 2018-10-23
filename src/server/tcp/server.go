@@ -357,9 +357,17 @@ func (this *Server) handle(ctx *core.TcpContext) {
 		select {
 		case s, ok := <-cs:
 			isRx = ok
+			if !ok {
+				cs = nil
+				continue
+			}
 			this.scheduler.IncrementRx(*backend, s.CountWrite)
 		case s, ok := <-bs:
 			isTx = ok
+			if !ok {
+				bs = nil
+				continue
+			}
 			this.scheduler.IncrementTx(*backend, s.CountWrite)
 		}
 	}

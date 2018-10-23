@@ -40,14 +40,21 @@ func Sniff(conn net.Conn, readTimeout time.Duration) (net.Conn, string, error) {
 	buf := pool.Get().([]byte)
 	defer pool.Put(buf)
 
-	conn.SetReadDeadline(time.Now().Add(readTimeout))
+	err := conn.SetReadDeadline(time.Now().Add(readTimeout))
+	if err != nil {
+		return nil, "", err
+	}
+
 	i, err := conn.Read(buf)
 
 	if err != nil {
 		return nil, "", err
 	}
 
-	conn.SetReadDeadline(time.Time{}) // Reset read deadline
+	err = conn.SetReadDeadline(time.Time{}) // Reset read deadline
+	if err != nil {
+		return nil, "", err
+	}
 
 	hostname := extractHostname(buf[0:i])
 
