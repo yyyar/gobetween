@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.6.1] - 2018-10-23
+This release brings only bugfixes
+
+### Fixed
+- No binaries were generated for some of the platforms during make dist
+- Regression of roundrobin balancer (it was acting on randomized list of backends)
+- Docker image was not working due to missing dynamic library dependencies
+- Gobetween became stuck in very rare cases during reading hostname info (sni) from new tls connections.
 
 
 ## [0.6.0] - 2018-08-21
