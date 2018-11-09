@@ -200,6 +200,13 @@ func (this *Server) serve() {
 		for {
 			n, clientAddr, err := this.serverConn.ReadFromUDP(buf)
 
+			if this.access != nil {
+				if !this.access.Allows(&clientAddr.IP) {
+					log.Debug("Client disallowed to connect: ", clientAddr.IP)
+					continue
+				}
+			}
+
 			if err != nil {
 				if atomic.LoadUint32(&this.stopped) == 1 {
 					return
