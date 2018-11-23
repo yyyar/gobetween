@@ -221,19 +221,7 @@ func (this *Server) serve() {
 				continue
 			}
 
-			// we have to go for a next iteration as soon as possible
-			// and perform proxying in another goroutine, it requires copy
-			// of received bytes
-			dup := this.bufPool.Get().([]byte)
-			copy(dup, buf[:n])
-
-			// do not reuse dup after this line
-			err = this.proxy(cfg, clientAddr, dup[:n]) //use slice of dup, ignoring remaining part
-
-			if err != nil {
-				log.Errorf("Failed to proxy packet from client %v: %v", clientAddr, err)
-				continue
-			}
+			this.proxy(cfg, clientAddr, buf[:n])
 
 		}
 	}()
@@ -323,13 +311,17 @@ func (this *Server) getOrCreateSession(cfg session.Config, clientAddr *net.UDPAd
 /**
  * Get the session and send data via chosen session
  */
-func (this *Server) proxy(cfg session.Config, clientAddr *net.UDPAddr, buf []byte) error {
+func (this *Server) proxy(cfg session.Config, clientAddr *net.UDPAddr, buf []byte) {
 
 	log := logging.For("udp/server")
 
+	// goroutine should work with a copy of received buffer
+	dup := this.bufPool.Get().([]byte)
+	n := copy(dup, buf)
+
 	go func() {
 
-		defer this.bufPool.Put(buf)
+		defer this.bufPool.Put(dup)
 
 		s, err := this.getOrCreateSession(cfg, clientAddr)
 
@@ -338,15 +330,13 @@ func (this *Server) proxy(cfg session.Config, clientAddr *net.UDPAddr, buf []byt
 			return
 		}
 
-		err = s.Write(buf)
+		err = s.Write(dup[:n])
 		if err != nil {
 			log.Errorf("Could not write data to UDP 'session' %v: %v", s, err)
 			return
 		}
 
 	}()
-
-	return nil
 
 }
 
@@ -355,27 +345,21 @@ func (this *Server) proxy(cfg session.Config, clientAddr *net.UDPAddr, buf []byt
  */
 func (this *Server) fireAndForget(clientAddr *net.UDPAddr, buf []byte) error {
 
-	log := logging.For("udp/server")
 	conn, backend, err := this.electAndConnect(clientAddr)
 	if err != nil {
 		return fmt.Errorf("Could not elect or connect to backend: %v", err)
 	}
 
-	go func() {
+	n, err := conn.Write(buf)
+	if err != nil {
+		return fmt.Errorf("Could not write data to %v: %v", clientAddr, err)
+	}
 
-		n, err := conn.Write(buf)
-		if err != nil {
-			log.Errorf("Could not write data to %v: %v", clientAddr, err)
-			return
-		}
+	if n != len(buf) {
+		return fmt.Errorf("Failed to send full packet, expected size %d, actually sent %d", len(buf), n)
+	}
 
-		if n != len(buf) {
-			log.Errorf("Failed to send full packet, expected size %d, actually sent %d", len(buf), n)
-			return
-		}
-
-		this.scheduler.IncrementTx(*backend, uint(n))
-	}()
+	this.scheduler.IncrementTx(*backend, uint(n))
 
 	return nil
 
