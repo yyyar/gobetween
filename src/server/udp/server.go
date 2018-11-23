@@ -59,6 +59,8 @@ type Server struct {
 	/* ----- sessions ----- */
 	sessions map[string]*session.Session
 	mu       sync.Mutex
+
+	bufPool sync.Pool
 }
 
 /**
@@ -82,6 +84,11 @@ func New(name string, cfg config.Server) (*Server, error) {
 		scheduler: scheduler,
 		stop:      make(chan bool),
 		sessions:  make(map[string]*session.Session),
+		bufPool: sync.Pool{
+			New: func() interface{} {
+				return make([]byte, UDP_PACKET_SIZE)
+			},
+		},
 	}
 
 	/* Add access if needed */
@@ -189,8 +196,8 @@ func (this *Server) serve() {
 	// Main loop goroutine - reads incoming data and decides what to do
 	go func() {
 
+		buf := make([]byte, UDP_PACKET_SIZE)
 		for {
-			buf := make([]byte, UDP_PACKET_SIZE)
 			n, clientAddr, err := this.serverConn.ReadFromUDP(buf)
 
 			if err != nil {
@@ -205,7 +212,7 @@ func (this *Server) serve() {
 
 			//special case for single request mode
 			if cfg.MaxRequests == 1 {
-				err := this.fireAndForget(clientAddr, buf[0:n])
+				err := this.fireAndForget(clientAddr, buf[:n])
 
 				if err != nil {
 					log.Errorf("Error sending data to backend: %v ", err)
@@ -214,12 +221,7 @@ func (this *Server) serve() {
 				continue
 			}
 
-			err = this.proxy(cfg, clientAddr, buf[0:n])
-
-			if err != nil {
-				log.Errorf("Failed to proxy packet from client %v: %v", clientAddr, err)
-				continue
-			}
+			this.proxy(cfg, clientAddr, buf[:n])
 
 		}
 	}()
@@ -273,60 +275,68 @@ func (this *Server) electAndConnect(clientAddr *net.UDPAddr) (*net.UDPConn, *cor
 }
 
 /**
- * Get the session and send data via chosen session
+ * Get or create session
  */
-func (this *Server) proxy(cfg session.Config, clientAddr *net.UDPAddr, buf []byte) error {
+func (this *Server) getOrCreateSession(cfg session.Config, clientAddr *net.UDPAddr) (*session.Session, error) {
+	key := clientAddr.String()
 
-	log := logging.For("udp/server")
+	this.mu.Lock()
+	defer this.mu.Unlock()
 
-	getOrCreateSession := func() (*session.Session, error) {
-		key := clientAddr.String()
+	s, ok := this.sessions[key]
 
-		this.mu.Lock()
-		defer this.mu.Unlock()
-
-		s, ok := this.sessions[key]
-
-		//session exists and is not done yet
-		if ok && !s.IsDone() {
-			return s, nil
-		}
-
-		//session exists but should be replaced with a new one
-		if ok {
-			delete(this.sessions, key)
-			s.CloseConn()
-		}
-
-		conn, backend, err := this.electAndConnect(clientAddr)
-		if err != nil {
-			return nil, fmt.Errorf("Could not elect/connect to backend: %v", err)
-		}
-
-		s = session.NewSession(clientAddr, conn, *backend, this.scheduler, cfg)
-		s.ListenResponses(this.serverConn)
-		this.sessions[key] = s
-
+	//session exists and is not done yet
+	if ok && !s.IsDone() {
 		return s, nil
 	}
 
+	//session exists but should be replaced with a new one
+	if ok {
+		delete(this.sessions, key)
+		s.CloseConn()
+	}
+
+	conn, backend, err := this.electAndConnect(clientAddr)
+	if err != nil {
+		return nil, fmt.Errorf("Could not elect/connect to backend: %v", err)
+	}
+
+	s = session.NewSession(clientAddr, conn, *backend, this.scheduler, cfg)
+	s.ListenResponses(this.serverConn)
+	this.sessions[key] = s
+
+	return s, nil
+}
+
+/**
+ * Get the session and send data via chosen session
+ */
+func (this *Server) proxy(cfg session.Config, clientAddr *net.UDPAddr, buf []byte) {
+
+	log := logging.For("udp/server")
+
+	// goroutine should work with a copy of received buffer
+	dup := this.bufPool.Get().([]byte)
+	n := copy(dup, buf)
+
 	go func() {
-		s, err := getOrCreateSession()
+
+		defer this.bufPool.Put(dup)
+
+		s, err := this.getOrCreateSession(cfg, clientAddr)
 
 		if err != nil {
 			log.Error(err)
 			return
 		}
 
-		err = s.Write(buf)
+		err = s.Write(dup[:n])
 		if err != nil {
 			log.Errorf("Could not write data to UDP 'session' %v: %v", s, err)
 			return
 		}
 
 	}()
-
-	return nil
 
 }
 
@@ -335,27 +345,21 @@ func (this *Server) proxy(cfg session.Config, clientAddr *net.UDPAddr, buf []byt
  */
 func (this *Server) fireAndForget(clientAddr *net.UDPAddr, buf []byte) error {
 
-	log := logging.For("udp/server")
 	conn, backend, err := this.electAndConnect(clientAddr)
 	if err != nil {
 		return fmt.Errorf("Could not elect or connect to backend: %v", err)
 	}
 
-	go func() {
+	n, err := conn.Write(buf)
+	if err != nil {
+		return fmt.Errorf("Could not write data to %v: %v", clientAddr, err)
+	}
 
-		n, err := conn.Write(buf)
-		if err != nil {
-			log.Errorf("Could not write data to %v: %v", clientAddr, err)
-			return
-		}
+	if n != len(buf) {
+		return fmt.Errorf("Failed to send full packet, expected size %d, actually sent %d", len(buf), n)
+	}
 
-		if n != len(buf) {
-			log.Errorf("Failed to send full packet, expected size %d, actually sent %d", len(buf), n)
-			return
-		}
-
-		this.scheduler.IncrementTx(*backend, uint(n))
-	}()
+	this.scheduler.IncrementTx(*backend, uint(n))
 
 	return nil
 
