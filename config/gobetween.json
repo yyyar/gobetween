@@ -3,6 +3,10 @@
         "enabled": true,
         "bind": "0.0.0.0:8888"
     },
+    "metrics": {
+        "enabled": true,
+        "bind": ":9284"
+    },
     "servers": {
         "sample":{
             "bind":"localhost:3000",

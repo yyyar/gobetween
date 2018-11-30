@@ -8,8 +8,8 @@ package api
 import (
 	"../config"
 	"../logging"
-	"github.com/gin-gonic/gin"
 	"github.com/gin-contrib/cors"
+	"github.com/gin-gonic/gin"
 )
 
 /* gin app */

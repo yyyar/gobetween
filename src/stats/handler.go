@@ -7,9 +7,12 @@
 package stats
 
 import (
-	"../core"
-	"./counters"
+	"fmt"
 	"time"
+
+	"../core"
+	"../metrics"
+	"./counters"
 )
 
 const (
@@ -23,7 +26,7 @@ const (
 type Handler struct {
 
 	/* Server's name */
-	name string
+	Name string
 
 	/* Server counter */
 	serverCounter *counters.BandwidthCounter
@@ -58,7 +61,7 @@ type Handler struct {
 func NewHandler(name string) *Handler {
 
 	handler := &Handler{
-		name:        name,
+		Name:        name,
 		ServerStats: make(chan counters.BandwidthStats, 1),
 		Traffic:     make(chan core.ReadWriteCount),
 		Connections: make(chan uint),
@@ -103,7 +106,7 @@ func (this *Handler) Start() {
 				this.BackendsCounter.Stop()
 
 				Store.Lock()
-				delete(Store.handlers, this.name)
+				delete(Store.handlers, this.Name)
 				Store.Unlock()
 
 				// close channels
@@ -119,6 +122,8 @@ func (this *Handler) Start() {
 				this.latestStats.RxSecond = b.RxSecond
 				this.latestStats.TxSecond = b.TxSecond
 
+				metrics.ReportHandleStatsChange(fmt.Sprintf("%s", this.Name), b)
+
 			/* New server backends with stats available */
 			case backends := <-this.Backends:
 				this.latestStats.Backends = backends
@@ -126,6 +131,8 @@ func (this *Handler) Start() {
 			/* New sever connections count available */
 			case connections := <-this.Connections:
 				this.latestStats.ActiveConnections = connections
+
+				metrics.ReportHandleConnectionsChange(fmt.Sprintf("%s", this.Name), connections)
 
 			/* New traffic stats available */
 			case rwc := <-this.Traffic:

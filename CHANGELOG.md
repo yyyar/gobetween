@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.7.0] - Unreleased
+
+### New Features
+ - Prometheus Metrics Endpoint
+
+### Fixed
+ - CGO Requirement for DNS has been replaced with netgo [#125](https://github.com/yyyar/gobetween/issues/125)
+
+
 ## [0.6.1] - 2018-10-23
 This release brings only bugfixes
 
@@ -32,7 +41,6 @@ This release brings some improvements and bugfixes.
 - Removed not necessary dependency on libacl1-dev
 - Replaced missing dependencies
 - Removed lxdhelpers (PR #113 by Joe Topjian)
-
 
 
 ## [0.5.0] - 2017-10-13

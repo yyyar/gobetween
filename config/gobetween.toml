@@ -30,6 +30,12 @@ cors = false    # cross-origin resource sharing
 #  cert_path = "/path/to/cert.pem"  # Path to certificate
 #  key_path = "/path/to/key.pem"    # Path to key
 
+#
+# Metrics server configuration
+#
+[metrics]
+enabled = true  # true | false
+bind = ":9284"  # "host:port"
 
 #
 # Default values for server configuration, may be overriden in [servers] sections.

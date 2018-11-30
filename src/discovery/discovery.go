@@ -7,10 +7,11 @@
 package discovery
 
 import (
+	"time"
+
 	"../config"
 	"../core"
 	"../logging"
-	"time"
 )
 
 /**

@@ -6,13 +6,24 @@
 
 .PHONY: update clean build build-all run package deploy test authors dist
 
-export GOPATH := ${PWD}/vendor:${PWD}
+ifeq ($(OS),Windows_NT)
+  export GOPATH := ${PWD}/vendor;${PWD}
+else
+  export GOPATH := ${PWD}/vendor:${PWD}
+endif
+
 export GOBIN := ${PWD}/vendor/bin
 
 
 NAME := gobetween
 VERSION := $(shell cat VERSION)
-LDFLAGS := -X main.version=${VERSION}
+REVISION := $(shell git rev-parse HEAD 2>/dev/null)
+BRANCH := $(shell git symbolic-ref --short HEAD 2>/dev/null)
+
+LDFLAGS := \
+  -X main.version=${VERSION} \
+  -X main.revision=${REVISION} \
+  -X main.branch=${BRANCH}
 
 default: build
 
@@ -29,7 +40,7 @@ build:
 
 build-static:
 	@echo Building...
-	CGO_ENABLED=1 go build -v -o ./bin/$(NAME) -ldflags '-s -w --extldflags "-static" ${LDFLAGS}' ./src/*.go
+	CGO_ENABLED=1 go build -v -a -tags netgo -o ./bin/$(NAME) -ldflags '-s -w --extldflags "-static" ${LDFLAGS}' ./src/*.go
 	@echo Done.
 
 run: build
@@ -65,6 +76,12 @@ deps: clean-deps
 	go get -v github.com/gin-gonic/gin
 	go get -v github.com/hashicorp/consul/api
 	go get -v github.com/spf13/cobra
+	go get -v github.com/beorn7/perks/quantile
+	go get -v github.com/prometheus/client_golang/prometheus
+	go get -v github.com/prometheus/client_model/go
+	go get -v github.com/prometheus/common/model
+	go get -v github.com/matttproud/golang_protobuf_extensions/pbutil
+	go get -v github.com/prometheus/procfs
 	go get -v github.com/Microsoft/go-winio
 	go get -v github.com/Azure/go-ansiterm
 	go get -v golang.org/x/sys/windows
@@ -82,22 +99,21 @@ deps: clean-deps
 clean-dist:
 	rm -rf ./dist/${VERSION}
 
-#
 dist:
 	@# For linux 386 when building on linux amd64 you'll need 'libc6-dev-i386' package
 	@echo Building dist
 
-	@#             os    arch  cgo ext
 	@set -e ;\
-	for arch in  "linux   386  0      "  "linux   amd64 1      "  \
-				 "windows 386  0 .exe "  "windows amd64 0 .exe "  \
-				 "darwin  386  0      "  "darwin  amd64 0      "; \
+	@#           os      arch cgo ext
+	for arch in "linux   386  1      "  "linux   amd64 1      "  \
+                   "windows 386  0 .exe "  "windows amd64 0 .exe "  \
+                   "darwin  386  0      "  "darwin  amd64 0      "; \
 	do \
 	  set -- $$arch ; \
 	  echo "******************* $$1_$$2 ********************" ;\
 	  distpath="./dist/${VERSION}/$$1_$$2" ;\
 	  mkdir -p $$distpath ; \
-	  CGO_ENABLED=$$3 GOOS=$$1 GOARCH=$$2 go build -v -o $$distpath/$(NAME)$$4 -ldflags '-s -w --extldflags "-static" ${LDFLAGS}' ./src/*.go ;\
+	  CGO_ENABLED=$$3 GOOS=$$1 GOARCH=$$2 go build -v -a -tags netgo -o $$distpath/$(NAME)$$4 -ldflags '-s -w --extldflags "-static" ${LDFLAGS}' ./src/*.go ;\
 	  cp "README.md" "LICENSE" "CHANGELOG.md" "AUTHORS" $$distpath ;\
 	  mkdir -p $$distpath/config && cp "./config/gobetween.toml" $$distpath/config ;\
 	  if [ "$$1" = "linux" ]; then \

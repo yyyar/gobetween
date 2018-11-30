@@ -4,6 +4,10 @@ import (
 	"time"
 )
 
-var Version string
-var StartTime time.Time
-var Configuration interface{}
+var (
+	Version       string
+	Revision      string
+	Branch        string
+	StartTime     time.Time
+	Configuration interface{}
+)
