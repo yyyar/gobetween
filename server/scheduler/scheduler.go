@@ -7,12 +7,14 @@ package scheduler
  */
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/yyyar/gobetween/core"
 	"github.com/yyyar/gobetween/discovery"
 	"github.com/yyyar/gobetween/healthcheck"
 	"github.com/yyyar/gobetween/logging"
+	"github.com/yyyar/gobetween/metrics"
 	"github.com/yyyar/gobetween/stats"
 	"github.com/yyyar/gobetween/stats/counters"
 )
@@ -92,7 +94,7 @@ func (this *Scheduler) Start() {
 
 	log := logging.For("scheduler")
 
-	log.Info("Starting scheduler")
+	log.Info("Starting scheduler ", this.StatsHandler.Name)
 
 	this.ops = make(chan Op)
 	this.elect = make(chan ElectRequest)
@@ -150,10 +152,11 @@ func (this *Scheduler) Start() {
 
 			// handle scheduler stop
 			case <-this.stop:
-				log.Info("Stopping scheduler")
+				log.Info("Stopping scheduler ", this.StatsHandler.Name)
 				backendsPushTicker.Stop()
 				this.Discovery.Stop()
 				this.Healthcheck.Stop()
+				metrics.RemoveServer(fmt.Sprintf("%s", this.StatsHandler.Name), this.backends)
 				return
 			}
 		}
@@ -201,6 +204,8 @@ func (this *Scheduler) HandleBackendStatsChange(target core.Target, bs *counters
 	backend.Stats.TxBytes = bs.TxTotal
 	backend.Stats.RxSecond = bs.RxSecond
 	backend.Stats.TxSecond = bs.TxSecond
+
+	metrics.ReportHandleBackendStatsChange(fmt.Sprintf("%s", this.StatsHandler.Name), target, this.backends)
 }
 
 /**
@@ -215,6 +220,8 @@ func (this *Scheduler) HandleBackendLiveChange(target core.Target, live bool) {
 	}
 
 	backend.Stats.Live = live
+
+	metrics.ReportHandleBackendLiveChange(fmt.Sprintf("%s", this.StatsHandler.Name), target, live)
 }
 
 /**
@@ -248,9 +255,11 @@ func (this *Scheduler) HandleBackendsUpdate(backends []core.Backend) {
 		if b.Stats.Discovered || b.Stats.ActiveConnections > 0 {
 			continue
 		}
+
+		metrics.RemoveBackend(this.StatsHandler.Name, b)
+
 		delete(this.backends, t)
 	}
-
 }
 
 /**
@@ -319,6 +328,7 @@ func (this *Scheduler) HandleOp(op Op) {
 		log.Warn("Don't know how to handle op ", op.op)
 	}
 
+	metrics.ReportHandleOp(fmt.Sprintf("%s", this.StatsHandler.Name), op.target, this.backends)
 }
 
 /**

@@ -11,7 +11,13 @@ export GO111MODULE=on
 
 NAME := gobetween
 VERSION := $(shell cat VERSION)
-LDFLAGS := -X main.version=${VERSION}
+REVISION := $(shell git rev-parse HEAD 2>/dev/null)
+BRANCH := $(shell git symbolic-ref --short HEAD 2>/dev/null)
+
+LDFLAGS := \
+  -X main.version=${VERSION} \
+  -X main.revision=${REVISION} \
+  -X main.branch=${BRANCH}
 
 default: build
 
@@ -60,7 +66,6 @@ dist:
 	@# For linux 386 when building on linux amd64 you'll need 'libc6-dev-i386' package
 	@echo Building dist
 
-	@#             os    arch  cgo ext
 	@set -e ;\
 	for arch in  "linux   386  0      "  "linux   amd64 1      "  \
 				 "windows 386  0 .exe "  "windows amd64 0 .exe "  \

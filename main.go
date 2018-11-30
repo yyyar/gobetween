@@ -17,13 +17,18 @@ import (
 	"github.com/yyyar/gobetween/info"
 	"github.com/yyyar/gobetween/logging"
 	"github.com/yyyar/gobetween/manager"
+	"github.com/yyyar/gobetween/metrics"
 	"github.com/yyyar/gobetween/utils/codec"
 )
 
 /**
- * Version should be set while build using ldflags (see Makefile)
+ * version,revision,branch should be set while build using ldflags (see Makefile)
  */
-var version string
+var (
+	version  string
+	revision string
+	branch   string
+)
 
 /**
  * Initialize package
@@ -40,6 +45,8 @@ func init() {
 
 	// Save info
 	info.Version = version
+	info.Revision = revision
+	info.Branch = branch
 	info.StartTime = time.Now()
 
 }
@@ -74,6 +81,9 @@ func main() {
 
 		// Start API
 		go api.Start((*cfg).Api)
+
+		/* setup metrics */
+		go metrics.Start((*cfg).Metrics)
 
 		// Start manager
 		go manager.Initialize(*cfg)

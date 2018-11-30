@@ -13,6 +13,7 @@ package config
 type Config struct {
 	Logging  LoggingConfig     `toml:"logging" json:"logging"`
 	Api      ApiConfig         `toml:"api" json:"api"`
+	Metrics  MetricsConfig     `toml:"metrics" json:"metrics"`
 	Defaults ConnectionOptions `toml:"defaults" json:"defaults"`
 	Acme     *AcmeConfig       `toml:"acme" json:"acme"`
 	Profiler *ProfilerConfig   `toml:"profiler" json:"profiler"`
@@ -52,6 +53,14 @@ type ApiBasicAuthConfig struct {
 type ApiTlsConfig struct {
 	CertPath string `toml:"cert_path" json:"cert_path"`
 	KeyPath  string `toml:"key_path" json:"key_path"`
+}
+
+/**
+ * Metrics config section
+ */
+type MetricsConfig struct {
+	Enabled bool   `toml:"enabled" json:"enabled"`
+	Bind    string `toml:"bind" json:"bind"`
 }
 
 /**
