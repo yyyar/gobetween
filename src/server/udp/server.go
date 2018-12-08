@@ -202,7 +202,7 @@ func (this *Server) serve() {
 
 			if this.access != nil {
 				if !this.access.Allows(&clientAddr.IP) {
-					log.Debug("Client disallowed to connect: ", clientAddr.IP)
+					log.Debug("Client disallowed to connect: ", clientAddr)
 					continue
 				}
 			}
