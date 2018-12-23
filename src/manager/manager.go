@@ -429,7 +429,7 @@ func prepareConfig(name string, server config.Server, defaults config.Connection
 			"udp",
 			"tcp":
 		case "":
-			server.Discovery.Failpolicy = "udp"
+			server.Discovery.SrvDnsProtocol = "udp"
 		default:
 			return config.Server{}, errors.New("Not supported srv_dns_protocol " + server.Discovery.SrvDnsProtocol)
 		}
