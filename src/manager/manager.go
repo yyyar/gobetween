@@ -8,6 +8,7 @@ package manager
 import (
 	"errors"
 	"os"
+	"strconv"
 	"strings"
 	"sync"
 	"time"
@@ -276,6 +277,7 @@ func prepareConfig(name string, server config.Server, defaults config.Connection
 	switch server.Healthcheck.Kind {
 	case
 		"ping",
+		"probe",
 		"exec",
 		"none":
 	default:
@@ -296,6 +298,42 @@ func prepareConfig(name string, server config.Server, defaults config.Connection
 
 	if server.Healthcheck.Passes <= 0 {
 		server.Healthcheck.Passes = 1
+	}
+
+	if server.Healthcheck.Kind != "none" {
+		d, err := time.ParseDuration(server.Healthcheck.Interval)
+		if err != nil {
+			return config.Server{}, errors.New("Could not parse healtcheck interval: " + err.Error())
+		}
+
+		if d <= 0 {
+			return config.Server{}, errors.New("Healthcheck interval should be greater than 0s")
+		}
+	}
+
+	if server.Healthcheck.Kind == "probe" {
+
+		if len(server.Healthcheck.ProbeSend) == 0 || len(server.Healthcheck.ProbeRecv) == 0 {
+			return config.Server{}, errors.New("probe healthcheck should have both probe_send and probe_recv specified")
+		}
+
+		switch server.Healthcheck.ProbeProtocol {
+		case "tcp", "udp":
+		default:
+			return config.Server{}, errors.New("Unsupported probe_protocol")
+		}
+
+		var err error
+
+		server.Healthcheck.ProbeSend, err = strconv.Unquote("\"" + server.Healthcheck.ProbeSend + "\"")
+		if err != nil {
+			return config.Server{}, errors.New("probe_send has invalid syntax " + err.Error())
+		}
+
+		server.Healthcheck.ProbeRecv, err = strconv.Unquote("\"" + server.Healthcheck.ProbeRecv + "\"")
+		if err != nil {
+			return config.Server{}, errors.New("probe_recv has invalid syntax " + err.Error())
+		}
 	}
 
 	if server.ProxyProtocol != nil {

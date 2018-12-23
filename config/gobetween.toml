@@ -88,6 +88,14 @@ protocol = "udp"
   [servers.udpsample.udp]
   max_responses = 1
 
+  [servers.udpsample.healthcheck]
+  kind = "probe"
+  probe_protocol = "udp"
+  interval = "5s"
+  timeout = "5s"
+  probe_send = "\\x07\\x65\\x78\\x61\\x6D\\x70\\x6C\\x65\\x03\\x63\\x6F\\x6D\\x00\\x00\\x01\\x00\\x01" # dns request example.com
+  probe_recv = "\\x07\\x65" # beginning of the dns response
+
   [servers.udpsample.discovery]
   kind = "static"
   static_list = [
@@ -190,6 +198,16 @@ protocol = "udp"
 #
 #  # -- ping -- #
 #  kind = "ping"                   # Unavailable if server.protocol is udp
+#
+#  ## Probe sends string to backend and expects specific string in response to check if
+#  ## backend is alive. Only the beginning of received buffer will be compared with expected value, so that
+#  ## backend response can contain extra data, not being checked. probe_send and probe_recv are
+#  ## configured as strings and support escape sequences: \n \r or \\xXX for hex
+#  # -- probe -- #
+#  kind = "probe"
+#  probe_protocol = "udp" # (required) "udp" | "tcp"
+#  probe_send    = "PING\\xFF\n"   # (required)
+#  probe_recv    = "PONG\\xAA\n"   # (required)
 #
 #  # -- exec -- #
 #  kind = "exec"
