@@ -13,6 +13,12 @@
 level = "info"   # "debug" | "info" | "warn" | "error"
 output = "stdout" # "stdout" | "stderr" | "/path/to/gobetween.log"
 
+#
+# Pprof profiler configuration
+#
+[profiler]
+enabled = false # false | true
+bind = ":6060"  # "host:port"
 
 #
 # REST API server configuration

@@ -18,6 +18,7 @@ import (
 	"../server"
 	"../service"
 	"../utils/codec"
+	"../utils/profiler"
 )
 
 /* Map of app current servers */
@@ -63,6 +64,9 @@ func Initialize(cfg config.Config) {
 		}
 	}
 
+	// Initialize profiler
+	initProfiler(&cfg)
+
 	log.Info("Initialized")
 }
 
@@ -104,6 +108,18 @@ func initConfigGlobals(cfg *config.Config) {
 			cfg.Acme.CacheDir = "/tmp"
 		}
 	}
+}
+
+func initProfiler(cfg *config.Config) {
+	if cfg.Profiler == nil {
+		return
+	}
+
+	if !cfg.Profiler.Enabled {
+		return
+	}
+
+	profiler.Start(cfg.Profiler.Bind)
 }
 
 /**

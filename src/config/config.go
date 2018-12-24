@@ -14,6 +14,7 @@ type Config struct {
 	Api      ApiConfig         `toml:"api" json:"api"`
 	Defaults ConnectionOptions `toml:"defaults" json:"defaults"`
 	Acme     *AcmeConfig       `toml:"acme" json:"acme"`
+	Profiler *ProfilerConfig   `toml:"profiler" json:"profiler"`
 	Servers  map[string]Server `toml:"servers" json:"servers"`
 }
 
@@ -69,6 +70,16 @@ type AcmeConfig struct {
 	Challenge string `toml:"challenge" json:"challenge"`
 	HttpBind  string `toml:"http_bind" json:"http_bind"`
 	CacheDir  string `toml:"cache_dir" json:"cache_dir"`
+}
+
+/**
+ * Pprof profiler config
+ */
+type ProfilerConfig struct {
+	// enabled
+	Enabled bool `toml:"enabled" json:"enabled"`
+	// hostname:port
+	Bind string `toml:"bind" json:"bind"`
 }
 
 /**
