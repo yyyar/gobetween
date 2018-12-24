@@ -29,6 +29,8 @@ import (
 const UDP_PACKET_SIZE = 65507
 const CLEANUP_EVERY = time.Second * 2
 
+var log = logging.For("udp/server")
+
 /**
  * UDP server implementation
  */
@@ -59,16 +61,12 @@ type Server struct {
 	/* ----- sessions ----- */
 	sessions map[string]*session.Session
 	mu       sync.Mutex
-
-	bufPool sync.Pool
 }
 
 /**
  * Creates new UDP server
  */
 func New(name string, cfg config.Server) (*Server, error) {
-
-	log := logging.For("udp/server")
 
 	statsHandler := stats.NewHandler(name)
 	scheduler := &scheduler.Scheduler{
@@ -84,11 +82,6 @@ func New(name string, cfg config.Server) (*Server, error) {
 		scheduler: scheduler,
 		stop:      make(chan bool),
 		sessions:  make(map[string]*session.Session),
-		bufPool: sync.Pool{
-			New: func() interface{} {
-				return make([]byte, UDP_PACKET_SIZE)
-			},
-		},
 	}
 
 	/* Add access if needed */
@@ -115,8 +108,6 @@ func (this *Server) Cfg() config.Server {
  * Starts server
  */
 func (this *Server) Start() error {
-
-	log := logging.For("udp/server")
 
 	// Start listening
 	if err := this.listen(); err != nil {
@@ -150,7 +141,7 @@ func (this *Server) Start() error {
 				this.mu.Lock()
 				for k, s := range this.sessions {
 					delete(this.sessions, k)
-					s.CloseConn()
+					s.Close()
 				}
 				this.mu.Unlock()
 
@@ -184,7 +175,6 @@ func (this *Server) listen() error {
  * Start serving
  */
 func (this *Server) serve() {
-	log := logging.For("udp/server")
 
 	cfg := session.Config{
 		MaxRequests:        this.cfg.Udp.MaxRequests,
@@ -244,7 +234,6 @@ func (this *Server) cleanup() {
 	for k, s := range this.sessions {
 		if s.IsDone() {
 			delete(this.sessions, k)
-			s.CloseConn()
 		}
 
 	}
@@ -299,8 +288,7 @@ func (this *Server) getOrCreateSession(cfg session.Config, clientAddr *net.UDPAd
 
 	//session exists but should be replaced with a new one
 	if ok {
-		delete(this.sessions, key)
-		s.CloseConn()
+		go func() { s.Close() }()
 	}
 
 	conn, backend, err := this.electAndConnect(clientAddr)
@@ -310,6 +298,7 @@ func (this *Server) getOrCreateSession(cfg session.Config, clientAddr *net.UDPAd
 
 	s = session.NewSession(clientAddr, conn, *backend, this.scheduler, cfg)
 	s.ListenResponses(this.serverConn)
+
 	this.sessions[key] = s
 
 	return s, nil
@@ -320,30 +309,17 @@ func (this *Server) getOrCreateSession(cfg session.Config, clientAddr *net.UDPAd
  */
 func (this *Server) proxy(cfg session.Config, clientAddr *net.UDPAddr, buf []byte) {
 
-	log := logging.For("udp/server")
+	s, err := this.getOrCreateSession(cfg, clientAddr)
+	if err != nil {
+		log.Error(err)
+		return
+	}
 
-	// goroutine should work with a copy of received buffer
-	dup := this.bufPool.Get().([]byte)
-	n := copy(dup, buf)
-
-	go func() {
-
-		defer this.bufPool.Put(dup)
-
-		s, err := this.getOrCreateSession(cfg, clientAddr)
-
-		if err != nil {
-			log.Error(err)
-			return
-		}
-
-		err = s.Write(dup[:n])
-		if err != nil {
-			log.Errorf("Could not write data to UDP 'session' %v: %v", s, err)
-			return
-		}
-
-	}()
+	err = s.Write(buf)
+	if err != nil {
+		log.Errorf("Could not write data to UDP 'session' %v: %v", s, err)
+		return
+	}
 
 }
 
