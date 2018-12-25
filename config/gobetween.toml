@@ -78,6 +78,11 @@ backend_connection_timeout = "0" # Backend connection timeout (ignored in udp)
 protocol = "tcp"
 bind = "0.0.0.0:3000"
 
+  [servers.sample.balancing]
+  kind = "iphash2"
+  iphash2_timeout = "10s"
+  iphash2_size = 10000
+
   [servers.sample.discovery]
   kind = "static"
   static_list = [
@@ -113,12 +118,30 @@ protocol = "udp"
 #
 #bind = "localhost:3000"     #  (required) "<host>:<port>"
 #protocol = "tcp"            #  (required) "tcp" | "tls" | "udp"
+
+# obsolete, kept for backward-compatibility
+# use [balancing] section instead
 #balance = "weight"          #  (optional [weight]) "weight" | "leastconn" | "roundrobin" | "iphash" | "iphash1" | "leastbandwidth"
 #
 #max_connections = 0
 #client_idle_timeout = "10m"
 #backend_idle_timeout = "10m"
 #backend_connection_timeout = "5s"
+#
+## --------------- balancing ---------------- #
+#
+## This is another way to configure balance method in case it needs
+## configuration arguments. For now only iphash2 needs it.
+## In some point of time, it will replace "balance" fields, but we keep it
+## separately for backward-compatibility.
+## kind could be: (default) "weight" | "leastconn" | "roundrobin" | "iphash" | "iphash1" | "iphash2" | "leastbandwidth"
+##
+#[balancing]
+#
+#  # -- iphash2 -- #
+#  kind = "iphash2"
+#  iphash2_expire = "1h"   # (required) period of client inactivity to remove it from mapping
+#  iphash2_size = 10000    # (required) size of mapping table. If it overflows, new clients won't be mapped and get to random backend.
 #
 ## ---------------- backends tls properties ----------------- #
 #

@@ -10,6 +10,7 @@ import (
 	"errors"
 	"hash/fnv"
 
+	"github.com/yyyar/gobetween/config"
 	"github.com/yyyar/gobetween/core"
 )
 
@@ -17,6 +18,13 @@ import (
  * Iphash balancer
  */
 type Iphash1Balancer struct {
+}
+
+/**
+ * Constructor
+ */
+func NewIphash1Balancer(cfg config.BalanceConfig) interface{} {
+	return &Iphash1Balancer{}
 }
 
 /**

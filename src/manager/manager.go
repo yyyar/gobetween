@@ -467,22 +467,59 @@ func prepareConfig(name string, server config.Server, defaults config.Connection
 		return config.Server{}, errors.New("Cant use ping healthcheck with udp server")
 	}
 
-	/* Balance */
-	switch server.Balance {
-	case
-		"weight",
-		"leastconn",
-		"roundrobin",
-		"leastbandwidth",
-		"iphash1",
-		"iphash":
-	case "":
-		server.Balance = "weight"
-	default:
-		return config.Server{}, errors.New("Not supported balance type " + server.Balance)
+	/* --------------------- Balance -------------------- */
+
+	if server.Balancing != nil && server.Balance != "" {
+		return config.Server{}, errors.New("Ambiguously configured balance: use either balance field or [balancing] section")
 	}
 
-	/* Discovery */
+	if server.Balancing == nil {
+
+		switch server.Balance {
+		case
+			"weight",
+			"leastconn",
+			"roundrobin",
+			"leastbandwidth",
+			"iphash1",
+			"iphash":
+		case "":
+			server.Balance = "weight"
+		case "iphash2":
+			return config.Server{}, errors.New("iphash2 balance could not configured without parameters. Use [balancing] section instead")
+		default:
+			return config.Server{}, errors.New("Not supported balance type " + server.Balance)
+		}
+
+		server.Balancing = &config.BalanceConfig{
+			Kind: server.Balance,
+		}
+
+	} else {
+
+		switch server.Balancing.Kind {
+		case
+			"weight",
+			"leastconn",
+			"roundrobin",
+			"leastbandwidth",
+			"iphash1",
+			"iphash":
+		case "iphash2":
+			if server.Balancing.IpHash2Expire == "" {
+				server.Balancing.IpHash2Expire = "1h"
+			}
+		case "":
+			return config.Server{}, errors.New("[balancing] kind is not specified")
+		default:
+			return config.Server{}, errors.New("Not supported balance type " + server.Balance)
+		}
+
+		server.Balance = server.Balancing.Kind
+	}
+
+	/* --------------------- Discovery -------------------- */
+
 	switch server.Discovery.Failpolicy {
 	case
 		"keeplast",

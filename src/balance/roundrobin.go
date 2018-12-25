@@ -8,9 +8,9 @@ package balance
 
 import (
 	"errors"
-	"sort"
-
+	"github.com/yyyar/gobetween/config"
 	"github.com/yyyar/gobetween/core"
+	"sort"
 )
 
 /**
@@ -20,6 +20,13 @@ type RoundrobinBalancer struct {
 
 	/* Current backend position */
 	current int
+}
+
+/**
+ * Constructor
+ */
+func NewRoundrobinBalancer(cfg config.BalanceConfig) interface{} {
+	return &RoundrobinBalancer{}
 }
 
 /**

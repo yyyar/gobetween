@@ -96,7 +96,7 @@ func New(name string, cfg config.Server) (*Server, error) {
 		clients:      make(map[string]net.Conn),
 		statsHandler: statsHandler,
 		scheduler: scheduler.Scheduler{
-			Balancer:     balance.New(cfg.Sni, cfg.Balance),
+			Balancer:     balance.New(cfg.Sni, *cfg.Balancing),
 			Discovery:    discovery.New(cfg.Discovery.Kind, *cfg.Discovery),
 			Healthcheck:  healthcheck.New(cfg.Healthcheck.Kind, *cfg.Healthcheck),
 			StatsHandler: statsHandler,

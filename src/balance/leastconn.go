@@ -8,7 +8,7 @@ package balance
 
 import (
 	"errors"
-
+	"github.com/yyyar/gobetween/config"
 	"github.com/yyyar/gobetween/core"
 )
 
@@ -16,6 +16,13 @@ import (
  * Leastconn balancer
  */
 type LeastconnBalancer struct{}
+
+/**
+ * Constructor
+ */
+func NewLeastconnBalancer(cfg config.BalanceConfig) interface{} {
+	return &LeastconnBalancer{}
+}
 
 /**
  * Elect backend using roundrobin strategy

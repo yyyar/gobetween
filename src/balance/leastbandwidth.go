@@ -8,7 +8,7 @@ package balance
 
 import (
 	"errors"
-
+	"github.com/yyyar/gobetween/config"
 	"github.com/yyyar/gobetween/core"
 )
 
@@ -16,6 +16,13 @@ import (
  * Leastbandwidth balancer
  */
 type LeastbandwidthBalancer struct{}
+
+/**
+ * Constructor
+ */
+func NewLeastbandwidthBalancer(cfg config.BalanceConfig) interface{} {
+	return &LeastbandwidthBalancer{}
+}
 
 /**
  * Elect backend using leastbandwidth strategy

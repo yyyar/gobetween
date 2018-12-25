@@ -107,6 +107,11 @@ type Server struct {
 	// weight | leastconn | roundrobin
 	Balance string `toml:"balance" json:"balance"`
 
+	// Extended balancing object.
+	// NOTE: Should override "Balance" name at some point of time,
+	// but we keep this different name for backward-compatibility
+	Balancing *BalanceConfig `toml:"balancing" json:"balancing"`
+
 	// Optional configuration for server name indication
 	Sni *Sni `toml:"sni" json:"sni"`
 
@@ -195,6 +200,28 @@ type AccessConfig struct {
 	Default string   `toml:"default" json:"default"`
 	Rules   []string `toml:"rules" json:"rules"`
 }
+
+/* ------------------------------ Balances ------------------------------ */
+
+/**
+ * Balance configuration
+ */
+type BalanceConfig struct {
+	Kind string `toml:"kind" json:"kind"`
+
+	/* Depends on Kind */
+
+	*IpHash2BalanceConfig
+}
+
+type IpHash2BalanceConfig struct {
+	IpHash2Expire string `toml:"iphash2_expire" json:"iphash2_expire"`
+	IpHash2Size   uint64 `toml:"iphash2_size" json:"iphash2_size"`
+}
+
+/*
+
+/* ------------------------------ Discoveries ------------------------------ */
 
 /**
  * Discovery configuration
@@ -294,6 +321,8 @@ type LXDDiscoveryConfig struct {
 	LXDContainerSNIKey      string `toml:"lxd_container_sni_key" json:"lxd_container_sni_key"`
 	LXDContainerAddressType string `toml:"lxd_container_address_type" json:"lxd_container_address_type"`
 }
+
+/* ------------------------------ Healthchecks ------------------------------ */
 
 /**
  * Healthcheck configuration

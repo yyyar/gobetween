@@ -8,15 +8,22 @@ package balance
 
 import (
 	"errors"
-	"math/rand"
-
+	"github.com/yyyar/gobetween/config"
 	"github.com/yyyar/gobetween/core"
+	"math/rand"
 )
 
 /**
  * Weight balancer
  */
 type WeightBalancer struct{}
+
+/**
+ * Constructor
+ */
+func NewWeightBalancer(cfg config.BalanceConfig) interface{} {
+	return &WeightBalancer{}
+}
 
 /**
  * Elect backend based on weight strategy
