@@ -305,8 +305,10 @@ type PingHealthcheckConfig struct{}
 
 type ProbeHealthcheckConfig struct {
 	ProbeProtocol string `toml:"probe_protocol" json:"probe_protocol"`
+	ProbeStrategy string `toml:"probe_strategy" json:"probe_strategy"`
 	ProbeSend     string `toml:"probe_send" json:"probe_send"`
 	ProbeRecv     string `toml:"probe_recv" json:"probe_recv"`
+	ProbeRecvLen  int    `toml:"probe_recv_len" json:"probe_recv_len"`
 }
 
 type ExecHealthcheckConfig struct {

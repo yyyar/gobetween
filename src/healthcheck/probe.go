@@ -11,6 +11,7 @@ import (
 	"bytes"
 	"io"
 	"net"
+	"regexp"
 	"time"
 
 	"../config"
@@ -45,7 +46,13 @@ func probe(t core.Target, cfg config.HealthcheckConfig, result chan<- CheckResul
 	defer conn.Close()
 
 	send := []byte(cfg.ProbeSend)
+
 	recv := []byte(cfg.ProbeRecv)
+	recvLen := cfg.ProbeRecvLen
+
+	if recvLen == 0 {
+		recvLen = len(recv)
+	}
 
 	if timeout > 0 {
 		err = conn.SetWriteDeadline(time.Now().Add(timeout))
@@ -74,16 +81,27 @@ func probe(t core.Target, cfg config.HealthcheckConfig, result chan<- CheckResul
 		}
 	}
 
-	actual := make([]byte, len(recv))
+	actual := make([]byte, recvLen)
 	n, err = io.ReadFull(conn, actual)
 	if err != nil {
 		log.Debugf("Could not read from backend: %v", err)
 		return
 	}
 
-	if !bytes.Equal(actual, recv) {
-		log.Debugf("Bytes received from backend:\n%v\nbytes expected:\n%v", actual, recv)
-		return
+	switch cfg.ProbeStrategy {
+	case "starts_with":
+		if !bytes.Equal(actual, recv) {
+			log.Debugf("Bytes received from backend:\n% x\nbytes expected:\n% x", actual, recv)
+			return
+		}
+	case "regexp":
+		re := regexp.MustCompile(cfg.ProbeRecv)
+		if !re.Match(actual) {
+			log.Debugf("Bytes received from backend: % x did not match %v", actual, cfg.ProbeRecv)
+			return
+		}
+	default:
+		panic("probe_strategy should be checked in manager")
 	}
 
 	checkResult.Live = true
