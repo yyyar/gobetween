@@ -191,6 +191,21 @@ protocol = "udp"
 #  # -- ping -- #
 #  kind = "ping"                   # Unavailable if server.protocol is udp
 #
+#  # -- probe -- #
+#  ##
+#  ## Probe sends string to backend and expects specific string in response to check if
+#  ## backend is alive. Only the beginning of received buffer will be compared with expected value, so that
+#  ## backend response can contain extra data, not being checked. probe_send and probe_recv are
+#  ## configured as strings and support escape sequences: \n \r or \xNN for hex. First probe_recv_len bytes of server response 
+#  ## could be also matched using regular expression.
+#  ##
+#  kind = "probe"
+#  probe_protocol = "udp"         # (required) "udp" | "tcp"
+#  probe_strategy = "starts_with" # (optional) "starts_with" | "regexp"
+#  probe_send    = 'PING\xFF\n'   # (required) string to send
+#  probe_recv    = 'PONG\xAA\n'   # (required) string to expect in response (response starts with or regexp)
+#  probe_recv_len = 0             # (optional) number of bytes to read (value > 0 is required for regexp strategy)
+#
 #  # -- exec -- #
 #  kind = "exec"
 #  exec_command = "/path/to/healthcheck.sh"      # (required) command to execute
