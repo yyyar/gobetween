@@ -10,22 +10,51 @@ import (
 	"errors"
 	"github.com/yyyar/gobetween/config"
 	"github.com/yyyar/gobetween/core"
+	"github.com/yyyar/gobetween/logging"
+	"sync"
+	"time"
 )
 
 /**
- * Iphash2 balancer
+ * Iphash2 balancer impelemts "sticky" iphash load balancing.
  */
 type Iphash2Balancer struct {
+
+	/* configuration */
 	cfg config.IpHash2BalanceConfig
+
+	duration time.Duration
+
+	/* sticky table mapping */
+	/* ip str -> session */
+	table map[string]*Session
+
+	mutex sync.Mutex
+}
+
+/**
+ * Iphash balancing session
+ */
+type Session struct {
+	timer   *time.Timer
+	backend *core.Backend
+	mutex   sync.Mutex
+	done    chan bool
 }
 
 /**
  * Constructor
  */
 func NewIphash2Balancer(cfg config.BalanceConfig) interface{} {
-	return &Iphash2Balancer{
-		*cfg.IpHash2BalanceConfig,
+	b := &Iphash2Balancer{
+		cfg:   *cfg.IpHash2BalanceConfig,
+		table: map[string]*Session{},
+		mutex: sync.Mutex{},
 	}
+
+	b.duration, _ = time.ParseDuration(cfg.IpHash2Expire)
+
+	return b
 }
 
 /**
@@ -35,11 +64,76 @@ func NewIphash2Balancer(cfg config.BalanceConfig) interface{} {
  */
 func (b *Iphash2Balancer) Elect(context core.Context, backends []*core.Backend) (*core.Backend, error) {
 
+	log := logging.For("balance/iphash2")
+
 	if len(backends) == 0 {
 		return nil, errors.New("Can't elect backend, Backends empty")
 	}
 
-	// TODO: Add implementation
+	log.Info(b.duration)
 
-	return backends[0], nil
+	// --------------- lock balancer
+
+	b.mutex.Lock()
+
+	sess, ok := b.table[context.Ip().String()]
+	if !ok {
+		backend, err := ((*WeightBalancer)(nil)).Elect(context, backends)
+
+		b.table[context.Ip().String()] = &Session{
+			backend: backend,
+			mutex:   sync.Mutex{},
+			done:    make(chan bool, 1),
+			timer: time.AfterFunc(b.duration, func() {
+				log := logging.For("balance/iphash2")
+				log.Debug("Begin cleanup session ", context.Ip().String())
+				b.mutex.Lock()
+				sess = b.table[context.Ip().String()]
+				delete(b.table, context.Ip().String())
+				b.mutex.Unlock()
+				sess.done <- true
+				log.Debug("End cleanup session ", context.Ip().String())
+			}),
+		}
+
+		b.mutex.Unlock()
+		return backend, err
+	}
+
+	// --------------- unlock balancer
+	b.mutex.Unlock()
+
+	/* now lock on the session to allow other clients work well in elect */
+
+	sess.mutex.Lock()
+	defer sess.mutex.Unlock()
+
+	stopped := sess.timer.Stop()
+	if !stopped {
+		// wait cleanup goroutine to finish to ensure it will
+		// not cleanup session after we reset it here
+		<-sess.done
+
+		// put sess back to table since it was removed in AfterFunc
+		// and we sure it already completed here
+		// TODO: ENSURE OTHER CLIENTS DO NOT START CREATING NEW SESSION WHILE WE DO NOT LOCKED
+		b.mutex.Lock()
+		b.table[context.Ip().String()] = sess
+		b.mutex.Unlock()
+	}
+
+	sess.timer.Reset(b.duration)
+
+	// check if previously elected backends still presents in backends list
+	for _, backend := range backends {
+		if backend.Address() == sess.backend.Address() {
+			return sess.backend, nil
+		}
+	}
+
+	// previously elected backend died, elect new one
+	backend, err := ((*WeightBalancer)(nil)).Elect(context, backends)
+	sess.backend = backend
+
+	return backend, err
 }

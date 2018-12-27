@@ -80,8 +80,8 @@ bind = "0.0.0.0:3000"
 
   [servers.sample.balancing]
   kind = "iphash2"
-  iphash2_timeout = "10s"
-  iphash2_size = 10000
+  iphash2_expire = "2s"
+  iphash2_size = 2000
 
   [servers.sample.discovery]
   kind = "static"
