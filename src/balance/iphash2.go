@@ -40,6 +40,7 @@ type Session struct {
 	backend *core.Backend
 	mutex   sync.Mutex
 	done    chan bool
+	keep    bool
 }
 
 /**
@@ -61,6 +62,10 @@ func NewIphash2Balancer(cfg config.BalanceConfig) interface{} {
  * Elect backend using iphash strategy
  * This balancer is stable in both adding and removing backends
  * It keeps mapping cache for some period of time.
+ *
+ * TODO: probably not the best implementation because of extensive usage
+ *       of complex locks. Consider re-doing keeping high performance,
+ *       probably using jobber goroutine for removing expired sessions.
  */
 func (b *Iphash2Balancer) Elect(context core.Context, backends []*core.Backend) (*core.Backend, error) {
 
@@ -71,7 +76,6 @@ func (b *Iphash2Balancer) Elect(context core.Context, backends []*core.Backend) 
 	}
 
 	log.Info(b.duration)
-
 	// --------------- lock balancer
 
 	b.mutex.Lock()
@@ -84,12 +88,15 @@ func (b *Iphash2Balancer) Elect(context core.Context, backends []*core.Backend) 
 			backend: backend,
 			mutex:   sync.Mutex{},
 			done:    make(chan bool, 1),
+			keep:    false,
 			timer: time.AfterFunc(b.duration, func() {
 				log := logging.For("balance/iphash2")
 				log.Debug("Begin cleanup session ", context.Ip().String())
 				b.mutex.Lock()
 				sess = b.table[context.Ip().String()]
-				delete(b.table, context.Ip().String())
+				if !sess.keep {
+					delete(b.table, context.Ip().String())
+				}
 				b.mutex.Unlock()
 				sess.done <- true
 				log.Debug("End cleanup session ", context.Ip().String())
@@ -100,9 +107,6 @@ func (b *Iphash2Balancer) Elect(context core.Context, backends []*core.Backend) 
 		return backend, err
 	}
 
-	// --------------- unlock balancer
-	b.mutex.Unlock()
-
 	/* now lock on the session to allow other clients work well in elect */
 
 	sess.mutex.Lock()
@@ -110,6 +114,12 @@ func (b *Iphash2Balancer) Elect(context core.Context, backends []*core.Backend) 
 
 	stopped := sess.timer.Stop()
 	if !stopped {
+
+		log.Info("in !stopped")
+		// --------------- unlock balancer
+		sess.keep = true // it's in sync guaranted by b.mutex lock
+		b.mutex.Unlock()
+
 		// wait cleanup goroutine to finish to ensure it will
 		// not cleanup session after we reset it here
 		<-sess.done
@@ -118,9 +128,12 @@ func (b *Iphash2Balancer) Elect(context core.Context, backends []*core.Backend) 
 		// and we sure it already completed here
 		// TODO: ENSURE OTHER CLIENTS DO NOT START CREATING NEW SESSION WHILE WE DO NOT LOCKED
 		b.mutex.Lock()
+		sess.keep = false
 		b.table[context.Ip().String()] = sess
 		b.mutex.Unlock()
 	}
+
+	b.mutex.Unlock()
 
 	sess.timer.Reset(b.duration)
 
