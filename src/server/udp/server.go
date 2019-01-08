@@ -238,6 +238,7 @@ func (this *Server) cleanup() {
 
 	}
 
+	this.scheduler.StatsHandler.Connections <- uint(len(this.sessions))
 }
 
 /**
@@ -300,6 +301,8 @@ func (this *Server) getOrCreateSession(cfg session.Config, clientAddr *net.UDPAd
 	s.ListenResponses(this.serverConn)
 
 	this.sessions[key] = s
+
+	this.scheduler.StatsHandler.Connections <- uint(len(this.sessions))
 
 	return s, nil
 }
