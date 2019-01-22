@@ -1,0 +1,38 @@
+kind: Service
+apiVersion: v1
+metadata:
+  name: gobetween
+spec:
+  selector:
+    app: gobetween
+  ports:
+  - name: "gobetween"
+    protocol: TCP
+    port: 80
+    nodePort: 32345
+  type: NodePort
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: gobetween
+  labels:
+    app: gobetween
+spec:
+  containers:
+  - name: gobetween
+    image: yyyar/gobetween:latest
+    env:
+    - name: GOBETWEEN
+      value: ""
+    ports:
+    - name: gobetween
+      containerPort: 80
+    volumeMounts:
+    - name: config
+      mountPath: /etc/gobetween/conf
+      readOnly: false
+  volumes:
+  - name: config
+    configMap:
+      name: gb
