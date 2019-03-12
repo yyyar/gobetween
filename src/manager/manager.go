@@ -13,6 +13,7 @@ import (
 	"strings"
 	"sync"
 	"time"
+	"fmt"
 
 	"../config"
 	"../core"
@@ -43,23 +44,25 @@ var originalCfg config.Config
  */
 func Initialize(cfg config.Config) {
 
-	log := logging.For("manager")
-	log.Info("Initializing...")
-
-	originalCfg = cfg
+	log := logging.For("manager/Initialize")
+	log.Info("Initializing..")
 
 	// save defaults for futher reuse
+	originalCfg = cfg
 	defaults = cfg.Defaults
+
+	log.Debug("Initialize defaults..")
 	initDefaults()
 
-	//Initialize global sections
+	log.Debug("Initialize global sections..")
 	initConfigGlobals(&cfg)
 
-	//create services
+	log.Debug("Creating services..")
 	services = service.All(cfg)
 
 	// Go through config and start servers for each server
 	for name, serverCfg := range cfg.Servers {
+		log.Debug("Starting service: " + name + "...")
 		err := Create(name, serverCfg)
 		if err != nil {
 			log.Fatal(err)
@@ -67,6 +70,7 @@ func Initialize(cfg config.Config) {
 	}
 
 	// Initialize profiler
+	log.Debug("Initializing profiler..");
 	initProfiler(&cfg)
 
 	log.Info("Initialized")
@@ -181,6 +185,7 @@ func Get(name string) interface{} {
  * Create new server and launch it
  */
 func Create(name string, cfg config.Server) error {
+	log := logging.For("manager/Create")
 
 	servers.Lock()
 	defer servers.Unlock()
@@ -189,11 +194,13 @@ func Create(name string, cfg config.Server) error {
 		return errors.New("Server with this name already exists: " + name)
 	}
 
+	log.Debug(name + ": prepareConfig");
 	c, err := prepareConfig(name, cfg, defaults)
 	if err != nil {
 		return err
 	}
 
+	log.Debug(name + ": server.New");
 	server, err := server.New(name, c)
 
 	if err != nil {
@@ -207,6 +214,7 @@ func Create(name string, cfg config.Server) error {
 		}
 	}
 
+	log.Debug(name + ": server.Start ");
 	if err = server.Start(); err != nil {
 		return err
 	}
@@ -256,18 +264,20 @@ func Stats(name string) interface{} {
  * TODO: make validation better
  */
 func prepareConfig(name string, server config.Server, defaults config.ConnectionOptions) (config.Server, error) {
+	log := logging.For("manager/prepareConfig")
 
 	/* ----- Prerequisites ----- */
 
 	if server.Bind == "" {
-		return config.Server{}, errors.New("No bind specified")
+		return config.Server{}, errors.New("No [server." + name + "] bind specified")
 	}
 
 	if server.Discovery == nil {
-		return config.Server{}, errors.New("No .discovery specified")
+		return config.Server{}, errors.New("No [server." + name + ".discovery] section")
 	}
 
 	if server.Healthcheck == nil {
+		log.Warn("No [server." + name + ".healthcheck] section, backend will always be up")
 		server.Healthcheck = &config.HealthcheckConfig{
 			Kind:     "none",
 			Interval: "0",
@@ -275,6 +285,7 @@ func prepareConfig(name string, server config.Server, defaults config.Connection
 		}
 	}
 
+	log.Debug("[server." + name + ".healthcheck] is type " + server.Healthcheck.Kind)
 	switch server.Healthcheck.Kind {
 	case
 		"ping",
@@ -315,7 +326,9 @@ func prepareConfig(name string, server config.Server, defaults config.Connection
 	if server.Healthcheck.Kind == "probe" {
 
 		switch server.Healthcheck.ProbeProtocol {
-		case "tcp", "udp":
+		case
+			"tcp",
+			"udp":
 		default:
 			return config.Server{}, errors.New("Unsupported probe_protocol")
 		}
@@ -433,10 +446,13 @@ func prepareConfig(name string, server config.Server, defaults config.Connection
 
 	/* ----- Connections params and overrides ----- */
 
-	/* Protocol */
-	switch server.Protocol {
-	case "":
+	if server.Protocol == "" {
+		log.Warning("[server." + name + "] protocol not specfied, choosing " + server.Protocol)
 		server.Protocol = "tcp"
+	}
+	/* Protocol */
+	log.Debug("[server." + name + "] protocol is " + server.Protocol)
+	switch server.Protocol {
 	case "tls":
 		if server.Tls == nil {
 			return config.Server{}, errors.New("Need tls section for tls protocol")
@@ -456,33 +472,59 @@ func prepareConfig(name string, server config.Server, defaults config.Connection
 			return config.Server{}, errors.New("udp protocol requires to specify at least one of (client|backend)_idle_timeout, udp.max_requests, udp.max_responses")
 		}
 
+		// can't use ping with udp
+		if server.Healthcheck.Kind == "ping" {
+			return config.Server{}, errors.New("Cant use ping healthcheck with udp server")
+		}
+
 	default:
 		return config.Server{}, errors.New("Not supported protocol " + server.Protocol)
 	}
 
-	/* Healthcheck and protocol match */
 
-	if server.Healthcheck.Kind == "ping" && server.Protocol == "udp" {
-		return config.Server{}, errors.New("Cant use ping healthcheck with udp server")
+	/* --------------------- Balance -------------------- */
+
+	if server.Balance == nil {
+		log.Warn("No [server." + name + ".balance] section, choosing 'weight' balance method")
+		server.Balance = &config.BalanceConfig{
+			Kind:     "weight",
+		}
 	}
 
-	/* Balance */
-	switch server.Balance {
-	case
-		"weight",
-		"leastconn",
-		"priority",
-		"roundrobin",
-		"leastbandwidth",
-		"iphash1",
-		"iphash":
-	case "":
-		server.Balance = "weight"
-	default:
-		return config.Server{}, errors.New("Not supported balance type " + server.Balance)
+	log.Debug("[server." + name + ".balance] is type " + server.Balance.Kind)
+	switch server.Balance.Kind {
+		case
+			"weight",
+			"leastconn",
+			"roundrobin",
+			"leastbandwidth",
+			"priority",
+			"iphash1",
+			"iphash":
+		case "iphash2":
+			if server.Balance.IpHash2SessionExpire == "" {
+				server.Balance.IpHash2SessionExpire = "1h"
+			}
+			if server.Balance.IpHash2SessionSize == 0 {
+				server.Balance.IpHash2SessionSize = 1000
+			}
+		case "stickypriority":
+			if server.Balance.StickyPrioritySessionExpire == "" {
+				server.Balance.StickyPrioritySessionExpire = "1h"
+				log.Warn("[server." + name + ".balance] StickyPrioritySessionExpire not defined, using " + server.Balance.StickyPrioritySessionExpire)
+			}
+			if server.Balance.StickyPrioritySessionSize == 0 {
+				server.Balance.StickyPrioritySessionSize = 1000
+				log.Warn("[server." + name + ".balance] StickyPrioritySessionSize not defined, using " + fmt.Sprintf("%d",server.Balance.StickyPrioritySessionSize))
+			}
+			log.Debug("[server." + name + ".balance] StickyPrioritySessionExpire " + server.Balance.StickyPrioritySessionExpire)
+			log.Debug("[server." + name + ".balance] StickyPrioritySessionSize " + fmt.Sprintf("%d",server.Balance.StickyPrioritySessionSize))
+		default:
+			return config.Server{}, errors.New("Not supported balance type " + server.Balance.Kind)
 	}
 
-	/* Discovery */
+	/* --------------------- Discovery -------------------- */
+
 	switch server.Discovery.Failpolicy {
 	case
 		"keeplast",

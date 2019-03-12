@@ -168,9 +168,12 @@ func (s *Session) ListenResponses(sendTo *net.UDPConn) {
 			n, err := s.conn.Read(b)
 
 			if err != nil {
-				if atomic.LoadUint32(&s.stopped) == 0 {
-					log.Errorf("Failed to read from backend: %v", err)
-				}
+				/* if a backendidletimeout is reached for udp, this is pretty normal
+				 * although does throw an 'error' technically.. for now i'll comment it out
+				 * if atomic.LoadUint32(&s.stopped) == 0 {
+				 *	log.Errorf("Failed to read from backend: %v", err)
+				 * }
+				 */
 				return
 			}
 

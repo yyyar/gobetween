@@ -94,9 +94,6 @@ type Server struct {
 	// tcp | udp | tls
 	Protocol string `toml:"protocol" json:"protocol"`
 
-	// weight | leastconn | roundrobin
-	Balance string `toml:"balance" json:"balance"`
-
 	// Optional configuration for server name indication
 	Sni *Sni `toml:"sni" json:"sni"`
 
@@ -108,6 +105,9 @@ type Server struct {
 
 	// Optional configuration for protocol = udp
 	Udp *Udp `toml:"udp" json:"udp"`
+
+	// Balance configuration
+	Balance *BalanceConfig `toml:"balance" json:"balance"`
 
 	// Access configuration
 	Access *AccessConfig `toml:"access" json:"access"`
@@ -184,6 +184,25 @@ type AccessConfig struct {
 	Default string   `toml:"default" json:"default"`
 	Rules   []string `toml:"rules" json:"rules"`
 }
+
+/* ------------------------------ Balance section ------------------------------ */
+
+/**
+ * Balance configuration
+ */
+type BalanceConfig struct {
+	Kind				string `toml:"kind" json:"kind"`
+
+	/* Depends on Kind */
+	IpHash2SessionExpire		string `toml:"iphash2SessionExpire" json:"iphash2Session_expire"`
+	IpHash2SessionSize		uint64 `toml:"iphash2SessionSize" json:"iphash2Session_size"`
+
+	StickyPrioritySessionExpire	string `toml:"StickyPrioritySessionExpire" json:"StickyPrioritySessionExpire"`
+	StickyPrioritySessionSize	uint64 `toml:"StickyPrioritySessionSize" json:"StickyPrioritySessionSize"`
+}
+
+/*
+/* ------------------------------ Discoveries ------------------------------ */
 
 /**
  * Discovery configuration
@@ -283,6 +302,8 @@ type LXDDiscoveryConfig struct {
 	LXDContainerSNIKey      string `toml:"lxd_container_sni_key" json:"lxd_container_sni_key"`
 	LXDContainerAddressType string `toml:"lxd_container_address_type" json:"lxd_container_address_type"`
 }
+
+/* ------------------------------ Healthchecks ------------------------------ */
 
 /**
  * Healthcheck configuration

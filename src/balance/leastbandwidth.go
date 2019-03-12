@@ -7,15 +7,22 @@
 package balance
 
 import (
-	"errors"
-
+	"../config"
 	"../core"
+	"errors"
 )
 
 /**
  * Leastbandwidth balancer
  */
 type LeastbandwidthBalancer struct{}
+
+/**
+ * Constructor
+ */
+func NewLeastbandwidthBalancer(cfg config.BalanceConfig) interface{} {
+	return &LeastbandwidthBalancer{}
+}
 
 /**
  * Elect backend using leastbandwidth strategy

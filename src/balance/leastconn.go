@@ -7,15 +7,22 @@
 package balance
 
 import (
-	"errors"
-
+	"../config"
 	"../core"
+	"errors"
 )
 
 /**
  * Leastconn balancer
  */
 type LeastconnBalancer struct{}
+
+/**
+ * Constructor
+ */
+func NewLeastconnBalancer(cfg config.BalanceConfig) interface{} {
+	return &LeastconnBalancer{}
+}
 
 /**
  * Elect backend using roundrobin strategy

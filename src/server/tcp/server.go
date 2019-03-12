@@ -96,7 +96,7 @@ func New(name string, cfg config.Server) (*Server, error) {
 		clients:      make(map[string]net.Conn),
 		statsHandler: statsHandler,
 		scheduler: scheduler.Scheduler{
-			Balancer:     balance.New(cfg.Sni, cfg.Balance),
+			Balancer:     balance.New(cfg.Sni, *cfg.Balance),
 			Discovery:    discovery.New(cfg.Discovery.Kind, *cfg.Discovery),
 			Healthcheck:  healthcheck.New(cfg.Healthcheck.Kind, *cfg.Healthcheck),
 			StatsHandler: statsHandler,
@@ -123,7 +123,7 @@ func New(name string, cfg config.Server) (*Server, error) {
 		return nil, err
 	}
 
-	log.Info("Creating '", name, "': ", cfg.Bind, " ", cfg.Balance, " ", cfg.Discovery.Kind, " ", cfg.Healthcheck.Kind)
+	log.Info("Creating '", name, "': ", cfg.Bind, " ", cfg.Balance.Kind, " ", cfg.Discovery.Kind, " ", cfg.Healthcheck.Kind)
 
 	return server, nil
 }

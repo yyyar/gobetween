@@ -70,7 +70,7 @@ func New(name string, cfg config.Server) (*Server, error) {
 
 	statsHandler := stats.NewHandler(name)
 	scheduler := &scheduler.Scheduler{
-		Balancer:     balance.New(nil, cfg.Balance),
+		Balancer:     balance.New(nil, *cfg.Balance),
 		Discovery:    discovery.New(cfg.Discovery.Kind, *cfg.Discovery),
 		Healthcheck:  healthcheck.New(cfg.Healthcheck.Kind, *cfg.Healthcheck),
 		StatsHandler: statsHandler,
@@ -93,7 +93,7 @@ func New(name string, cfg config.Server) (*Server, error) {
 		server.access = access
 	}
 
-	log.Info("Creating UDP server '", name, "': ", cfg.Bind, " ", cfg.Balance, " ", cfg.Discovery.Kind, " ", cfg.Healthcheck.Kind)
+	log.Info("Creating UDP server '", name, "': ", cfg.Bind, " ", cfg.Balance.Kind, " ", cfg.Discovery.Kind, " ", cfg.Healthcheck.Kind)
 	return server, nil
 }
 
@@ -113,6 +113,8 @@ func (this *Server) Start() error {
 	if err := this.listen(); err != nil {
 		return fmt.Errorf("Could not start listening UDP: %v", err)
 	}
+
+	log.Debug("Start UDP server ", this.name);
 
 	this.scheduler.StatsHandler.Start()
 	this.scheduler.Start()

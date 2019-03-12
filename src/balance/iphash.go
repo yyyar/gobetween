@@ -7,6 +7,7 @@
 package balance
 
 import (
+	"../config"
 	"../core"
 	"errors"
 	"hash/fnv"
@@ -16,6 +17,13 @@ import (
  * Iphash balancer
  */
 type IphashBalancer struct{}
+
+/**
+ * Constructor
+ */
+func NewIphashBalancer(cfg config.BalanceConfig) interface{} {
+	return &IphashBalancer{}
+}
 
 /**
  * Elect backend using iphash strategy

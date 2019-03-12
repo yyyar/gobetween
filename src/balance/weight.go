@@ -7,6 +7,7 @@
 package balance
 
 import (
+	"../config"
 	"../core"
 	"errors"
 	"math/rand"
@@ -16,6 +17,13 @@ import (
  * Weight balancer
  */
 type WeightBalancer struct{}
+
+/**
+ * Constructor
+ */
+func NewWeightBalancer(cfg config.BalanceConfig) interface{} {
+	return &WeightBalancer{}
+}
 
 /**
  * Elect backend based on weight strategy

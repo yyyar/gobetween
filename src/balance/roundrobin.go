@@ -7,10 +7,10 @@
 package balance
 
 import (
+	"../config"
+	"../core"
 	"errors"
 	"sort"
-
-	"../core"
 )
 
 /**
@@ -20,6 +20,13 @@ type RoundrobinBalancer struct {
 
 	/* Current backend position */
 	current int
+}
+
+/**
+ * Constructor
+ */
+func NewRoundrobinBalancer(cfg config.BalanceConfig) interface{} {
+	return &RoundrobinBalancer{}
 }
 
 /**
