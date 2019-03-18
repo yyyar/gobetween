@@ -87,18 +87,18 @@ func srvFetch(cfg config.DiscoveryConfig) (*[]core.Backend, error) {
 
 			resp, err := srvDnsLookup(cfg, record.Target, dns.TypeA)
 			if err != nil {
-				log.Warn("Error fetching A record for ", record.Target, " skippinggithub.com/yyyar/gobetween.")
+				log.Warn("Error fetching A record for ", record.Target, " skipping...")
 				continue
 			}
 
 			if len(resp.Answer) == 0 {
-				log.Warn("Empty answer for A records ", record.Target, " skippinggithub.com/yyyar/gobetween.")
+				log.Warn("Empty answer for A records ", record.Target, " skipping...")
 				continue
 			}
 
 			a, ok := resp.Answer[0].(*dns.A)
 			if !ok {
-				log.Warn("Non-A record in A answer ", record.Target, " skippinggithub.com/yyyar/gobetween.")
+				log.Warn("Non-A record in A answer ", record.Target, " skipping...")
 				continue
 			}
 
