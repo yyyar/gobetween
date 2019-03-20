@@ -471,7 +471,6 @@ func prepareConfig(name string, server config.Server, defaults config.Connection
 	case
 		"weight",
 		"leastconn",
-		"priority",
 		"roundrobin",
 		"leastbandwidth",
 		"iphash1",
