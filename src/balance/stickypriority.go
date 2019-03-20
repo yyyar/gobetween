@@ -2,7 +2,7 @@
  * StickyPriority.go - priority based "sticky session" balance implementation
  * allow for a "preferred backend" for new sessions, whilst keeping old session on existing backends
  *
- * @author Yaroslav Pogrebnyak <yyyaroslav@gmail.com>
+ * @author quedunk <quedunk@gmail.com>
  */
 
 package balance
