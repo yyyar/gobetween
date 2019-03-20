@@ -1,7 +1,7 @@
 /**
  * weight.go - weight balance impl
  *
- * @author Yaroslav Pogrebnyak <yyyaroslav@gmail.com>
+ * @author quedunk <quedunk@gmail.com>
  */
 
 package balance
