@@ -7,6 +7,7 @@
 .PHONY: update clean build build-all run package deploy test authors dist
 
 export GOBIN := ${PWD}/bin
+export GO111MODULE=on
 
 NAME := gobetween
 VERSION := $(shell cat VERSION)
