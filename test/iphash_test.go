@@ -1,12 +1,13 @@
 package test
 
 import (
-	"../src/balance"
-	"../src/core"
 	"errors"
 	"fmt"
 	"math/rand"
 	"testing"
+
+	"github.com/yyyar/gobetween/balance"
+	"github.com/yyyar/gobetween/core"
 )
 
 func makeDistribution(balancer core.Balancer, backends []*core.Backend, clients []DummyContext) (map[string]*core.Backend, error) {

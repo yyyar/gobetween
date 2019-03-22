@@ -6,8 +6,8 @@ import (
 	"testing"
 	"time"
 
-	"../src/balance"
-	"../src/core"
+	"github.com/yyyar/gobetween/balance"
+	"github.com/yyyar/gobetween/core"
 )
 
 func TestWeightDistribution(t *testing.T) {
