@@ -24,6 +24,28 @@ var bufPool = sync.Pool{
 	},
 }
 
+type packet struct {
+	// pointer to object that has to be returned to buf pool
+	payload []byte
+	// length of the usable part of buffer
+	len int
+}
+
+func (p packet) buf() []byte {
+	if p.payload == nil {
+		return nil
+	}
+
+	return p.payload[0:p.len]
+}
+
+func (p packet) release() {
+	if p.payload == nil {
+		return
+	}
+	bufPool.Put(p.payload)
+}
+
 type Session struct {
 	//counters
 	sent uint64
@@ -39,7 +61,7 @@ type Session struct {
 	backend core.Backend
 
 	//communication
-	out     chan []byte
+	out     chan packet
 	stopC   chan struct{}
 	stopped uint32
 
@@ -56,7 +78,7 @@ func NewSession(clientAddr *net.UDPAddr, conn *net.UDPConn, backend core.Backend
 		conn:       conn,
 		backend:    backend,
 		scheduler:  scheduler,
-		out:        make(chan []byte, MAX_PACKETS_QUEUE),
+		out:        make(chan packet, MAX_PACKETS_QUEUE),
 		stopC:      make(chan struct{}, 1),
 	}
 
@@ -75,7 +97,7 @@ func NewSession(clientAddr *net.UDPAddr, conn *net.UDPConn, backend core.Backend
 
 			case <-tC:
 				s.Close()
-			case buf := <-s.out:
+			case pkt := <-s.out:
 				if t != nil {
 					if !t.Stop() {
 						<-t.C
@@ -83,20 +105,20 @@ func NewSession(clientAddr *net.UDPAddr, conn *net.UDPConn, backend core.Backend
 					t.Reset(cfg.ClientIdleTimeout)
 				}
 
-				if buf == nil {
+				if pkt.payload == nil {
 					panic("Program error, output channel should not be closed here")
 				}
 
-				n, err := s.conn.Write(buf)
-				bufPool.Put(buf)
+				n, err := s.conn.Write(pkt.buf())
+				pkt.release()
 
 				if err != nil {
 					log.Errorf("Could not write data to udp connection: %v", err)
 					break
 				}
 
-				if n != len(buf) {
-					log.Errorf("Short write error: should write %d bytes, but %d written", len(buf), n)
+				if n != pkt.len {
+					log.Errorf("Short write error: should write %d bytes, but %d written", pkt.len, n)
 					break
 				}
 
@@ -116,8 +138,8 @@ func NewSession(clientAddr *net.UDPAddr, conn *net.UDPConn, backend core.Backend
 				// drain output packets channel and free buffers
 				for {
 					select {
-					case buf := <-s.out:
-						bufPool.Put(buf)
+					case pkt := <-s.out:
+						pkt.release()
 					default:
 						return
 					}
@@ -140,7 +162,7 @@ func (s *Session) Write(buf []byte) error {
 	n := copy(dup, buf)
 
 	select {
-	case s.out <- dup[0:n]:
+	case s.out <- packet{dup, n}:
 	default:
 		bufPool.Put(dup)
 	}
