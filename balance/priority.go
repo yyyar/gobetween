@@ -1,7 +1,8 @@
 /**
- * weight.go - weight balance impl
+ * priority.go - priority balance implementation
+ * select backends with lowest priority, then randomly choose one based on 'weight'
  *
- * @author Yaroslav Pogrebnyak <yyyaroslav@gmail.com>
+ * @author quedunk <quedunk@gmail.com>
  */
 
 package balance
