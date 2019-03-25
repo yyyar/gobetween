@@ -29,6 +29,7 @@ func init() {
 	typeRegistry["iphash"] = reflect.TypeOf(IphashBalancer{})
 	typeRegistry["iphash1"] = reflect.TypeOf(Iphash1Balancer{})
 	typeRegistry["leastbandwidth"] = reflect.TypeOf(LeastbandwidthBalancer{})
+	typeRegistry["priority"] = reflect.TypeOf(PriorityBalancer{})
 }
 
 /**
