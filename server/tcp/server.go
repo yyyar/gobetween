@@ -118,11 +118,6 @@ func New(name string, cfg config.Server) (*Server, error) {
 		return nil, err
 	}
 
-	server.tlsConfig, err = tlsutil.MakeTlsConfig(cfg.Tls, server.GetCertificate)
-	if err != nil {
-		return nil, err
-	}
-
 	log.Info("Creating '", name, "': ", cfg.Bind, " ", cfg.Balance, " ", cfg.Discovery.Kind, " ", cfg.Healthcheck.Kind)
 
 	return server, nil
@@ -139,6 +134,12 @@ func (this *Server) Cfg() config.Server {
  * Start server
  */
 func (this *Server) Start() error {
+
+	var err error
+	this.tlsConfig, err = tlsutil.MakeTlsConfig(this.cfg.Tls, this.GetCertificate)
+	if err != nil {
+		return err
+	}
 
 	go func() {
 
