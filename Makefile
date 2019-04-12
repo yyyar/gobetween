@@ -89,6 +89,11 @@ docker:
 	@echo Building docker container LATEST
 	docker build -t yyyar/gobetween .
 
+docker-run:
+	docker run --rm --net=host \
+		-v $(shell pwd)/config:/etc/gobetween/conf \
+		yyyar/gobetween:latest
+
 docker-tagged:
 	@echo Building docker container ${VERSION}
 	docker build -t yyyar/gobetween:${VERSION} .
