@@ -34,7 +34,7 @@ build:
 
 build-static:
 	@echo Building...
-	CGO_ENABLED=0 go build -v -a -tags netgo -o ./bin/$(NAME) -ldflags '-s -w --extldflags "-static" ${LDFLAGS}' .
+	CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -v -a -tags netgo -o ./bin/$(NAME) -ldflags '-s -w --extldflags "-static" ${LDFLAGS}' .
 	@echo Done.
 
 run: build
