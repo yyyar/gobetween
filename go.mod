@@ -1,13 +1,15 @@
-module github.com/yyyar/gobetween
+module github.com/yyyar/gobetween/main
 
 go 1.12
+
+replace github.com/yyyar/gobetween => ./src
 
 require (
 	code.cloudfoundry.org/systemcerts v0.0.0-20180917154049-ca00b2f806f2 // indirect
 	github.com/burntsushi/toml v0.3.1
 	github.com/elgs/gojq v0.0.0-20160421194050-81fa9a608a13
 	github.com/elgs/gosplitargs v0.0.0-20161028071935-a491c5eeb3c8 // indirect
-	github.com/eric-lindau/udpfacade v0.0.0-20190425230512-031998cc71fa
+	github.com/eric-lindau/udpfacade v0.0.0-20190425230512-031998cc71fa // indirect
 	github.com/flosch/pongo2 v0.0.0-20181225140029-79872a7b2769 // indirect
 	github.com/fsouza/go-dockerclient v1.3.6
 	github.com/gin-contrib/cors v0.0.0-20190301062745-f9e10995c85a
@@ -34,6 +36,7 @@ require (
 	github.com/sirupsen/logrus v1.4.0
 	github.com/spf13/cobra v0.0.3
 	github.com/spf13/pflag v1.0.3 // indirect
+	github.com/yyyar/gobetween v0.0.0-00010101000000-000000000000
 	golang.org/x/crypto v0.0.0-20190103213133-ff983b9c42bc
 	gopkg.in/httprequest.v1 v1.1.4 // indirect
 	gopkg.in/juju/environschema.v1 v1.0.0-20151104115810-7359fc7857ab // indirect
