@@ -34,7 +34,7 @@ build:
 
 build-static:
 	@echo Building...
-	CGO_ENABLED=0 go build -v -a -tags netgo -o ./bin/$(NAME) -ldflags '-s -w --extldflags "-static" ${LDFLAGS}' .
+	CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -v -a -tags netgo -o ./bin/$(NAME) -ldflags '-s -w --extldflags "-static" ${LDFLAGS}' .
 	@echo Done.
 
 run: build
@@ -85,10 +85,15 @@ dist:
 		fi \
 	done
 
-build-container-latest: build-static
+docker:
 	@echo Building docker container LATEST
 	docker build -t yyyar/gobetween .
 
-build-container-tagged: build-static
+docker-run:
+	docker run --rm --net=host \
+		-v $(shell pwd)/config:/etc/gobetween/conf \
+		yyyar/gobetween:latest
+
+docker-tagged:
 	@echo Building docker container ${VERSION}
 	docker build -t yyyar/gobetween:${VERSION} .

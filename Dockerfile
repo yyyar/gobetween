@@ -1,8 +1,34 @@
-FROM scratch
-COPY bin/gobetween  /usr/bin/
-CMD ["/usr/bin/gobetween", "-c", "/etc/gobetween/conf/gobetween.toml"]
+# ---------------------  dev (build) image --------------------- #
 
-LABEL org.label-schema.vendor="Gobetween" \
-      org.label-schema.url="https://gobetween.io" \
-      org.label-schema.name="Gobetween" \
-      org.label-schema.description="Modern & minimalistic load balancer for the Сloud era" 
+FROM golang:1.12-alpine as builder
+
+RUN apk add git
+RUN apk add make
+
+RUN mkdir -p /opt/gobetween
+WORKDIR /opt/gobetween
+
+COPY go.mod .
+COPY go.sum .
+
+RUN go mod download
+
+COPY . .
+
+RUN make build-static
+
+# --------------------- final image --------------------- #
+
+FROM scratch
+
+WORKDIR /
+
+COPY --from=builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/ca-certificates.crt
+COPY --from=builder /opt/gobetween/bin/gobetween  .
+
+CMD ["/gobetween", "-c", "/etc/gobetween/conf/gobetween.toml"]
+
+LABEL org.label-schema.vendor="gobetween" \
+      org.label-schema.url="http://gobetween.io" \
+      org.label-schema.name="gobetween" \
+      org.label-schema.description="Modern & minimalistic load balancer for the Сloud era"
