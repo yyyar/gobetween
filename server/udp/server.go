@@ -47,7 +47,10 @@ type Server struct {
 	/* Server connection */
 	serverConn *net.UDPConn
 
-	/* Flag indicating that server is stopped */
+	/* Flag indicating that server is about to be stopped */
+	stopping uint32
+
+	/* Flag indicating that main thread has stopped */
 	stopped uint32
 
 	/* Stop channel */
@@ -129,7 +132,14 @@ func (this *Server) Start() error {
 			/* handle server stop */
 			case <-this.stop:
 				log.Info("Stopping ", this.name)
-				atomic.StoreUint32(&this.stopped, 1)
+				atomic.StoreUint32(&this.stopping, 1)
+
+				// Wait until goroutine in serve() ends
+				for {
+					if atomic.LoadUint32(&this.stopped) == 1 {
+						break
+					}
+				}
 
 				ticker.Stop()
 
@@ -198,12 +208,7 @@ func (this *Server) serve() {
 			}
 
 			if err != nil {
-				if atomic.LoadUint32(&this.stopped) == 1 {
-					return
-				}
-
 				log.Error("Failed to read from UDP: ", err)
-
 				continue
 			}
 
@@ -220,6 +225,10 @@ func (this *Server) serve() {
 
 			this.proxy(cfg, clientAddr, buf[:n])
 
+			if atomic.LoadUint32(&this.stopping) == 1 {
+				atomic.StoreUint32(&this.stopped, 1)
+				return
+			}
 		}
 	}()
 }
@@ -357,3 +366,4 @@ func (this *Server) fireAndForget(clientAddr *net.UDPAddr, buf []byte) error {
 func (this *Server) Stop() {
 	this.stop <- true
 }
+
