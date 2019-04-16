@@ -1,3 +1,5 @@
+ARG BASE_IMAGE=scratch
+
 # ---------------------  dev (build) image --------------------- #
 
 FROM golang:1.12-alpine as builder
@@ -19,7 +21,7 @@ RUN make build-static
 
 # --------------------- final image --------------------- #
 
-FROM scratch
+FROM $BASE_IMAGE
 
 WORKDIR /
 
