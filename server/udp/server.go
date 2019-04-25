@@ -24,6 +24,7 @@ import (
 	"github.com/yyyar/gobetween/server/udp/session"
 	"github.com/yyyar/gobetween/stats"
 	"github.com/yyyar/gobetween/utils"
+	"github.com/eric-lindau/udpfacade"
 )
 
 const UDP_PACKET_SIZE = 65507
@@ -126,7 +127,7 @@ func (this *Server) Start() error {
 			select {
 			case <-ticker.C:
 				this.cleanup()
-			/* handle server stop */
+				/* handle server stop */
 			case <-this.stop:
 				log.Info("Stopping ", this.name)
 				atomic.StoreUint32(&this.stopped, 1)
@@ -181,6 +182,7 @@ func (this *Server) serve() {
 		MaxResponses:       this.cfg.Udp.MaxResponses,
 		ClientIdleTimeout:  utils.ParseDurationOrDefault(*this.cfg.ClientIdleTimeout, 0),
 		BackendIdleTimeout: utils.ParseDurationOrDefault(*this.cfg.BackendIdleTimeout, 0),
+		Transparent:        this.cfg.Udp.Transparent,
 	}
 
 	// Main loop goroutine - reads incoming data and decides what to do
@@ -244,7 +246,7 @@ func (this *Server) cleanup() {
 /**
  * Elect and connect to backend
  */
-func (this *Server) electAndConnect(clientAddr *net.UDPAddr) (*net.UDPConn, *core.Backend, error) {
+func (this *Server) electAndConnect(clientAddr *net.UDPAddr) (net.Conn, *core.Backend, error) {
 	backend, err := this.scheduler.TakeBackend(core.UdpContext{
 		ClientAddr: *clientAddr,
 	})
@@ -263,9 +265,17 @@ func (this *Server) electAndConnect(clientAddr *net.UDPAddr) (*net.UDPConn, *cor
 		return nil, nil, fmt.Errorf("Could not resolve udp address %s: %v", addrStr, err)
 	}
 
-	conn, err := net.DialUDP("udp", nil, addr)
-	if err != nil {
-		return nil, nil, fmt.Errorf("Could not dial UDP addr %v: %v", addr, err)
+	var conn net.Conn
+	if this.cfg.Udp.Transparent {
+		conn, err = udpfacade.DialUDPFrom(clientAddr, addr)
+		if err != nil {
+			return nil, nil, fmt.Errorf("Could not dial UDP addr %v from %v: %v", addr, clientAddr, err)
+		}
+	} else {
+		conn, err = net.DialUDP("udp", nil, addr)
+		if err != nil {
+			return nil, nil, fmt.Errorf("Could not dial UDP addr %v: %v", addr, err)
+		}
 	}
 
 	return conn, backend, nil
@@ -298,7 +308,9 @@ func (this *Server) getOrCreateSession(cfg session.Config, clientAddr *net.UDPAd
 	}
 
 	s = session.NewSession(clientAddr, conn, *backend, this.scheduler, cfg)
-	s.ListenResponses(this.serverConn)
+	if !cfg.Transparent {
+		s.ListenResponses(this.serverConn)
+	}
 
 	this.sessions[key] = s
 

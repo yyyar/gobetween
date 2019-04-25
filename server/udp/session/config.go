@@ -7,4 +7,5 @@ type Config struct {
 	MaxResponses       uint64
 	ClientIdleTimeout  time.Duration
 	BackendIdleTimeout time.Duration
+	Transparent        bool
 }
