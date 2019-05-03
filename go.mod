@@ -7,6 +7,7 @@ require (
 	github.com/burntsushi/toml v0.3.1
 	github.com/elgs/gojq v0.0.0-20160421194050-81fa9a608a13
 	github.com/elgs/gosplitargs v0.0.0-20161028071935-a491c5eeb3c8 // indirect
+	github.com/eric-lindau/udpfacade v0.0.0-20190425230512-031998cc71fa
 	github.com/flosch/pongo2 v0.0.0-20181225140029-79872a7b2769 // indirect
 	github.com/fsouza/go-dockerclient v1.3.6
 	github.com/gin-contrib/cors v0.0.0-20190301062745-f9e10995c85a

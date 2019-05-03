@@ -57,7 +57,7 @@ type Session struct {
 	clientAddr *net.UDPAddr
 
 	//connection to backend
-	conn    *net.UDPConn
+	conn    net.Conn
 	backend core.Backend
 
 	//communication
@@ -69,7 +69,7 @@ type Session struct {
 	scheduler *scheduler.Scheduler
 }
 
-func NewSession(clientAddr *net.UDPAddr, conn *net.UDPConn, backend core.Backend, scheduler *scheduler.Scheduler, cfg Config) *Session {
+func NewSession(clientAddr *net.UDPAddr, conn net.Conn, backend core.Backend, scheduler *scheduler.Scheduler, cfg Config) *Session {
 
 	scheduler.IncrementConnection(backend)
 	s := &Session{
