@@ -4,7 +4,7 @@
 # @author Ievgen Ponomarenko <kikomdev@gmail.com>
 #
 
-.PHONY: update clean build build-all run package deploy test authors dist
+.PHONY: update clean build build-all run package deploy test authors dist snap
 
 export GOBIN := ${PWD}/bin
 export GO111MODULE=on
@@ -97,3 +97,14 @@ docker-run:
 docker-tagged:
 	@echo Building docker container ${VERSION}
 	docker build -t yyyar/gobetween:${VERSION} .
+
+snap:
+	@echo Building snap for gobetween ${VERSION}
+	snapcraft
+	@echo Done.
+	@echo Install as service: sudo snap install gobetween_0.8.0+snapshot_amd64.snap --dangerous --classic
+	@echo Remove: sudo snap remove gobetween
+	@echo Config file: /var/snap/gobetween/common/gobetween.toml
+	@echo Override start parameters: /var/snap/gobetween/current/gobetween.sh
+
+
