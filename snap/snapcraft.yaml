@@ -19,6 +19,7 @@ parts:
       source: .
       source-type: local
       build-packages:
+      - golang-go
       - gcc
       - git
       makefile: Makefile
