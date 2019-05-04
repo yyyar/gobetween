@@ -11,6 +11,11 @@ summary: modern & minimalistic load balancer and reverse-proxy for the Cloud era
 description: gobetween is free, open-source, modern & minimalistic L4 load balancer and reverse proxy for the Cloud era
 confinement: classic
 grade: devel
+architectures:
+  - build-on: amd64
+    run-on: amd64
+  - build-on: i386
+    run-on: i386
 base: core18
 
 parts:
@@ -19,12 +24,17 @@ parts:
       source: .
       source-type: local
       build-packages:
-      - golang-go
       - gcc
       - git
+      - software-properties-common
       makefile: Makefile
       artifacts:
         - bin/gobetween
+      override-build: |
+        add-apt-repository --yes ppa:longsleep/golang-backports
+        apt-get update
+        apt-get install --yes golang-1.12-go
+        snapcraftctl build
 
   config:
     plugin: dump
