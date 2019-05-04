@@ -27,6 +27,7 @@ parts:
       - gcc
       - git
       - software-properties-common
+      - apt-utils
       makefile: Makefile
       artifacts:
         - bin/gobetween
