@@ -5,6 +5,7 @@
 [![Go Report Card](https://goreportcard.com/badge/github.com/yyyar/gobetween)](https://goreportcard.com/report/github.com/yyyar/gobetween)
 [![Docs](https://img.shields.io/badge/docs-current-brightgreen.svg)](https://github.com/yyyar/gobetween/wiki)
 [![Docker](https://img.shields.io/docker/pulls/yyyar/gobetween.svg)](https://hub.docker.com/r/yyyar/gobetween/)
+[![Snap](https://img.shields.io/badge/snap-gobetween-blue.svg)](https://snapcraft.io/gobetween)
 [![Telegram](https://img.shields.io/badge/telegram-chat-blue.svg)](https://t.me/joinchat/GdlUlg_gRfchk1BORU82PA)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](/LICENSE)
 
@@ -65,7 +66,8 @@
 
 ## Usage
 
-* [Download and Install](https://github.com/yyyar/gobetween/wiki/Installation)
+* Install with snap: https://snapcraft.io/gobetween
+* [Other Installation Options](https://github.com/yyyar/gobetween/wiki/Installation)
 * [Read Configuration Reference](https://github.com/yyyar/gobetween/wiki)
 * Execute `gobetween --help` for full help on all available commands and options.
 
