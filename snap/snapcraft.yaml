@@ -9,7 +9,7 @@ version-script: cat VERSION
 icon: logo.png
 summary: modern & minimalistic load balancer and reverse-proxy for the Cloud era
 description: gobetween is free, open-source, modern & minimalistic L4 load balancer and reverse proxy for the Cloud era
-confinement: classic
+confinement: strict
 grade: devel
 architectures:
   - build-on: amd64
