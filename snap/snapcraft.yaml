@@ -26,15 +26,11 @@ parts:
       build-packages:
       - gcc
       - git
-      - software-properties-common
-      - apt-utils
       makefile: Makefile
       artifacts:
         - bin/gobetween
       override-build: |
-        add-apt-repository --yes ppa:longsleep/golang-backports
-        apt-get update
-        apt-get install --yes golang-1.12-go
+        snap list | grep go || snap install go --channel=1.12/stable --classic
         snapcraftctl build
 
   config:
