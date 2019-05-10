@@ -75,6 +75,7 @@ func consulFetch(cfg config.DiscoveryConfig) (*[]core.Backend, error) {
 
 	// Create consul client
 	client, _ := consul.NewClient(&consul.Config{
+		Token:      cfg.ConsulAclToken,
 		Scheme:     scheme,
 		Address:    cfg.ConsulHost,
 		Datacenter: cfg.ConsulDatacenter,

@@ -271,6 +271,7 @@ type ConsulDiscoveryConfig struct {
 	ConsulTlsCertPath   string `toml:"consul_tls_cert_path" json:"consul_tls_cert_path"`
 	ConsulTlsKeyPath    string `toml:"consul_tls_key_path" json:"consul_tls_key_path"`
 	ConsulTlsCacertPath string `toml:"consul_tls_cacert_path" json:"consul_tls_cacert_path"`
+	ConsulAclToken      string `toml:"consul_acl_token" json:"consul_acl_token"`
 }
 
 type LXDDiscoveryConfig struct {

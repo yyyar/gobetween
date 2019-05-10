@@ -283,6 +283,8 @@ protocol = "udp"
 #  consul_auth_username = ""   # (optional) HTTP Basic Auth username
 #  consul_auth_password = ""   # (optional) HTTP Basic Auth password
 #
+#  consul_acl_token     = ""   # (optional) ACL token used in requests to Consul
+#
 #  consul_tls_enabled = true                      # (optional) enable client tls auth
 #  consul_tls_cert_path = "/path/to/cert.pem"
 #  consul_tls_key_path = "/path/to/key.pem"
