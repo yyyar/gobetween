@@ -9,6 +9,9 @@ package cmd
 import (
 	"io/ioutil"
 	"log"
+	"os"
+	"regexp"
+	"strings"
 
 	"github.com/spf13/cobra"
 	"github.com/yyyar/gobetween/config"
@@ -42,9 +45,14 @@ var FromFileCmd = &cobra.Command{
 		}
 
 		var cfg config.Config
-		if err = codec.Decode(string(data), &cfg, format); err != nil {
+
+		datastr := mapEnvVars(string(data))
+
+		if err = codec.Decode(datastr, &cfg, format); err != nil {
 			log.Fatal(err)
 		}
+
+		log.Println(cfg)
 
 		info.Configuration = struct {
 			Kind string `json:"kind"`
@@ -53,4 +61,18 @@ var FromFileCmd = &cobra.Command{
 
 		start(&cfg)
 	},
+}
+
+//
+// mapEnvVars replaces placeholders ${...} with env var value
+//
+func mapEnvVars(data string) string {
+
+	var re = regexp.MustCompile(`\${.*?}`)
+
+	vars := re.FindAllString(data, -1)
+	for _, v := range vars {
+		data = strings.ReplaceAll(data, v, os.Getenv(v[2:len(v)-1]))
+	}
+	return data
 }
