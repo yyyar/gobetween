@@ -13,6 +13,7 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/yyyar/gobetween/config"
 	"github.com/yyyar/gobetween/info"
+	"github.com/yyyar/gobetween/utils"
 	"github.com/yyyar/gobetween/utils/codec"
 )
 
@@ -60,8 +61,13 @@ var FromConsulCmd = &cobra.Command{
 			log.Fatal("Empty value for key " + consulKey)
 		}
 
+		datastr := string(pair.Value)
+		if isConfigEnvVars {
+			datastr = utils.SubstituteEnvVars(datastr)
+		}
+
 		var cfg config.Config
-		if err := codec.Decode(string(pair.Value), &cfg, format); err != nil {
+		if err := codec.Decode(datastr, &cfg, format); err != nil {
 			log.Fatal(err)
 		}
 

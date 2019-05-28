@@ -22,6 +22,9 @@ var configPath string
 /* Show version */
 var showVersion bool
 
+/* Substitute env vars in config or not */
+var isConfigEnvVars bool
+
 /**
  * Add Root Command
  */
@@ -29,6 +32,7 @@ func init() {
 	RootCmd.Flags().BoolVarP(&showVersion, "version", "v", false, "Print version information and quit")
 	RootCmd.Flags().StringVarP(&configPath, "config", "c", "", "Path to configuration file")
 	RootCmd.PersistentFlags().StringVarP(&format, "format", "f", "toml", "Configuration file format: \"toml\" or \"json\"")
+	RootCmd.PersistentFlags().BoolVarP(&isConfigEnvVars, "use-config-env-vars", "e", false, "Enable env variables interpretation in config file")
 }
 
 /**

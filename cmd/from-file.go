@@ -13,6 +13,7 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/yyyar/gobetween/config"
 	"github.com/yyyar/gobetween/info"
+	"github.com/yyyar/gobetween/utils"
 	"github.com/yyyar/gobetween/utils/codec"
 )
 
@@ -42,7 +43,13 @@ var FromFileCmd = &cobra.Command{
 		}
 
 		var cfg config.Config
-		if err = codec.Decode(string(data), &cfg, format); err != nil {
+
+		datastr := string(data)
+		if isConfigEnvVars {
+			datastr = utils.SubstituteEnvVars(datastr)
+		}
+
+		if err = codec.Decode(datastr, &cfg, format); err != nil {
 			log.Fatal(err)
 		}
 
