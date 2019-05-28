@@ -52,8 +52,6 @@ var FromFileCmd = &cobra.Command{
 			log.Fatal(err)
 		}
 
-		log.Println(cfg)
-
 		info.Configuration = struct {
 			Kind string `json:"kind"`
 			Path string `json:"path"`
