@@ -5,7 +5,7 @@
 [![Go Report Card](https://goreportcard.com/badge/github.com/yyyar/gobetween)](https://goreportcard.com/report/github.com/yyyar/gobetween)
 [![Docs](https://img.shields.io/badge/docs-current-brightgreen.svg)](https://github.com/yyyar/gobetween/wiki)
 [![Docker](https://img.shields.io/docker/pulls/yyyar/gobetween.svg)](https://hub.docker.com/r/yyyar/gobetween/)
-[![Snap](https://img.shields.io/badge/snap-gobetween-blue.svg)](https://snapcraft.io/gobetween)
+[![Snap Status](https://build.snapcraft.io/badge/yyyar/gobetween.svg)](https://build.snapcraft.io/user/yyyar/gobetween)
 [![Telegram](https://img.shields.io/badge/telegram-chat-blue.svg)](https://t.me/joinchat/GdlUlg_gRfchk1BORU82PA)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](/LICENSE)
 
