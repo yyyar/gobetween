@@ -261,11 +261,11 @@ func prepareConfig(name string, server config.Server, defaults config.Connection
 	/* ----- Prerequisites ----- */
 
 	if server.Bind == "" {
-		return config.Server{}, errors.New("No bind specified")
+		return config.Server{}, errors.New("No bind specified for server " + name)
 	}
 
 	if server.Discovery == nil {
-		return config.Server{}, errors.New("No .discovery specified")
+		return config.Server{}, errors.New("No .discovery specified for server " + name)
 	}
 
 	if server.Healthcheck == nil {
