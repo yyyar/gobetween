@@ -7,9 +7,9 @@
 package discovery
 
 import (
-	"../config"
-	"../core"
-	"../logging"
+	"github.com/yyyar/gobetween/config"
+	"github.com/yyyar/gobetween/core"
+	"github.com/yyyar/gobetween/logging"
 	"sync"
 )
 
