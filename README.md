@@ -36,7 +36,7 @@
 * [Discovery](https://github.com/yyyar/gobetween/wiki/Discovery)
   * **Static** - hardcode backends list in config file
   * **Docker** - query backends from Docker / Swarm API filtered by label
-  * **Exec** - execte arbitrary program and get backends from it's stdout
+  * **Exec** - execute arbitrary program and get backends from its stdout
   * **JSON** - query arbitrary http url and pick backends from response json (of any structure)
   * **Plaintext** - query arbitrary http and parse backends from response text with customized regexp
   * **SRV** - query DNS server and get backends from SRV records
@@ -44,8 +44,8 @@
   * **LXD** - query backends from LXD
 
 * [Healthchecks](https://github.com/yyyar/gobetween/wiki/Healthchecks)
-  * **Ping** - simple TCP ping healtcheck
-  * **Exec** - execute arbitrary program passing host & port as options, and read healtcheck status from the stdout
+  * **Ping** - simple TCP ping healthcheck
+  * **Exec** - execute arbitrary program passing host & port as options, and read healthcheck status from the stdout
   * **Probe** - send specific bytes to backend (udp, tcp or tls) and expect correct answer (bytes or regexp)
 
 * [Balancing Strategies](https://github.com/yyyar/gobetween/wiki/Balancing) (with [SNI](https://github.com/yyyar/gobetween/wiki/Server-Name-Indication) support)
@@ -56,7 +56,7 @@
   * **Leastconn** - select backend with least active connections
   * **Leastbandwidth** -  backends with least bandwidth
 
-* Integrates seamlessly with Docker and with any custom system (thanks to Exec discovery and healtchecks)
+* Integrates seamlessly with Docker and with any custom system (thanks to Exec discovery and healthchecks)
 
 * Single binary distribution
 
@@ -108,7 +108,7 @@ bind    = ":6060"  # "host:port"
 It's Fast! See [Performance Testing](https://github.com/yyyar/gobetween/wiki/Performance-tests)
 
 ## The Name
-It's play on words: gobetween ("go between"). 
+It's a play on words: gobetween ("go between"). 
 
 Also, it's written in Go, and it's a proxy so it's something that stays between 2 parties :smile:
 
