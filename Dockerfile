@@ -10,6 +10,10 @@ RUN apk add make
 RUN mkdir -p /opt/gobetween
 WORKDIR /opt/gobetween
 
+RUN mkdir ./src
+COPY ./src/go.mod ./src/go.mod
+COPY ./src/go.sum ./src/go.sum
+
 COPY go.mod .
 COPY go.sum .
 
