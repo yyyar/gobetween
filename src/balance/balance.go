@@ -7,9 +7,9 @@
 package balance
 
 import (
-	"../config"
-	"../core"
-	"./middleware"
+	"github.com/yyyar/gobetween/balance/middleware"
+	"github.com/yyyar/gobetween/config"
+	"github.com/yyyar/gobetween/core"
 )
 
 /**
