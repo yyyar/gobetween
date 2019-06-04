@@ -74,9 +74,9 @@
 
 ## Hacking
 
-* Install Go 1.10+ https://golang.org/
+* Install Go 1.12+ https://golang.org/
 * `$ git clone git@github.com:yyyar/gobetween.git`
-* `$ make deps`
+* `$ make`
 * `$ make run`
 
 ### Debug and Test
