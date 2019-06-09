@@ -81,6 +81,11 @@ type Discovery struct {
 	 * Channel where to push newly discovered backends
 	 */
 	out chan ([]core.Backend)
+
+	/**
+	 * Channel for stopping discovery
+	 */
+	stop chan bool
 }
 
 /**
@@ -91,6 +96,7 @@ func (this *Discovery) Start() {
 	log := logging.For("discovery")
 
 	this.out = make(chan []core.Backend)
+	this.stop = make(chan bool)
 
 	// Prepare interval
 	interval, err := time.ParseDuration(this.cfg.Interval)
@@ -98,29 +104,44 @@ func (this *Discovery) Start() {
 		log.Fatal(err)
 	}
 
+	// TODO: rewrite with channels for stop
 	go func() {
 		for {
 			backends, err := this.fetch(this.cfg)
 
+			select {
+			case <-this.stop:
+				log.Info("Stopping discovery ", this.cfg)
+				return
+			default:
+			}
+
 			if err != nil {
 				log.Error(this.cfg.Kind, " error ", err, " retrying in ", this.opts.RetryWaitDuration.String())
-
 				log.Info("Applying failpolicy ", this.cfg.Failpolicy)
 
 				if this.cfg.Failpolicy == "setempty" {
 					this.backends = &[]core.Backend{}
-					this.out <- *this.backends
+					if !this.send() {
+						log.Info("Stopping discovery ", this.cfg)
+						return
+					}
 				}
 
-				time.Sleep(this.opts.RetryWaitDuration)
+				if !this.wait(this.opts.RetryWaitDuration) {
+					log.Info("Stopping discovery ", this.cfg)
+					return
+				}
+
 				continue
 			}
 
 			// cache
 			this.backends = backends
-
-			// out
-			this.out <- *this.backends
+			if !this.send() {
+				log.Info("Stopping discovery ", this.cfg)
+				return
+			}
 
 			// exit gorouting if no cacheTtl
 			// used for static discovery
@@ -128,16 +149,52 @@ func (this *Discovery) Start() {
 				return
 			}
 
-			time.Sleep(interval)
+			if !this.wait(interval) {
+				log.Info("Stopping discovery ", this.cfg)
+				return
+			}
 		}
 	}()
+}
+
+func (this *Discovery) send() bool {
+	// out if not stopped
+	select {
+	case <-this.stop:
+		return false
+	default:
+		this.out <- *this.backends
+		return true
+	}
+}
+
+/**
+ * wait waits for interval or stop
+ * returns true if waiting was successfull
+ * return false if waiting was interrupted with stop
+ */
+func (this *Discovery) wait(interval time.Duration) bool {
+
+	t := time.NewTimer(interval)
+
+	select {
+	case <-t.C:
+		return true
+
+	case <-this.stop:
+		if !t.Stop() {
+			<-t.C
+		}
+		return false
+	}
+
 }
 
 /**
  * Stop discovery
  */
 func (this *Discovery) Stop() {
-	// TODO: Add stopping function
+	this.stop <- true
 }
 
 /**
