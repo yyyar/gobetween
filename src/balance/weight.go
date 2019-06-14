@@ -29,6 +29,7 @@ func (b *WeightBalancer) Elect(context core.Context, backends []*core.Backend) (
 		return nil, errors.New("Can't elect backend, Backends empty")
 	}
 
+	// nothing to apply algorithm to - just one backend, simply return
 	if len(backends) == 1 {
 		return backends[0], nil
 	}
@@ -40,6 +41,7 @@ func (b *WeightBalancer) Elect(context core.Context, backends []*core.Backend) (
 	// sum of weights in the group
 	groupSumWeight := 0
 
+	// first pass: find lowest numbered priority and a group of backeds with it
 	for _, backend := range backends {
 
 		if backend.Priority > minPriority {
@@ -50,8 +52,8 @@ func (b *WeightBalancer) Elect(context core.Context, backends []*core.Backend) (
 			return nil, fmt.Errorf("Invalid backend priority, shold not be less than 0: %v", backend.Priority)
 		}
 
-		if backend.Weight <= 0 {
-			return nil, fmt.Errorf("Invalid backend weight, should not be less or equal to 0: %v", backend.Weight)
+		if backend.Weight < 0 {
+			return nil, fmt.Errorf("Invalid backend weight, should not be less 0: %v", backend.Weight)
 		}
 
 		// got new lower priority, reset
@@ -65,13 +67,20 @@ func (b *WeightBalancer) Elect(context core.Context, backends []*core.Backend) (
 		groupSumWeight += backend.Weight
 	}
 
+	// corner case #1 -- group of just one backend, simply return
 	if len(group) == 1 {
 		return group[0], nil
+	}
+
+	// corner case #2 -- group of backends with weight 0 (allowed by RFC, but not handled by weight distribution algorithm)
+	if groupSumWeight == 0 {
+		return group[rand.Intn(len(group))], nil
 	}
 
 	r := rand.Intn(groupSumWeight)
 	pos := 0
 
+	// weight selection algorithm
 	for _, backend := range group {
 		pos += backend.Weight
 		if r >= pos {
