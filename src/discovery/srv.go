@@ -57,52 +57,49 @@ func srvFetch(cfg config.DiscoveryConfig) (*[]core.Backend, error) {
 		return &[]core.Backend{}, nil
 	}
 
-	/* ----- try to get A data from additional section ------ */
+	/* ----- try to get IPs from additional section ------ */
 
 	hosts := make(map[string]string) // name -> host
 	for _, ans := range r.Extra {
-		record, ok := ans.(*dns.A)
-		if !ok {
-			continue
+		switch record := ans.(type) {
+		case *dns.A:
+			hosts[record.Header().Name] = record.A.String()
+		case *dns.AAAA:
+			hosts[record.Header().Name] = record.AAAA.String()
 		}
-
-		hosts[record.Header().Name] = record.A.String()
 	}
 
-	/* ----- create backends list looking up for A if needed ----- */
+	/* ----- create backend list looking up IP if needed ----- */
 
 	backends := []core.Backend{}
 	for _, ans := range r.Answer {
-
 		record, ok := ans.(*dns.SRV)
 		if !ok {
 			return nil, errors.New("Non-SRV record in SRV answer")
 		}
 
-		// If there were no A record in additional SRV response,
-		// Fetch it explicitelly
+		// If there were no A/AAAA record in additional SRV response,
+		// fetch it
 		if _, ok := hosts[record.Target]; !ok {
+			log.Debug("Fetching ", cfg.SrvLookupServer, " A/AAAA ", record.Target)
 
-			log.Debug("Fetching ", cfg.SrvLookupServer, " A ", record.Target)
-
-			resp, err := srvDnsLookup(cfg, record.Target, dns.TypeA)
+			ip, err := srvIPLookup(cfg, record.Target, dns.TypeA)
 			if err != nil {
-				log.Warn("Error fetching A record for ", record.Target, " skipping...")
-				continue
+				log.Warn("Error fetching A record for ", record.Target, ": ", err)
 			}
 
-			if len(resp.Answer) == 0 {
-				log.Warn("Empty answer for A records ", record.Target, " skipping...")
-				continue
+			if ip == "" {
+				ip, err = srvIPLookup(cfg, record.Target, dns.TypeAAAA)
+				if err != nil {
+					log.Warn("Error fetching AAAA record for ", record.Target, ": ", err)
+				}
 			}
 
-			a, ok := resp.Answer[0].(*dns.A)
-			if !ok {
-				log.Warn("Non-A record in A answer ", record.Target, " skipping...")
-				continue
+			if ip != "" {
+				hosts[record.Target] = ip
+			} else {
+				log.Warn("No IP fond for ", record.Target, ", skipping...")
 			}
-
-			hosts[record.Target] = a.A.String()
 		}
 
 		// Append new backends
@@ -127,7 +124,6 @@ func srvFetch(cfg config.DiscoveryConfig) (*[]core.Backend, error) {
  * Perform DNS Lookup with needed pattern and type
  */
 func srvDnsLookup(cfg config.DiscoveryConfig, pattern string, typ uint16) (*dns.Msg, error) {
-
 	timeout := utils.ParseDurationOrDefault(cfg.Timeout, srvDefaultWaitTimeout)
 	c := dns.Client{Net: cfg.SrvDnsProtocol, Timeout: timeout}
 	m := dns.Msg{}
@@ -137,4 +133,27 @@ func srvDnsLookup(cfg config.DiscoveryConfig, pattern string, typ uint16) (*dns.
 	r, _, err := c.Exchange(&m, cfg.SrvLookupServer)
 
 	return r, err
+}
+
+/**
+ * Perform DNS lookup and extract IP address
+ */
+func srvIPLookup(cfg config.DiscoveryConfig, pattern string, typ uint16) (string, error) {
+	resp, err := srvDnsLookup(cfg, pattern, typ)
+	if err != nil {
+		return "", err
+	}
+
+	if len(resp.Answer) == 0 {
+		return "", nil
+	}
+
+	switch ans := resp.Answer[0].(type) {
+	case *dns.A:
+		return ans.A.String(), nil
+	case *dns.AAAA:
+		return ans.AAAA.String(), nil
+	default:
+		return "", nil
+	}
 }
