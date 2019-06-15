@@ -65,7 +65,7 @@ func srvFetch(cfg config.DiscoveryConfig) (*[]core.Backend, error) {
 		case *dns.A:
 			hosts[record.Header().Name] = record.A.String()
 		case *dns.AAAA:
-			hosts[record.Header().Name] = record.AAAA.String()
+			hosts[record.Header().Name] = fmt.Sprintf("[%s]", record.AAAA.String())
 		}
 	}
 
@@ -153,7 +153,7 @@ func srvIPLookup(cfg config.DiscoveryConfig, pattern string, typ uint16) (string
 	case *dns.A:
 		return ans.A.String(), nil
 	case *dns.AAAA:
-		return ans.AAAA.String(), nil
+		return fmt.Sprintf("[%s]", ans.AAAA.String()), nil
 	default:
 		return "", nil
 	}
