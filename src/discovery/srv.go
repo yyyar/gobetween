@@ -98,7 +98,8 @@ func srvFetch(cfg config.DiscoveryConfig) (*[]core.Backend, error) {
 			if ip != "" {
 				hosts[record.Target] = ip
 			} else {
-				log.Warn("No IP fond for ", record.Target, ", skipping...")
+				log.Warn("No IP found for ", record.Target, ", skipping...")
+				continue
 			}
 		}
 
