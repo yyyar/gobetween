@@ -167,7 +167,8 @@ protocol = "udp"
 #  [servers.default.udp]             # (optional)
 #  max_requests  = 0                 # (optional) if > 0 accepts no more requests than max_requests and closes session
 #  max_responses = 0                 # (optional) if > 0 accepts no more responses than max_responses from backend and closes session
-#  transparent = false               # (optional) if true - work in transparent mode, when forwarded udp packets have client source address.
+#  transparent = false               # (optional, not supported in Windows)
+#                                    #            if true - work in transparent mode, when forwarded udp packets have client source address.
 #                                    #            (requires additional host configuration)
 #
 #
