@@ -8,16 +8,18 @@ package balance
 
 import (
 	"errors"
-	"fmt"
 	"math/rand"
 
 	"github.com/yyyar/gobetween/core"
+	"github.com/yyyar/gobetween/logging"
 )
 
 /**
  * Weight balancer
  */
 type WeightBalancer struct{}
+
+var log = logging.For("balance/weight")
 
 /**
  * Elect backend based on weight with priority strategy.
@@ -27,11 +29,6 @@ func (b *WeightBalancer) Elect(context core.Context, backends []*core.Backend) (
 
 	if len(backends) == 0 {
 		return nil, errors.New("Can't elect backend, Backends empty")
-	}
-
-	// nothing to apply algorithm to - just one backend, simply return
-	if len(backends) == 1 {
-		return backends[0], nil
 	}
 
 	// according to RFC we should use backends with lowest priority
@@ -49,14 +46,16 @@ func (b *WeightBalancer) Elect(context core.Context, backends []*core.Backend) (
 		}
 
 		if backend.Priority < 0 {
-			return nil, fmt.Errorf("Invalid backend priority, shold not be less than 0: %v", backend.Priority)
+			log.Warn("Ignoring invalid backend priority %v, should not be less than 0", backend.Priority)
+			continue
 		}
 
 		if backend.Weight < 0 {
-			return nil, fmt.Errorf("Invalid backend weight, should not be less 0: %v", backend.Weight)
+			log.Warn("Ignoring invalid backend weight %v, should not be less than 0", backend.Weight)
+			continue
 		}
 
-		// got new lower priority, reset
+		// got new lower (accroding to RFC, lower values are preferred) priority, reset
 		if backend.Priority < minPriority {
 			minPriority = backend.Priority
 			group = make([]*core.Backend, 0, len(backends))
