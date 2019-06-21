@@ -28,8 +28,8 @@ github.com/elgs/gojq v0.0.0-20160421194050-81fa9a608a13 h1:/voSflvo4UvPT0XZy+YQM
 github.com/elgs/gojq v0.0.0-20160421194050-81fa9a608a13/go.mod h1:rQELVIqRXpraeUryHOBadz99ePvEVQmTVpGr8M9QQ4Q=
 github.com/elgs/gosplitargs v0.0.0-20161028071935-a491c5eeb3c8 h1:bD2/rCXwgXJm2vgoSSSCM9IPjVFfEoQFFblzg7HHABI=
 github.com/elgs/gosplitargs v0.0.0-20161028071935-a491c5eeb3c8/go.mod h1:o4DgpccPNAQAlPSxo7I4L/LWNh2oyr/BBGSynrLTmZM=
-github.com/eric-lindau/udpfacade v0.0.0-20190425230512-031998cc71fa h1:vcabBLB5KsNFFvLiz58J/0/Y1sP9vIMu5CO9tjNN4tU=
-github.com/eric-lindau/udpfacade v0.0.0-20190425230512-031998cc71fa/go.mod h1:FgXLvXZ5hgyfdG0KcbEt7dihoivzIk9puoGiP+2isNE=
+github.com/eric-lindau/udpfacade v0.0.0-20190621043444-d8c1c27add16 h1:vXNN2aHN8uRUEJYdSVhXhjZ2lIsrakx7J0j3nC1sIsE=
+github.com/eric-lindau/udpfacade v0.0.0-20190621043444-d8c1c27add16/go.mod h1:FgXLvXZ5hgyfdG0KcbEt7dihoivzIk9puoGiP+2isNE=
 github.com/fatih/color v1.7.0/go.mod h1:Zm6kSWBoL9eyXnKyktHP6abPY2pDugNf5KwzbycvMj4=
 github.com/flosch/pongo2 v0.0.0-20181225140029-79872a7b2769 h1:XToLChWPMXLomJ2InnkrmUkddaXfevrmomMTFL+MaKU=
 github.com/flosch/pongo2 v0.0.0-20181225140029-79872a7b2769/go.mod h1:tbAXHifHQWNSpWbiJHpJTZH5fi3XHhDMdP//vuz9WS4=
