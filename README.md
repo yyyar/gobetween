@@ -19,7 +19,7 @@
 * [Fast L4 Load Balancing](https://github.com/yyyar/gobetween/wiki)
   * **TCP** - with optional [The PROXY Protocol](https://github.com/yyyar/gobetween/wiki/Proxy-Protocol) support
   * **TLS** - [TLS Termination](https://github.com/yyyar/gobetween/wiki/Protocols#tls) + [ACME](https://github.com/yyyar/gobetween/wiki/Protocols#tls) & [TLS Proxy](https://github.com/yyyar/gobetween/wiki/Tls-Proxying)
-  * **UDP** - with optional virtual sessions
+  * **UDP** - with optional virtual sessions and transparent mode
 
 
 * [Clear & Flexible Configuration](https://github.com/yyyar/gobetween/wiki/Configuration) with [TOML](config/gobetween.toml) or [JSON](config/gobetween.json)
@@ -70,7 +70,6 @@
 * [Other Installation Options](https://github.com/yyyar/gobetween/wiki/Installation)
 * [Read Configuration Reference](https://github.com/yyyar/gobetween/wiki)
 * Execute `gobetween --help` for full help on all available commands and options.
-
 
 ## Hacking
 
