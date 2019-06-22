@@ -81,8 +81,9 @@ bind = "0.0.0.0:3000"
   [servers.sample.discovery]
   kind = "static"
   static_list = [
-      "localhost:8000",
-      "localhost:8001"
+      "localhost:8000 weight=40 priority=1",
+      "localhost:8001 weight=60 priority=1",
+      "localhost:8002 weight=100 priority=0"
   ]
 
 # ---------- udp example ----------- #
