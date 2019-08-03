@@ -316,7 +316,7 @@ func prepareConfig(name string, server config.Server, defaults config.Connection
 	if server.Healthcheck.Kind == "probe" {
 
 		switch server.Healthcheck.ProbeProtocol {
-		case "tcp", "udp":
+		case "tcp", "udp", "tls":
 		default:
 			return config.Server{}, errors.New("Unsupported probe_protocol")
 		}

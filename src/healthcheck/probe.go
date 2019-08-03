@@ -1,7 +1,7 @@
 package healthcheck
 
 /**
- * probe.go - TCP/UDP probe healthcheck
+ * probe.go - TCP/UDP and TLS probe healthcheck
  *
  * @author Yousong Zhou <zhouyousong@yunionyun.com>
  * @author Illarion Kovalchuk <illarion.kovalchuk@gmail.com>
@@ -9,6 +9,7 @@ package healthcheck
 
 import (
 	"bytes"
+	"crypto/tls"
 	"io"
 	"net"
 	"regexp"
@@ -37,7 +38,17 @@ func probe(t core.Target, cfg config.HealthcheckConfig, result chan<- CheckResul
 		}
 	}()
 
-	conn, err := net.DialTimeout(cfg.ProbeProtocol, t.Address(), timeout)
+	var conn net.Conn
+	var err error
+
+	switch cfg.ProbeProtocol {
+	case "tls":
+		conn, err = tls.DialWithDialer(&net.Dialer{
+			Timeout: timeout,
+		}, "tcp", t.Address(), &tls.Config{})
+	default:
+		conn, err = net.DialTimeout(cfg.ProbeProtocol, t.Address(), timeout)
+	}
 	if err != nil {
 		checkResult.Live = false
 		return

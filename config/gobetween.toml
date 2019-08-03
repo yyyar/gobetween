@@ -210,7 +210,7 @@ protocol = "udp"
 #  ## could be also matched using regular expression.
 #  ##
 #  kind = "probe"
-#  probe_protocol = "udp"         # (required) "udp" | "tcp"
+#  probe_protocol = "udp"         # (required) "udp" | "tcp" | "tls"
 #  probe_strategy = "starts_with" # (optional) "starts_with" | "regexp"
 #  probe_send    = 'PING\xFF\n'   # (required) string to send
 #  probe_recv    = 'PONG\xAA\n'   # (required) string to expect in response (response starts with or regexp)
