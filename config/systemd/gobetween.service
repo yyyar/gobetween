@@ -7,10 +7,10 @@ After=network.target remote-fs.target nss-lookup.target
 Type=simple
 PIDFile=/run/gobetween.pid
 #ExecStartPre=prestart some command
-ExecStart=/usr/sbin/gobetween -c /etc/gobetween.toml
-ExecReload=/bin/kill -s HUP $MAINPID
-ExecStop=/bin/kill -s QUIT $MAINPID
+ExecStart=/usr/sbin/gobetween -c /etc/gobetween.toml -pidfile /run/gobetween.pid
+ExecStop=/bin/kill -s TERM $MAINPID
 PrivateTmp=true
+LimitNOFILE=infinity
 
 [Install]
 WantedBy=multi-user.target
