@@ -9,6 +9,7 @@ package balance
 import (
 	"errors"
 	"hash/fnv"
+	"sort"
 
 	"github.com/yyyar/gobetween/core"
 )
@@ -29,6 +30,10 @@ func (b *IphashBalancer) Elect(context core.Context, backends []*core.Backend) (
 	if len(backends) == 0 {
 		return nil, errors.New("Can't elect backend, Backends empty")
 	}
+
+	sort.SliceStable(backends, func(i, j int) bool {
+		return backends[i].Target.String() < backends[j].Target.String()
+	})
 
 	hash := fnv.New32a()
 	hash.Write(context.Ip())
