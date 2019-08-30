@@ -77,7 +77,7 @@ func main() {
 	cmd.Execute(func(cfg *config.Config) {
 
 		// Configure logging
-		logging.Configure(cfg.Logging.Output, cfg.Logging.Level)
+		logging.Configure(cfg.Logging.Output, cfg.Logging.Level, cfg.Logging.Format)
 
 		// Start API
 		go api.Start((*cfg).Api)

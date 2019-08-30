@@ -12,6 +12,7 @@
 [logging]
 level = "info"   # "debug" | "info" | "warn" | "error"
 output = "stdout" # "stdout" | "stderr" | "/path/to/gobetween.log"
+format = "json" # "json"
 
 #
 # Pprof profiler configuration
