@@ -369,3 +369,8 @@ func (this *Server) fireAndForget(clientAddr *net.UDPAddr, buf []byte) error {
 func (this *Server) Stop() {
 	this.stop <- true
 }
+
+// UpdateBackends updates the backends
+func (this *Server) UpdateBackends(backends *[]core.Backend) {
+	this.scheduler.Discovery.SendBackends(backends)
+}

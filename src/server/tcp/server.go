@@ -181,6 +181,11 @@ func (this *Server) Start() error {
 	return nil
 }
 
+// UpdateBackends updates the backends
+func (this *Server) UpdateBackends(backends *[]core.Backend) {
+	this.scheduler.Discovery.SendBackends(backends)
+}
+
 /**
  * Handle client disconnection
  */

@@ -217,6 +217,20 @@ func Create(name string, cfg config.Server) error {
 	return nil
 }
 
+// Modify allows you to update the backends of an existing server
+func Modify(name string, backends *[]core.Backend) error {
+	servers.RLock()
+	server, ok := servers.m[name]
+	servers.RUnlock()
+	if !ok {
+		return errors.New("Server with this name does not exist: " + name)
+	}
+
+	server.UpdateBackends(backends)
+
+	return nil
+}
+
 /**
  * Delete server stopping all active connections
  */

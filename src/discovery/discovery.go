@@ -163,9 +163,14 @@ func (this *Discovery) send() bool {
 	case <-this.stop:
 		return false
 	default:
-		this.out <- *this.backends
+		this.SendBackends(this.backends)
 		return true
 	}
+}
+
+// SendBackends updates the backends
+func (this *Discovery) SendBackends(backends *[]core.Backend) {
+	this.out <- *backends
 }
 
 /**
