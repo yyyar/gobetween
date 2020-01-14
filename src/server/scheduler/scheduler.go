@@ -126,7 +126,7 @@ func (this *Scheduler) Start() {
 
 			// handle backend healthcheck result
 			case checkResult := <-this.Healthcheck.Out:
-				this.HandleBackendLiveChange(checkResult.Target, checkResult.Live)
+				this.HandleBackendLiveChange(checkResult.Target, checkResult.Live == healthcheck.LiveCheckResult)
 
 			/* ----- stats ----- */
 
@@ -248,6 +248,9 @@ func (this *Scheduler) HandleBackendsUpdate(backends []core.Backend) {
 		b := b // b has to be local variable in order to make unique pointers
 		b.Stats.Discovered = true
 		this.backends[b.Target] = &b
+
+		// only mark something as live if it does not have a health check
+		b.Stats.Live = !this.Healthcheck.HasCheck()
 	}
 
 	//remove not discovered backends without active connections
