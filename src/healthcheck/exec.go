@@ -31,13 +31,13 @@ func exec(t core.Target, cfg config.HealthcheckConfig, result chan<- CheckResult
 	out, err := utils.ExecTimeout(execTimeout, cfg.ExecCommand, t.Host, t.Port)
 	if err != nil {
 		// TODO: Decide better what to do in this case
-		checkResult.Live = false
+		checkResult.Live = FailCheckResult
 		log.Warn(err)
 	} else {
 		if out == cfg.ExecExpectedPositiveOutput {
-			checkResult.Live = true
+			checkResult.Live = LiveCheckResult
 		} else if out == cfg.ExecExpectedNegativeOutput {
-			checkResult.Live = false
+			checkResult.Live = FailCheckResult
 		} else {
 			log.Warn("Unexpected output: ", out)
 		}

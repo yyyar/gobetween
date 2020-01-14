@@ -17,6 +17,14 @@ import (
  */
 type CheckFunc func(core.Target, config.HealthcheckConfig, chan<- CheckResult)
 
+type CheckResultLiveness int32
+
+const (
+	InitialCheckResult CheckResultLiveness = iota
+	FailCheckResult
+	LiveCheckResult
+)
+
 /**
  * Check result
  * Handles target and it's live status
@@ -27,7 +35,7 @@ type CheckResult struct {
 	Target core.Target
 
 	/* Check live status */
-	Live bool
+	Live CheckResultLiveness
 }
 
 /**
@@ -147,7 +155,7 @@ func (this *Healthcheck) UpdateWorkers(targets []core.Target) {
 				cfg:    this.cfg,
 				check:  this.check,
 				LastResult: CheckResult{
-					Live: true,
+					Live: InitialCheckResult,
 				},
 			}
 			keep.Start()
@@ -173,6 +181,10 @@ func (this *Healthcheck) UpdateWorkers(targets []core.Target) {
 
 	this.workers = result
 
+}
+
+func (this *Healthcheck) HasCheck() bool {
+	return this.cfg.Kind != "none"
 }
 
 /**
