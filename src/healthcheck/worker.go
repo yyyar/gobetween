@@ -64,6 +64,9 @@ func (this *Worker) Start() {
 	c := make(chan CheckResult, 1)
 
 	go func() {
+		/* Check health before any delay*/
+		log.Debug("Initial check ", this.cfg.Kind, " for ", this.target)
+		go this.check(this.target, this.cfg, c)
 		for {
 			select {
 
