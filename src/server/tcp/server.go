@@ -100,6 +100,7 @@ func New(name string, cfg config.Server) (*Server, error) {
 			Discovery:    discovery.New(cfg.Discovery.Kind, *cfg.Discovery),
 			Healthcheck:  healthcheck.New(cfg.Healthcheck.Kind, *cfg.Healthcheck),
 			StatsHandler: statsHandler,
+			CloseOnFailure: cfg.CloseOnFailure,
 		},
 	}
 
@@ -312,7 +313,7 @@ func (this *Server) handle(ctx *core.TcpContext) {
 	}
 
 	/* We are only interested on backend going down if we are to close our connection */
-	if this.cfg.Healthcheck == nil || !this.cfg.Healthcheck.CloseOnFailure {
+	if !this.cfg.CloseOnFailure {
 		terminateSignal = nil
 	}
 

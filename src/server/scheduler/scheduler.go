@@ -8,6 +8,7 @@ package scheduler
 
 import (
 	"fmt"
+	"github.com/prometheus/common/log"
 	"time"
 
 	"github.com/yyyar/gobetween/core"
@@ -73,6 +74,8 @@ type Scheduler struct {
 
 	/* Healthcheck impl */
 	Healthcheck *healthcheck.Healthcheck
+
+	CloseOnFailure bool
 
 	/* ----- backends ------*/
 
@@ -234,11 +237,13 @@ func (this *Scheduler) HandleBackendLiveChange(target core.Target, live bool) {
 	terminationSignal, ok := this.liveness[target]
 	if !live {
 		if ok {
+			log.Infof("Backend %s DOWN", backend.Target.String())
 			close(terminationSignal)
 			delete(this.liveness, target)
 		}
 	} else {
 		if !ok {
+			log.Infof("Backend %s UP", backend.Target.String())
 			this.liveness[target] = make(chan struct{})
 		}
 	}
@@ -277,7 +282,16 @@ func (this *Scheduler) HandleBackendsUpdate(backends []core.Backend) {
 
 	//remove not discovered backends without active connections
 	for t, b := range this.backends {
-		if b.Stats.Discovered || b.Stats.ActiveConnections > 0 {
+		if b.Stats.Discovered {
+			continue
+		}
+		if b.Stats.ActiveConnections > 0 {
+			if this.CloseOnFailure {
+				if l, ok := this.liveness[t]; ok {
+					close(l)
+					delete(this.liveness, t)
+				}
+			}
 			continue
 		}
 
