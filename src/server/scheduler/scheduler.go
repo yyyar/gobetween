@@ -47,11 +47,18 @@ type Op struct {
 /**
  * Request to elect backend
  */
+type ElectResponse struct {
+	Backend *core.Backend
+	Alive <-chan struct{}
+}
+
 type ElectRequest struct {
 	Context  core.Context
-	Response chan core.Backend
+	Response chan ElectResponse
 	Err      chan error
 }
+
+
 
 /**
  * Scheduler
@@ -71,6 +78,8 @@ type Scheduler struct {
 
 	/* Current cached backends map */
 	backends map[core.Target]*core.Backend
+
+	liveness map[core.Target]chan struct{}
 
 	/* Stats */
 	StatsHandler *stats.Handler
@@ -100,6 +109,7 @@ func (this *Scheduler) Start() {
 	this.elect = make(chan ElectRequest)
 	this.stop = make(chan bool)
 	this.backends = make(map[core.Target]*core.Backend)
+	this.liveness = make(map[core.Target]chan struct{})
 
 	this.Discovery.Start()
 	this.Healthcheck.Start()
@@ -221,7 +231,19 @@ func (this *Scheduler) HandleBackendLiveChange(target core.Target, live bool) {
 
 	backend.Stats.Live = live
 
-	metrics.ReportHandleBackendLiveChange(fmt.Sprintf("%s", this.StatsHandler.Name), target, live)
+	terminationSignal, ok := this.liveness[target]
+	if !live {
+		if ok {
+			close(terminationSignal)
+			delete(this.liveness, target)
+		}
+	} else {
+		if !ok {
+			this.liveness[target] = make(chan struct{})
+		}
+	}
+
+ 	metrics.ReportHandleBackendLiveChange(fmt.Sprintf("%s", this.StatsHandler.Name), target, live)
 }
 
 /**
@@ -248,6 +270,9 @@ func (this *Scheduler) HandleBackendsUpdate(backends []core.Backend) {
 		b := b // b has to be local variable in order to make unique pointers
 		b.Stats.Discovered = true
 		this.backends[b.Target] = &b
+		if b.Stats.Live {
+			this.liveness[b.Target] = make(chan struct{})
+		}
 	}
 
 	//remove not discovered backends without active connections
@@ -259,6 +284,7 @@ func (this *Scheduler) HandleBackendsUpdate(backends []core.Backend) {
 		metrics.RemoveBackend(this.StatsHandler.Name, b)
 
 		delete(this.backends, t)
+		delete(this.liveness, t)
 	}
 }
 
@@ -289,7 +315,14 @@ func (this *Scheduler) HandleBackendElect(req ElectRequest) {
 		return
 	}
 
-	req.Response <- *backend
+	terminateSignal, ok := this.liveness[backend.Target]
+	if !ok {
+		req.Err <- fmt.Errorf("Termination signal not found for backend %s, live %s",
+			backend.Target, backend.Stats.Live)
+		return
+	}
+
+	req.Response <- ElectResponse{Backend: backend, Alive: terminateSignal}
 }
 
 /**
@@ -341,14 +374,14 @@ func (this *Scheduler) Stop() {
 /**
  * Take elect backend for proxying
  */
-func (this *Scheduler) TakeBackend(context core.Context) (*core.Backend, error) {
-	r := ElectRequest{context, make(chan core.Backend), make(chan error)}
+func (this *Scheduler) TakeBackend(context core.Context) (*core.Backend, <-chan struct{}, error) {
+	r := ElectRequest{context, make(chan ElectResponse), make(chan error)}
 	this.elect <- r
 	select {
 	case err := <-r.Err:
-		return nil, err
-	case backend := <-r.Response:
-		return &backend, nil
+		return nil, nil, err
+	case response := <-r.Response:
+		return response.Backend, response.Alive, nil
 	}
 }
 

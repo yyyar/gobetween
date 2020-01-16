@@ -247,7 +247,7 @@ func (this *Server) cleanup() {
  * Elect and connect to backend
  */
 func (this *Server) electAndConnect(clientAddr *net.UDPAddr) (net.Conn, *core.Backend, error) {
-	backend, err := this.scheduler.TakeBackend(core.UdpContext{
+	backend, _, err := this.scheduler.TakeBackend(core.UdpContext{
 		ClientAddr: *clientAddr,
 	})
 
