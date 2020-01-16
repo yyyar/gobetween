@@ -66,6 +66,7 @@ func init() {
 	registry["ping"] = ping
 	registry["probe"] = probe
 	registry["exec"] = exec
+	registry["http"] = httpCheck
 	registry["none"] = nil
 }
 
@@ -147,7 +148,7 @@ func (this *Healthcheck) UpdateWorkers(targets []core.Target) {
 				cfg:    this.cfg,
 				check:  this.check,
 				LastResult: CheckResult{
-					Live: true,
+					Live: !this.cfg.StartUnhealthy,
 				},
 			}
 			keep.Start()

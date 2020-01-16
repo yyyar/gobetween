@@ -318,12 +318,14 @@ type HealthcheckConfig struct {
 	Passes   int    `toml:"passes" json:"passes"`
 	Fails    int    `toml:"fails" json:"fails"`
 	Timeout  string `toml:"timeout" json:"timeout"`
+	StartUnhealthy bool `toml:"start_unhealthy" json:"start_unhealthy"`
 
 	/* Depends on Kind */
 
 	*PingHealthcheckConfig
 	*ExecHealthcheckConfig
 	*ProbeHealthcheckConfig
+	*HttpHealthcheckConfig
 }
 
 type PingHealthcheckConfig struct{}
@@ -340,4 +342,10 @@ type ExecHealthcheckConfig struct {
 	ExecCommand                string `toml:"exec_command" json:"exec_command,omitempty"`
 	ExecExpectedPositiveOutput string `toml:"exec_expected_positive_output" json:"exec_expected_positive_output"`
 	ExecExpectedNegativeOutput string `toml:"exec_expected_negative_output" json:"exec_expected_negative_output"`
+}
+
+type HttpHealthcheckConfig struct {
+	HttpPath string `toml:"http_path" json:"http_path,omitempty"`
+	HttpPort int	`toml:"http_port" json:"http_port"`
+	HttpMethod string `toml:"http_method" json:"http_method,omitempty"`
 }
