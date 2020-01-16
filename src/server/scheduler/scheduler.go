@@ -132,8 +132,6 @@ func (this *Scheduler) Start() {
 			// handle newly discovered backends
 			case backends := <-this.Discovery.Discover():
 				this.HandleBackendsUpdate(backends)
-				this.Healthcheck.In <- this.Targets()
-				this.StatsHandler.BackendsCounter.In <- this.Targets()
 
 			/* ------ healthcheck ----- */
 
@@ -174,6 +172,11 @@ func (this *Scheduler) Start() {
 			}
 		}
 	}()
+}
+
+func (this *Scheduler) HandleBackendListChange() {
+	this.Healthcheck.In <- this.Targets()
+	this.StatsHandler.BackendsCounter.In <- this.Targets()
 }
 
 /**
@@ -255,6 +258,7 @@ func (this *Scheduler) HandleBackendLiveChange(target core.Target, live bool) {
  * Update backends map
  */
 func (this *Scheduler) HandleBackendsUpdate(backends []core.Backend) {
+	changes := false
 
 	// first mark all existing backends as not discovered
 	for _, b := range this.backends {
@@ -269,6 +273,9 @@ func (this *Scheduler) HandleBackendsUpdate(backends []core.Backend) {
 			oldB.MergeFrom(b)
 			// mark found backend as discovered
 			oldB.Stats.Discovered = true
+			if _, ok := this.liveness[b.Target]; !ok && oldB.Stats.Live {
+				this.liveness[b.Target] = make(chan struct{})
+			}
 			continue
 		}
 
@@ -278,6 +285,7 @@ func (this *Scheduler) HandleBackendsUpdate(backends []core.Backend) {
 		if b.Stats.Live {
 			this.liveness[b.Target] = make(chan struct{})
 		}
+		changes = true
 	}
 
 	//remove not discovered backends without active connections
@@ -295,11 +303,19 @@ func (this *Scheduler) HandleBackendsUpdate(backends []core.Backend) {
 			continue
 		}
 
-		metrics.RemoveBackend(this.StatsHandler.Name, b)
-
-		delete(this.backends, t)
-		delete(this.liveness, t)
+		this.removeBackend(b)
+		changes = true
 	}
+	if changes {
+		this.HandleBackendListChange()
+	}
+}
+
+func (this *Scheduler) removeBackend(b *core.Backend) {
+	metrics.RemoveBackend(this.StatsHandler.Name, b)
+
+	delete(this.backends, b.Target)
+	delete(this.liveness, b.Target)
 }
 
 /**
@@ -331,9 +347,10 @@ func (this *Scheduler) HandleBackendElect(req ElectRequest) {
 
 	terminateSignal, ok := this.liveness[backend.Target]
 	if !ok {
-		req.Err <- fmt.Errorf("Termination signal not found for backend %s, live %s",
-			backend.Target, backend.Stats.Live)
-		return
+		// Should not happen, but if it does we can just create a new signal
+		log.Warnf("Termination signal not found for backend %v", backend.Target)
+		terminateSignal = make(chan struct{})
+		this.liveness[backend.Target] = terminateSignal
 	}
 
 	req.Response <- ElectResponse{Backend: backend, Alive: terminateSignal}
@@ -371,6 +388,12 @@ func (this *Scheduler) HandleOp(op Op) {
 		backend.Stats.TotalConnections++
 	case DecrementConnection:
 		backend.Stats.ActiveConnections--
+		defer func() {
+			if backend.Stats.ActiveConnections == 0 && !backend.Stats.Discovered {
+				this.removeBackend(backend)
+				this.HandleBackendListChange()
+			}
+		}()
 	default:
 		log.Warn("Don't know how to handle op ", op.op)
 	}
