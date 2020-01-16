@@ -215,6 +215,7 @@ type DiscoveryConfig struct {
 	*PlaintextDiscoveryConfig
 	*ConsulDiscoveryConfig
 	*LXDDiscoveryConfig
+	*EtcdDiscoveryConfig
 }
 
 type StaticDiscoveryConfig struct {
@@ -294,6 +295,18 @@ type LXDDiscoveryConfig struct {
 
 	LXDContainerSNIKey      string `toml:"lxd_container_sni_key" json:"lxd_container_sni_key"`
 	LXDContainerAddressType string `toml:"lxd_container_address_type" json:"lxd_container_address_type"`
+}
+
+type EtcdDiscoveryConfig struct {
+	EtcdHosts           []string `toml:"etcd_hosts" json:"etcd_hosts"`
+	EtcdUsername        *string  `toml:"etcd_username" json:"etcd_username"`
+	EtcdPassword        *string  `toml:"etcd_password" json:"etcd_password"`
+	EtcdPrefix          string   `toml:"etcd_prefix" json:"etcd_prefix"`
+	EtcdLeaderPool      bool     `toml:"etcd_leader_pool" json:"etcd_leader_pool"`
+	EtcdLeaderWeight    int      `toml:"etcd_leader_weight" json:"etcd_leader_weight"`
+	EtcdFollowerWeight  int      `toml:"etcd_follower_weight" json:"etcd_follower_weight"`
+
+	*Tls
 }
 
 /**

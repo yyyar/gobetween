@@ -31,6 +31,7 @@ func init() {
 	registry["plaintext"] = NewPlaintextDiscovery
 	registry["consul"] = NewConsulDiscovery
 	registry["lxd"] = NewLXDDiscovery
+	registry["etcd"] = NewEtcdDiscovery
 }
 
 /**
@@ -52,6 +53,8 @@ type DiscoveryOpts struct {
 	RetryWaitDuration time.Duration
 }
 
+type WatchFunc func(config.DiscoveryConfig, chan ([]core.Backend), chan bool)
+
 /**
  * Discovery
  */
@@ -66,6 +69,11 @@ type Discovery struct {
 	 * Function to fetch / discovery backends
 	 */
 	fetch FetchFunc
+
+	/**
+	 * Function to delegate all watching to implementation
+	 */
+	watch WatchFunc
 
 	/**
 	 * Options for fetch
@@ -97,6 +105,11 @@ func (this *Discovery) Start() {
 
 	this.out = make(chan []core.Backend)
 	this.stop = make(chan bool)
+
+	if this.watch != nil {
+		go this.watch(this.cfg, this.out, this.stop)
+		return
+	}
 
 	// Prepare interval
 	interval, err := time.ParseDuration(this.cfg.Interval)
