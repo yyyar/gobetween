@@ -97,7 +97,6 @@ func etcdWatch(cfg config.DiscoveryConfig, out chan ([]core.Backend), stop chan 
 			updated := false
 
 			key := getKeyFromNode(event.Node)
-			log.Infof("Got event %s for %s", event.Action, key)
 			if event.Action == "set" || event.Action == "create" {
 				host, err := nodeToHost(cfg, event.Node)
 				if err != nil {
@@ -188,7 +187,7 @@ func constructCluster(members map[string]Host, log *logrus.Entry) []core.Backend
 			},
 		})
 	}
-	log.Infof("Sending backend list: %s", backends)
+	log.Debugf("Sending backend list: %s", backends)
 	return backends
 }
 
