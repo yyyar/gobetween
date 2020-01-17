@@ -352,7 +352,7 @@ type ExecHealthcheckConfig struct {
 }
 
 type HttpHealthcheckConfig struct {
-	HttpPath string `toml:"http_path" json:"http_path,omitempty"`
+	HttpPath string `toml:"http_path" json:"http_path"`
 	HttpPort int	`toml:"http_port" json:"http_port"`
-	HttpMethod string `toml:"http_method" json:"http_method,omitempty"`
+	HttpMethod string `toml:"http_method" json:"http_method"`
 }

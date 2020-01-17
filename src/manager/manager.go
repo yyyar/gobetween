@@ -361,7 +361,21 @@ func prepareConfig(name string, server config.Server, defaults config.Connection
 		}
 
 	}
-
+	if server.Healthcheck.Kind == "http" {
+		if server.Healthcheck.HttpPath == "" {
+			server.Healthcheck.HttpPath = "/"
+		}
+		switch server.Healthcheck.HttpMethod {
+		case
+			"GET",
+			"HEAD",
+			"OPTIONS":
+		case "":
+			server.Healthcheck.HttpMethod = "GET"
+		default:
+			return config.Server{}, errors.New("Unsupported http method " + server.Healthcheck.HttpMethod)
+		}
+	}
 	if server.ProxyProtocol != nil {
 
 		if server.Protocol != "tcp" {
