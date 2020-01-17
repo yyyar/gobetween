@@ -8,7 +8,6 @@ package scheduler
 
 import (
 	"fmt"
-	"github.com/prometheus/common/log"
 	"time"
 
 	"github.com/yyyar/gobetween/core"
@@ -228,10 +227,10 @@ func (this *Scheduler) HandleBackendStatsChange(target core.Target, bs *counters
  * Updated backend live status
  */
 func (this *Scheduler) HandleBackendLiveChange(target core.Target, live bool) {
-
+	log := logging.For("scheduler")
 	backend, ok := this.backends[target]
 	if !ok {
-		logging.For("scheduler").Warn("No backends for checkResult ", target)
+		log.Warn("No backends for checkResult ", target)
 		return
 	}
 
@@ -348,7 +347,7 @@ func (this *Scheduler) HandleBackendElect(req ElectRequest) {
 	terminateSignal, ok := this.liveness[backend.Target]
 	if !ok {
 		// Should not happen, but if it does we can just create a new signal
-		log.Warnf("Termination signal not found for backend %v", backend.Target)
+		logging.For("scheduler").Warnf("Termination signal not found for backend %v", backend.Target)
 		terminateSignal = make(chan struct{})
 		this.liveness[backend.Target] = terminateSignal
 	}
