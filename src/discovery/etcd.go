@@ -183,7 +183,7 @@ func constructCluster(members map[string]Host, log *logrus.Entry) []core.Backend
 			Priority: 1,
 			Weight: 1,
 			Stats: core.BackendStats{
-				Live: false,
+				Live: true,
 			},
 		})
 	}

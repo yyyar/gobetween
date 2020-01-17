@@ -75,6 +75,7 @@ type Scheduler struct {
 	Healthcheck *healthcheck.Healthcheck
 
 	CloseOnFailure bool
+	WaitForHealthcheck bool
 
 	/* ----- backends ------*/
 
@@ -280,6 +281,9 @@ func (this *Scheduler) HandleBackendsUpdate(backends []core.Backend) {
 
 		b := b // b has to be local variable in order to make unique pointers
 		b.Stats.Discovered = true
+		if this.WaitForHealthcheck {
+			b.Stats.Live = false
+		}
 		this.backends[b.Target] = &b
 		if b.Stats.Live {
 			this.liveness[b.Target] = make(chan struct{})

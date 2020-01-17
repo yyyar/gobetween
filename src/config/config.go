@@ -108,6 +108,7 @@ type Server struct {
 	Balance string `toml:"balance" json:"balance"`
 
 	CloseOnFailure bool `toml:"close_on_failure" json:"close_on_failure"`
+	WaitForHealthcheck bool `toml:"wait_for_healthcheck" json:"wait_for_healthcheck"`
 
 	// Optional configuration for server name indication
 	Sni *Sni `toml:"sni" json:"sni"`
@@ -306,7 +307,6 @@ type EtcdDiscoveryConfig struct {
 	EtcdPassword        *string  `toml:"etcd_password" json:"etcd_password"`
 	EtcdPrefix          string   `toml:"etcd_prefix" json:"etcd_prefix"`
 	EtcdDsnJsonPath		string   `toml:"etcd_dsn_json_path" json:"etcd_dsn_json_path"`
-	EtcdHealthcheckJsonPath		string   `toml:"etcd_healthcheck_json_path" json:"etcd_healthcheck_json_path"`
 
 	*Tls
 }

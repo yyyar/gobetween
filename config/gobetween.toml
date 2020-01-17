@@ -120,7 +120,8 @@ protocol = "udp"
 #client_idle_timeout = "10m"
 #backend_idle_timeout = "10m"
 #backend_connection_timeout = "5s"
-#close_on_failure = false    # (optional) Should existing connections be closed when health check fails.
+#close_on_failure = false     # (optional) Should existing connections be closed when health check fails.
+#wait_for_healthcheck = false # (optional) Do not route connections to a backend before there is a successful healthcheck.
 #
 ## ---------------- backends tls properties ----------------- #
 #

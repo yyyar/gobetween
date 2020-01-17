@@ -101,6 +101,7 @@ func New(name string, cfg config.Server) (*Server, error) {
 			Healthcheck:  healthcheck.New(cfg.Healthcheck.Kind, *cfg.Healthcheck),
 			StatsHandler: statsHandler,
 			CloseOnFailure: cfg.CloseOnFailure,
+			WaitForHealthcheck: cfg.WaitForHealthcheck,
 		},
 	}
 
