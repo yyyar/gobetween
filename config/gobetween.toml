@@ -120,6 +120,7 @@ protocol = "udp"
 #client_idle_timeout = "10m"
 #backend_idle_timeout = "10m"
 #backend_connection_timeout = "5s"
+#close_on_failure = false    # (optional) Should existing connections be closed when health check fails.
 #
 ## ---------------- backends tls properties ----------------- #
 #
@@ -222,6 +223,12 @@ protocol = "udp"
 #  exec_expected_positive_output = "1"           # (required) expected output of command in case of success
 #  exec_expected_negative_output = "0"           # (required) expected output of command in case of failure
 #
+#  # -- http -- #
+#  kind = "http"
+#  http_path = "/"      # (required) Path to query using HTTP
+#  http_method = "GET"  # (optional) HTTP method to use for query
+#  http_port = 0        # (optional) Alternative port for healthcheck
+#
 ## -------------------- discovery ---------------------------- #
 #
 #  [servers.default.discovery]      # (required)
@@ -311,3 +318,23 @@ protocol = "udp"
 #
 #  lxd_container_sni_key = ""                               # (optional) Container setting that specifies the sni name of the container.
 #  lxd_container_address_type = "IPv4"                      # (optional) Container setting that specifies whether to use an IPv4 or IPv6 address. Valid options are IPv4 or IPv6.
+#
+#  # -- etcd -- #
+#  kind = "etcd"
+#  etcd_hosts = [ "http://127.0.0.1:2379" ] # (required) List of etcd URLs to use.
+#
+#  etcd_username = ""                       # (optional) Username for etcd authentication
+#  etcd_password = ""                       # (optional) Password for etcd authentication
+#
+#  etcd_prefix = "/service/batman/members"  # (required) Directory in etcd to recursively query for backends
+#  etcd_dsn_json_path = "conn_url"          # (required) JSON path in document returning URL of backend
+#
+#  # -- patroni -- #
+#  kind = "patroni"
+#  etcd_hosts = [ "http://127.0.0.1:2379" ] # (required) List of etcd URLs to use.
+#
+#  etcd_username = ""                       # (optional) Username for etcd authentication
+#  etcd_password = ""                       # (optional) Password for etcd authentication
+#  patroni_cluster = "batman"               # (required) Cluster name of the Patroni cluster
+#  patroni_namespace = "/service/"          # (optional) namespace of Patroni cluster in etcd
+#  patroni_pool_type = "leader"             # (optional) "leader" if discovering only leader instance, "replica" if all members
