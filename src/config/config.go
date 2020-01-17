@@ -107,6 +107,8 @@ type Server struct {
 	// weight | leastconn | roundrobin
 	Balance string `toml:"balance" json:"balance"`
 
+	CloseOnFailure bool `toml:"close_on_failure" json:"close_on_failure"`
+
 	// Optional configuration for server name indication
 	Sni *Sni `toml:"sni" json:"sni"`
 
