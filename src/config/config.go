@@ -320,7 +320,6 @@ type HealthcheckConfig struct {
 	Passes   int    `toml:"passes" json:"passes"`
 	Fails    int    `toml:"fails" json:"fails"`
 	Timeout  string `toml:"timeout" json:"timeout"`
-	StartUnhealthy bool `toml:"start_unhealthy" json:"start_unhealthy"`
 
 	/* Depends on Kind */
 
