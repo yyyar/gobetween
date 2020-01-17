@@ -147,9 +147,7 @@ func (this *Healthcheck) UpdateWorkers(targets []core.Target) {
 				out:    this.Out,
 				cfg:    this.cfg,
 				check:  this.check,
-				LastResult: CheckResult{
-					Live: !this.cfg.StartUnhealthy,
-				},
+				LastResultUnknown: true,
 			}
 			keep.Start()
 		}
