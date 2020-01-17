@@ -218,6 +218,7 @@ type DiscoveryConfig struct {
 	*ConsulDiscoveryConfig
 	*LXDDiscoveryConfig
 	*EtcdDiscoveryConfig
+	*PatroniDiscoveryConfig
 }
 
 type StaticDiscoveryConfig struct {
@@ -306,11 +307,14 @@ type EtcdDiscoveryConfig struct {
 	EtcdPrefix          string   `toml:"etcd_prefix" json:"etcd_prefix"`
 	EtcdDsnJsonPath		string   `toml:"etcd_dsn_json_path" json:"etcd_dsn_json_path"`
 	EtcdHealthcheckJsonPath		string   `toml:"etcd_healthcheck_json_path" json:"etcd_healthcheck_json_path"`
-	EtcdLeaderPool      bool     `toml:"etcd_leader_pool" json:"etcd_leader_pool"`
-	EtcdLeaderWeight    int      `toml:"etcd_leader_weight" json:"etcd_leader_weight"`
-	EtcdFollowerWeight  int      `toml:"etcd_follower_weight" json:"etcd_follower_weight"`
 
 	*Tls
+}
+
+type PatroniDiscoveryConfig struct {
+	PatroniCluster string `toml:"patroni_cluster" json:"patroni_cluster"`
+	PatroniNamespace string `toml:"patroni_namespace" json:"patroni_namespace"`
+	PatroniPoolType      string     `toml:"patroni_pool_type" json:"patroni_pool_type"`
 }
 
 /**

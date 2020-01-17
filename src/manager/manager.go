@@ -552,6 +552,26 @@ func prepareConfig(name string, server config.Server, defaults config.Connection
 
 	}
 
+	if server.Discovery.Kind == "patroni" {
+		if server.Discovery.PatroniCluster == "" {
+			return config.Server{}, errors.New("patroni_cluster is required")
+		}
+
+		if server.Discovery.PatroniNamespace == "" {
+			server.Discovery.PatroniNamespace = "/service/"
+		}
+		switch server.Discovery.PatroniPoolType {
+		case
+			"leader",
+			"replica":
+		case "":
+			server.Discovery.PatroniPoolType = "leader"
+		default:
+			return config.Server{}, errors.New("Invalid patroni_pool_type. Must be one of leader,replica")
+		}
+
+	}
+
 	/* TODO: Still need to decide how to get rid of this */
 
 	if server.MaxConnections == nil {
