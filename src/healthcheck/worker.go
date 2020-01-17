@@ -64,6 +64,7 @@ func (this *Worker) Start() {
 	c := make(chan CheckResult, 1)
 
 	go func() {
+		go this.check(this.target, this.cfg, c)
 		for {
 			select {
 
