@@ -7,6 +7,7 @@ import (
 	"github.com/yyyar/gobetween/logging"
 	"net/http"
 	"net/url"
+	"strconv"
 	"time"
 )
 
@@ -37,7 +38,14 @@ func httpCheck(t core.Target, cfg config.HealthcheckConfig, result chan<- CheckR
 		log.Warnf("Unable to parse http_path in healthcheck config: %s", err)
 		return
 	}
-	targetUrl.Host = t.Host
+	if cfg.HttpPort > 0 {
+		targetUrl.Host = t.Host + ":" + strconv.Itoa(cfg.HttpPort)
+	} else {
+		targetUrl.Host = t.Host + ":" + t.Port
+	}
+	if targetUrl.Scheme == "" {
+		targetUrl.Scheme = "http"
+	}
 
 	method := cfg.HttpMethod
 	if method == "" {
@@ -46,17 +54,17 @@ func httpCheck(t core.Target, cfg config.HealthcheckConfig, result chan<- CheckR
 
 	req, err := http.NewRequestWithContext(timeoutCtxt, method, targetUrl.String(), nil)
 	if err != nil {
-		log.Warnf("Could not send healthcheck request to %s: %v", t, err)
+		log.Debugf("Could not send healthcheck request to %s: %v", targetUrl, err)
 		return
 	}
 
 	response, err := client.Do(req)
 	if err != nil {
-		log.Warnf("Could not send healthcheck request to %s: %v", t, err)
+		log.Debugf("Could not send healthcheck request to %s: %v", t, err)
 		return
 	}
 
-	if response.StatusCode != 200 {
+	if response.StatusCode == 200 {
 		checkResult.Live = true
 	} else {
 		log.Debugf("Failed healthcheck from %v, received status %s", t, err)
