@@ -304,6 +304,8 @@ type EtcdDiscoveryConfig struct {
 	EtcdUsername        *string  `toml:"etcd_username" json:"etcd_username"`
 	EtcdPassword        *string  `toml:"etcd_password" json:"etcd_password"`
 	EtcdPrefix          string   `toml:"etcd_prefix" json:"etcd_prefix"`
+	EtcdDsnJsonPath		string   `toml:"etcd_dsn_json_path" json:"etcd_dsn_json_path"`
+	EtcdHealthcheckJsonPath		string   `toml:"etcd_healthcheck_json_path" json:"etcd_healthcheck_json_path"`
 	EtcdLeaderPool      bool     `toml:"etcd_leader_pool" json:"etcd_leader_pool"`
 	EtcdLeaderWeight    int      `toml:"etcd_leader_weight" json:"etcd_leader_weight"`
 	EtcdFollowerWeight  int      `toml:"etcd_follower_weight" json:"etcd_follower_weight"`
