@@ -1,0 +1,73 @@
+# Sample configuration for routing to a Patroni cluster discovering members
+# using a Patroni specific discovery backend.
+#
+# Runs a background discovery thread watching etcd for changes to /members
+# and /leader, on changes updates the list of backends available to scheduler.
+# 
+# Health checks are not strictly necessary, especially not for leader instance.
+#
+# patroni_pool_type = "leader" (default) gets only the current leader if any.
+# patroni_pool_type = "replica" gets all nodes, but the current leader has a
+# priority = 2 routing connections preferrably to standby instances.
+
+[profiler]
+enabled = true
+bind = ":6060"
+
+
+[api]
+enabled = true
+bind = ":8888"
+cors = false
+
+[metrics]
+enabled = true
+bind = ":9284"
+
+[defaults]
+max_connections = 1000
+
+[servers]
+
+[servers.testcluster_rw]
+protocol = "tcp"
+bind = "0.0.0.0:5430"
+close_on_failure = true
+
+  [servers.testcluster_rw.discovery]
+  kind = "patroni"
+  etcd_hosts = [ "http://127.0.0.1:2379" ]
+  patroni_cluster = "testcluster"
+
+  [servers.testcluster_rw.healthcheck]
+  kind = "http"
+  interval = "5s"
+  passes = 1
+  fails = 1
+  timeout = "5s"
+
+  http_path = "/read-write"
+  http_port = 8008
+  http_method = "GET"
+
+[servers.testcluster_ro]
+protocol = "tcp"
+bind = "0.0.0.0:5431"
+close_on_failure = true
+
+  [servers.testcluster_ro.discovery]
+  kind = "patroni"
+  etcd_hosts = [ "http://127.0.0.1:2379" ]
+  patroni_cluster = "testcluster"
+  patroni_pool_type = "replica"
+
+   [servers.testcluster_ro.healthcheck]
+   kind = "http"
+   interval = "5s"
+   passes = 1
+   fails = 1
+   timeout = "5s"
+
+   http_path = "/read-only"
+   http_port = 8008
+   http_method = "GET"
