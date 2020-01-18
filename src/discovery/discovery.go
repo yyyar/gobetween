@@ -136,11 +136,15 @@ func (this *Discovery) Start() {
 				continue
 			}
 
-			// cache
-			this.backends = backends
-			if !this.send() {
-				log.Info("Stopping discovery ", this.cfg)
-				return
+			// Don't prime cache if no backends and about to exit
+			// see https://github.com/yyyar/gobetween/issues/257 for more info
+			if interval != 0 || len(*backends) != 0 {
+				// cache
+				this.backends = backends
+				if !this.send() {
+					log.Info("Stopping discovery ", this.cfg)
+					return
+				}
 			}
 
 			// exit gorouting if no cacheTtl
