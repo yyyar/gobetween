@@ -249,8 +249,7 @@ func (this *Scheduler) HandleBackendsUpdate(backends []core.Backend) {
 		b.Stats.Discovered = true
 		this.backends[b.Target] = &b
 
-		// only mark something as live if it does not have a health check
-		b.Stats.Live = !this.Healthcheck.HasCheck()
+		b.Stats.Live = this.Healthcheck.InitialBackendState() == healthcheck.LiveCheckResult
 	}
 
 	//remove not discovered backends without active connections

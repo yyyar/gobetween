@@ -187,6 +187,23 @@ func (this *Healthcheck) HasCheck() bool {
 	return this.cfg.Kind != "none"
 }
 
+func (this *Healthcheck) InitialBackendState() CheckResultLiveness {
+	if !this.HasCheck() {
+		return LiveCheckResult
+	}
+	if this.cfg.InitialBackendStatus != nil {
+		switch *this.cfg.InitialBackendStatus {
+		case "unhealthy":
+			return FailCheckResult
+		case "live":
+			return LiveCheckResult
+		default:
+			panic("Healthcheck invalid initial backend status " + *this.cfg.InitialBackendStatus)
+		}
+	}
+	return LiveCheckResult
+}
+
 /**
  * Stop healthcheck
  */
