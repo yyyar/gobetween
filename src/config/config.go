@@ -306,6 +306,10 @@ type HealthcheckConfig struct {
 	Fails    int    `toml:"fails" json:"fails"`
 	Timeout  string `toml:"timeout" json:"timeout"`
 
+	// The liveness when a backend is first discovered (default live)
+	// live | unhealthy
+	InitialBackendStatus *string `toml:"initial_backend_status" json:"initial_backend_status"`
+
 	/* Depends on Kind */
 
 	*PingHealthcheckConfig
