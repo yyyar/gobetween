@@ -79,14 +79,14 @@ func main() {
 		// Configure logging
 		logging.Configure(cfg.Logging.Output, cfg.Logging.Level, cfg.Logging.Format)
 
-		// Start API
-		go api.Start((*cfg).Api)
+		// Start manager
+		manager.Initialize(*cfg)
 
 		/* setup metrics */
-		go metrics.Start((*cfg).Metrics)
+		metrics.Start((*cfg).Metrics)
 
-		// Start manager
-		go manager.Initialize(*cfg)
+		// Start API
+		api.Start((*cfg).Api)
 
 		// block forever
 		<-(chan string)(nil)
