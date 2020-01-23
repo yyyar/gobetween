@@ -198,7 +198,7 @@ func (this *Healthcheck) InitialBackendState() CheckResultLiveness {
 		case "live":
 			return LiveCheckResult
 		default:
-			panic("Healthcheck invalid initial backend status " + *this.cfg.InitialBackendStatus)
+			panic("Healthcheck invalid initial backend status, this should have been validated in manager, but has invalid value " + *this.cfg.InitialBackendStatus)
 		}
 	}
 	return LiveCheckResult
