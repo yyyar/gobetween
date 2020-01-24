@@ -70,6 +70,9 @@ type Server struct {
 	/* Get certificate filled by external service */
 	GetCertificate func(*tls.ClientHelloInfo) (*tls.Certificate, error)
 
+	/* A channel that helps to determine when the server has completed */
+	completed chan<- struct{}
+
 	/* ----- modules ----- */
 
 	/* Access module checks if client is allowed to connect */
@@ -79,7 +82,7 @@ type Server struct {
 /**
  * Creates new server instance
  */
-func New(name string, cfg config.Server) (*Server, error) {
+func New(name string, cfg config.Server, completed chan<- struct{}) (*Server, error) {
 
 	log := logging.For("server")
 
@@ -101,6 +104,7 @@ func New(name string, cfg config.Server) (*Server, error) {
 			Healthcheck:  healthcheck.New(cfg.Healthcheck.Kind, *cfg.Healthcheck),
 			StatsHandler: statsHandler,
 		},
+		completed: completed,
 	}
 
 	/* Add access if needed */
@@ -134,7 +138,6 @@ func (this *Server) Cfg() config.Server {
  * Start server
  */
 func (this *Server) Start() error {
-
 	var err error
 	this.tlsConfig, err = tlsutil.MakeTlsConfig(this.cfg.Tls, this.GetCertificate)
 	if err != nil {
@@ -275,6 +278,7 @@ func (this *Server) Listen() (err error) {
 
 			if err != nil {
 				log.Error(err)
+				this.completed <- struct{}{}
 				return
 			}
 

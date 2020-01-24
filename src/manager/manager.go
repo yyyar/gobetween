@@ -61,7 +61,7 @@ func Initialize(cfg config.Config) {
 
 	// Go through config and start servers for each server
 	for name, serverCfg := range cfg.Servers {
-		err := Create(name, serverCfg)
+		err := Create(name, serverCfg, make(chan struct{}, 1))
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -181,7 +181,7 @@ func Get(name string) interface{} {
 /**
  * Create new server and launch it
  */
-func Create(name string, cfg config.Server) error {
+func Create(name string, cfg config.Server, completed chan <- struct{}) error {
 
 	servers.Lock()
 	defer servers.Unlock()
@@ -195,7 +195,7 @@ func Create(name string, cfg config.Server) error {
 		return err
 	}
 
-	server, err := server.New(name, c)
+	server, err := server.New(name, c, completed)
 
 	if err != nil {
 		return err
