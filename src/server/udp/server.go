@@ -190,6 +190,7 @@ func (this *Server) serve() {
 
 	// Main loop goroutine - reads incoming data and decides what to do
 	go func() {
+		defer func() { this.completed <- struct{}{} }()
 
 		buf := make([]byte, UDP_PACKET_SIZE)
 		for {
@@ -197,7 +198,6 @@ func (this *Server) serve() {
 
 			if err != nil {
 				if atomic.LoadUint32(&this.stopped) == 1 {
-					this.completed<- struct{}{}
 					return
 				}
 

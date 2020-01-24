@@ -273,12 +273,12 @@ func (this *Server) Listen() (err error) {
 	sniEnabled := this.cfg.Sni != nil
 
 	go func() {
+		defer func() { this.completed <- struct{}{} }()
 		for {
 			conn, err := this.listener.Accept()
 
 			if err != nil {
 				log.Error(err)
-				this.completed <- struct{}{}
 				return
 			}
 
