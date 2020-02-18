@@ -125,17 +125,36 @@ func MakeBackendTLSConfig(backendsTls *config.BackendsTls) (*tls.Config, error) 
 		MaxVersion:               MapVersion(backendsTls.MaxVersion),
 		SessionTicketsDisabled:   !backendsTls.SessionTickets,
 	}
+	
+//Sometimes we will encounter a certificate and key that require a password for parsing, 
+//in this case we must first use IsEncryptedPEMBlock()
+//
+//Next, if IsEncryptedPEMBlock() returns true, we whould use decryptPEMBlock 
+// with the cert object and the password used to encrypt it and return a slice of decrypted DER encoded bytes
+//now, we can use LoadX509KeyPair with the decrypted DER encoded bytes (passed as the decrypted cert) and encrypt the tls
 
+//start region
 	if backendsTls.CertPath != nil && backendsTls.KeyPath != nil {
-
+		var password := backendTls.CertPass
 		var crt tls.Certificate
-
-		if crt, err = tls.LoadX509KeyPair(*backendsTls.CertPath, *backendsTls.KeyPath); err != nil {
-			return nil, err
+		var crtDcrypt;
+		if IsEncryptedPEMBlock(backendsTls.CertPath) {
+			crtDcrypt = decryptPEMBlock(backendsTls.CertPath, password)
+			
+			if crt, err = tls.LoadX509KeyPair(*crtDcrypt, *backendsTls.KeyPath); err != nil {
+				return nil, err
 		}
-
+			}
+		result.Certificates = []tls.Certificate{crt}
+	}else{
+		if crt, err = tls.LoadX509KeyPair(*crtDcrypt, *backendsTls.KeyPath); err != nil {
+				return nil, err
+		}
+			}
 		result.Certificates = []tls.Certificate{crt}
 	}
+//end region
+
 
 	if backendsTls.RootCaCertPath != nil {
 
