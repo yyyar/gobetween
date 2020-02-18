@@ -167,6 +167,7 @@ type tlsCommon struct {
 type Tls struct {
 	AcmeHosts []string `toml:"acme_hosts" json:"acme_hosts"`
 	CertPath  string   `toml:"cert_path" json:"cert_path"`
+	CertPass  string    `toml:"cert_pass" json:"cert_pass"`
 	KeyPath   string   `toml:"key_path" json:"key_path"`
 	tlsCommon
 }
@@ -175,6 +176,7 @@ type BackendsTls struct {
 	IgnoreVerify   bool    `toml:"ignore_verify" json:"ignore_verify"`
 	RootCaCertPath *string `toml:"root_ca_cert_path" json:"root_ca_cert_path"`
 	CertPath       *string `toml:"cert_path" json:"cert_path"`
+	CertPass       *string `toml:"cert_pass" json:"cert_pass"`
 	KeyPath        *string `toml:"key_path" json:"key_path"`
 	tlsCommon
 }
