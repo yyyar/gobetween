@@ -188,7 +188,6 @@ func Start(cfg config.MetricsConfig) {
 	http.Handle("/metrics", promhttp.Handler())
 	go func() {
 		logging.Error("%v", fmt.Errorf("%s", http.ListenAndServe(cfg.Bind, nil)))
-
 	}()
 }
 
