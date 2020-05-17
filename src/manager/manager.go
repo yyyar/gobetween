@@ -363,8 +363,8 @@ func prepareConfig(name string, server config.Server, defaults config.Connection
 
 	if server.ProxyProtocol != nil {
 
-		if server.Protocol != "tcp" {
-			return config.Server{}, errors.New("proxy_protocol may be used only with 'tcp' protocol, not with " + server.Protocol)
+		if server.Protocol != "tcp" && server.Protocol != "tls" {
+			return config.Server{}, errors.New("proxy_protocol may be used only with 'tcp' or 'tls' protocols, not with " + server.Protocol)
 		}
 
 		if server.ProxyProtocol.Version == "" {
