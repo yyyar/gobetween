@@ -341,6 +341,13 @@ func (this *Server) handle(ctx *core.TcpContext) {
 				log.Error(err)
 				return
 			}
+		case "2":
+			log.Debug("Sending proxy_protocol v2 header ", clientConn.RemoteAddr(), " -> ", this.listener.Addr(), " -> ", backendConn.RemoteAddr())
+			err := proxyprotocol.SendProxyProtocolV2(clientConn, backendConn)
+			if err != nil {
+				log.Error(err)
+				return
+			}
 		default:
 			log.Error("Unsupported proxy_protocol version " + this.cfg.ProxyProtocol.Version + ", aborting connection")
 			return

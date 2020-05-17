@@ -371,7 +371,7 @@ func prepareConfig(name string, server config.Server, defaults config.Connection
 			return config.Server{}, errors.New("version field for proxy_protocol is not specified")
 		}
 
-		if server.ProxyProtocol.Version != "1" {
+		if server.ProxyProtocol.Version != "1" && server.ProxyProtocol.Version != "2" {
 			return config.Server{}, errors.New("Unsupported proxy_protocol version " + server.ProxyProtocol.Version)
 		}
 	}

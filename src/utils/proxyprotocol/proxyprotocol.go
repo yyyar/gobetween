@@ -60,3 +60,37 @@ func SendProxyProtocolV1(client net.Conn, backend net.Conn) error {
 	}
 	return nil
 }
+
+/// SendProxyProtocolV2 sends a proxy protocol v2 header to initialize the connection
+/// https://www.haproxy.org/download/1.8/doc/proxy-protocol.txt
+func SendProxyProtocolV2(client net.Conn, backend net.Conn) error {
+	sourceIP, sourcePort, err := addrToIPAndPort(client.RemoteAddr())
+	if err != nil {
+		return err
+	}
+
+	destinationIP, destinationPort, err := addrToIPAndPort(client.LocalAddr())
+	if err != nil {
+		return err
+	}
+
+	h := proxyproto.Header{
+		Version:            2,
+		Command:            proxyproto.PROXY,
+		SourceAddress:      sourceIP,
+		SourcePort:         sourcePort,
+		DestinationAddress: destinationIP,
+		DestinationPort:    destinationPort,
+	}
+	if sourceIP.To4() != nil {
+		h.TransportProtocol = proxyproto.TCPv4
+	} else {
+		h.TransportProtocol = proxyproto.TCPv6
+	}
+
+	_, err = h.WriteTo(backend)
+	if err != nil {
+		return nil
+	}
+	return nil
+}
