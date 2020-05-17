@@ -6,6 +6,8 @@ import (
 	"strconv"
 
 	proxyproto "github.com/pires/go-proxyproto"
+	"github.com/yyyar/gobetween/config"
+	"github.com/yyyar/gobetween/core"
 )
 
 func addrToIPAndPort(addr net.Addr) (ip net.IP, port uint16, err error) {
@@ -30,7 +32,8 @@ func addrToIPAndPort(addr net.Addr) (ip net.IP, port uint16, err error) {
 
 /// SendProxyProtocolV1 sends a proxy protocol v1 header to initialize the connection
 /// https://www.haproxy.org/download/1.8/doc/proxy-protocol.txt
-func SendProxyProtocolV1(client net.Conn, backend net.Conn) error {
+func SendProxyProtocolV1(cfg *config.ProxyProtocol, ctx *core.TcpContext, backend net.Conn) error {
+	client := ctx.Conn
 	sourceIP, sourcePort, err := addrToIPAndPort(client.RemoteAddr())
 	if err != nil {
 		return err
@@ -63,7 +66,8 @@ func SendProxyProtocolV1(client net.Conn, backend net.Conn) error {
 
 /// SendProxyProtocolV2 sends a proxy protocol v2 header to initialize the connection
 /// https://www.haproxy.org/download/1.8/doc/proxy-protocol.txt
-func SendProxyProtocolV2(client net.Conn, backend net.Conn) error {
+func SendProxyProtocolV2(cfg *config.ProxyProtocol, ctx *core.TcpContext, backend net.Conn) error {
+	client := ctx.Conn
 	sourceIP, sourcePort, err := addrToIPAndPort(client.RemoteAddr())
 	if err != nil {
 		return err
@@ -86,6 +90,11 @@ func SendProxyProtocolV2(client net.Conn, backend net.Conn) error {
 		h.TransportProtocol = proxyproto.TCPv4
 	} else {
 		h.TransportProtocol = proxyproto.TCPv6
+	}
+
+	if ctx.TlsState != nil {
+		// SSL TLV should be appended to header here, but go-proxyproto current
+		// version does not include any method that performs this operation
 	}
 
 	_, err = h.WriteTo(backend)

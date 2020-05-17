@@ -8,6 +8,7 @@ import (
 	"strconv"
 	"testing"
 
+	"github.com/yyyar/gobetween/core"
 	"github.com/yyyar/gobetween/utils/proxyprotocol"
 )
 
@@ -35,11 +36,17 @@ func testSendProxyProtocol(t *testing.T, addr string, version string) (serverPor
 			t.Fatal(err)
 		}
 
+		ctx := &core.TcpContext{
+			addr,
+			client,
+			nil,
+		}
+
 		switch version {
 		case "1":
-			proxyprotocol.SendProxyProtocolV1(client, client)
+			proxyprotocol.SendProxyProtocolV1(nil, ctx, client)
 		case "2":
-			proxyprotocol.SendProxyProtocolV2(client, client)
+			proxyprotocol.SendProxyProtocolV2(nil, ctx, client)
 		default:
 			t.Fatalf("Unsupported proxy_protocol version " + version + ", aborting connection")
 		}
@@ -86,7 +93,7 @@ func TestSendProxyProtocolV2IPv4(t *testing.T) {
 	clientPortInt, _ := strconv.Atoi(clientPort)
 
 	expected := new(bytes.Buffer)
-	expected.Write([]byte{13, 10, 13, 10, 0, 13, 10, 81, 85, 73, 84, 10, 32, 17, 0, 12, 127, 0, 0, 1, 127, 0, 0, 1})
+	expected.Write([]byte{13, 10, 13, 10, 0, 13, 10, 81, 85, 73, 84, 10, 33, 17, 0, 12, 127, 0, 0, 1, 127, 0, 0, 1})
 	binary.Write(expected, binary.BigEndian, uint16(serverPortInt))
 	binary.Write(expected, binary.BigEndian, uint16(clientPortInt))
 
@@ -102,7 +109,7 @@ func TestSendProxyProtocolV2IPv6(t *testing.T) {
 	clientPortInt, _ := strconv.Atoi(clientPort)
 
 	expected := new(bytes.Buffer)
-	expected.Write([]byte{13, 10, 13, 10, 0, 13, 10, 81, 85, 73, 84, 10, 32, 33, 0, 36, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1})
+	expected.Write([]byte{13, 10, 13, 10, 0, 13, 10, 81, 85, 73, 84, 10, 33, 33, 0, 36, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1})
 	binary.Write(expected, binary.BigEndian, uint16(serverPortInt))
 	binary.Write(expected, binary.BigEndian, uint16(clientPortInt))
 
