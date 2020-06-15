@@ -77,16 +77,16 @@ func main() {
 	cmd.Execute(func(cfg *config.Config) {
 
 		// Configure logging
-		logging.Configure(cfg.Logging.Output, cfg.Logging.Level)
-
-		// Start API
-		go api.Start((*cfg).Api)
-
-		/* setup metrics */
-		go metrics.Start((*cfg).Metrics)
+		logging.Configure(cfg.Logging.Output, cfg.Logging.Level, cfg.Logging.Format)
 
 		// Start manager
-		go manager.Initialize(*cfg)
+		manager.Initialize(*cfg)
+
+		/* setup metrics */
+		metrics.Start((*cfg).Metrics)
+
+		// Start API
+		api.Start((*cfg).Api)
 
 		// block forever
 		<-(chan string)(nil)
