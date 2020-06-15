@@ -309,6 +309,11 @@ type EtcdDiscoveryConfig struct {
 	EtcdPrefix          string   `toml:"etcd_prefix" json:"etcd_prefix"`
 	EtcdDsnJsonPath		string   `toml:"etcd_dsn_json_path" json:"etcd_dsn_json_path"`
 
+	EtcdTlsEnabled		bool	`toml:"etcd_tls_enabled" json:"etcd_tls_enabled"`
+	EtcdTlsCertPath   	string	`toml:"etcd_tls_cert_path" json:"etcd_tls_cert_path"`
+	EtcdTlsKeyPath    	string	`toml:"etcd_tls_key_path" json:"etcd_tls_key_path"`
+	EtcdTlsCacertPath 	string	`toml:"etcd_tls_cacert_path" json:"etcd_tls_cacert_path"`
+
 	*Tls
 }
 

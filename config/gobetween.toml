@@ -337,6 +337,12 @@ protocol = "udp"
 #
 #  etcd_username = ""                       # (optional) Username for etcd authentication
 #  etcd_password = ""                       # (optional) Password for etcd authentication
+#
+# etcd_tls_enabled = true                   # (optional) Enable TLS mode
+# etcd_tls_cert_path = "/path/to/cert.pem"  # (optional) Certificate location for TLS client authentication
+# etcd_tls_key_path = "/path/to/key.pem"    # (optional) Private key location for TLS client authentication
+# etcd_tls_cacert_path = "/path/to/cacert.pem" # (optional) Trusted CA certificate for the etcd server
+
 #  patroni_cluster = "batman"               # (required) Cluster name of the Patroni cluster
 #  patroni_namespace = "/service/"          # (optional) namespace of Patroni cluster in etcd
 #  patroni_pool_type = "leader"             # (optional) "leader" if discovering only leader instance, "replica" if all members

@@ -2,6 +2,7 @@ package discovery
 
 import (
 	"context"
+	"github.com/coreos/etcd/pkg/transport"
 	"github.com/elgs/gojq"
 	"github.com/sirupsen/logrus"
 	"net/url"
@@ -140,12 +141,26 @@ func createEtcdClient(cfg config.DiscoveryConfig) (client.Client, error) {
 	timeout, _ := time.ParseDuration(cfg.Timeout)
 	config := client.Config{
 		Endpoints:               cfg.EtcdHosts,
-		Transport:               client.DefaultTransport,
 		HeaderTimeoutPerRequest: timeout,
 	}
 	if cfg.EtcdUsername != nil {
 		config.Username = *cfg.EtcdUsername
 		config.Password = *cfg.EtcdPassword
+	}
+
+	if cfg.EtcdTlsEnabled {
+		tls := transport.TLSInfo{
+			CertFile: cfg.EtcdTlsCertPath,
+			KeyFile: cfg.EtcdTlsKeyPath,
+			TrustedCAFile: cfg.EtcdTlsCacertPath,
+		}
+		t, err := transport.NewTransport(tls, timeout)
+		if err != nil {
+			return nil, err
+		}
+		config.Transport = t
+	} else {
+		config.Transport = client.DefaultTransport
 	}
 
 	cli, err := client.New(config)
