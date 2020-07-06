@@ -21,7 +21,7 @@ if [ $? -ne 0 ]; then
 	exit 1
 fi
 
-PROJECT_ID="gobetween"
+PROJECT_ID="as-gobetween"
 ARTIFACT_ID="application"
 PROJECT_ROOT="$( cd "$( dirname "$0" )" && pwd )"
 TAR_FILE_NAME=$PROJECT_ID-$1.tar
