@@ -1,0 +1,76 @@
+#!/bin/bash
+
+cd $HOME/app
+
+nohup $HOME/data/./application -c conf > $HOME/startup.log 2>&1 &
+
+#CONTEXT="rc"
+#if [ -f "/etc/cluster.context" ];
+#then
+#   CONTEXT=$(cat /etc/cluster.context)
+#fi
+#
+#if [ -f "data/pre-startup" ]; then
+#  echo "Executing data/pre-startup"
+#  data/pre-startup
+#  ret=$?
+#  if [[ $ret -ne 0 ]];then
+#    exit $ret
+#  fi
+#fi
+#
+#if [ -f "$HOME/config/support/$CONTEXT/pre-startup" ]; then
+#  echo "Executing $HOME/config/support/$CONTEXT/pre-startup"
+#  $HOME/config/support/$CONTEXT/pre-startup
+#  ret=$?
+#  if [[ $ret -ne 0 ]];then
+#    exit $ret
+#  fi
+#fi
+#
+#nohup $HOME/data/./application > $HOME/startup.log 2>&1 &
+#
+#if [ $? -ne 0 ]; then
+#    echo "error starting up"
+#    exit 1
+#fi
+#
+#counter=30
+#if [ $CONTEXT = "contingency" ];
+#then
+#   counter=90
+#fi
+#
+#while true
+#do
+#  status=$( curl -w %{http_code} -o health-check.out -s http://localhost:9290/health-check )
+#  if [[ $status -eq 200 ]]
+#  then
+#    break
+#  fi
+#
+#  echo "$counter waiting server start up, status $status"
+#  sleep 1
+#
+#  (( counter-=1 ))
+#  if [ $counter -le 0 ]; then
+#    echo "error starting up server"
+#    exit 1
+#  fi
+#done
+#
+#
+#if [ -f "data/post-startup" ]; then
+#  echo "Executing data/post-startup"
+#  data/post-startup
+#fi
+#
+#if [ -f "$HOME/config/support/$CONTEXT/post-startup" ]; then
+#  echo "Executing $HOME/config/support/$CONTEXT/post-startup"
+#  $HOME/config/support/$CONTEXT/post-startup
+#fi
+#
+#if [ -f "data/relic_deploy_mark" ]; then
+#  echo "Executing data/relic_deploy_mark"
+#  data/relic_deploy_mark
+#fi

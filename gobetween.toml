@@ -1,0 +1,29 @@
+[api]
+enabled = true  # true | false
+bind = ":9290"  # bind host:port
+
+[servers.elk]
+ bind = "0.0.0.0:9090"
+ protocol = "udp"
+ balance = "roundrobin"
+ backend_idle_timeout="0"
+ client_idle_timeout="0"
+
+[servers.elk.udp]
+ max_requests = 1
+ max_responses = 0
+
+[servers.elk.discovery]
+ kind = "static"
+ static_list = [
+  "as-logstash-00:9090",
+  "as-logstash-01:9090"
+ ]
+
+[servers.elk.healthcheck]
+ interval = "30s"
+ kind = "exec"
+ exec_command = "./hc.sh"
+ exec_expected_positive_output = "1"
+ exec_expected_negative_output = "0"
+ timeout = "5s"

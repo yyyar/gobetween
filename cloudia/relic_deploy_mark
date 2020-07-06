@@ -1,0 +1,33 @@
+#!/bin/bash
+
+API_KEY=8111a4edb9bf90f2372bcc8fd0ceafa2410182014af1e17
+
+CONTEXT="rc"
+if [ -f "/etc/cluster.context" ];
+then
+   CONTEXT=$(cat /etc/cluster.context)
+fi
+
+APPLICATION_FILE_PATH="$HOME/data/config/support/$CONTEXT/application.json"
+
+if [ -f "$APPLICATION_FILE_PATH" ];
+then
+    LICENSE_KEY=$(egrep -o '\"license_key\": \".*\"' $APPLICATION_FILE_PATH | sed 's/^"license_key": "//' | sed 's/"$//')
+    APP_NAME=$(egrep -o '\"app_name\": \".*\"' $APPLICATION_FILE_PATH | sed 's/^"app_name": "//' | sed 's/"$//')
+
+    HOST_NAME=""
+    if [ -f "/etc/cluster.txt" ];
+    then
+       HOST_NAME=$(egrep -o 'instanceInfo:.*' /etc/cluster.txt | sed 's/^instanceInfo://' | sed 's/,.*,.*$//')
+    fi
+    echo "host name $HOST_NAME"
+
+    VERSION=""
+    if [ -f "$HOME/data/version" ];
+    then
+       VERSION=$(cat $HOME/data/version)
+    fi
+    echo "version $VERSION"
+
+    nohup curl -H "x-api-key:$API_KEY" -H "x-license-key:$LICENSE_KEY" -d "deployment[app_name]=$APP_NAME" -d "deployment[revision]=$HOST_NAME-$VERSION" https://api.newrelic.com/deployments.xml &> relic-startup.out
+fi

@@ -1,0 +1,59 @@
+#!/bin/bash
+
+CONTEXT="rc"
+if [ -f "/etc/cluster.context" ];
+then
+   CONTEXT=$(cat /etc/cluster.context)
+fi
+
+if [ -f "data/pre-shutdown" ]; then
+  echo "Executing data/pre-shutdown"
+  data/pre-shutdown
+  ret=$?
+  if [[ $ret -ne 0 ]];then
+    exit $ret
+  fi
+fi
+
+if [ -f "$HOME/config/support/$CONTEXT/pre-shutdown" ]; then
+  echo "Executing $HOME/config/support/$CONTEXT/pre-shutdown"
+  $HOME/config/support/$CONTEXT/pre-shutdown
+  ret=$?
+  if [[ $ret -ne 0 ]];then
+    exit $ret
+  fi
+fi
+
+PID="$( pgrep -f application )"
+if [ -z "$PID" ];
+then
+    exit 0
+fi
+
+kill -INT $PID
+
+COUNTER=30
+while kill -0 $PID
+do
+  echo "waiting finalization of PID $PID"
+  sleep 1
+
+  (( COUNTER-=1 ))
+  if [ $COUNTER -le 0 ]; then
+    echo "Killing PID $PID"
+    kill -9 $PID
+    break
+  fi
+done
+
+if [ -f "data/post-shutdown" ]; then
+  echo "Executing data/post-shutdown"
+  data/post-shutdown
+fi
+
+if [ -f "$HOME/config/support/$CONTEXT/post-shutdown" ]; then
+  echo "Executing $HOME/config/support/$CONTEXT/post-shutdown"
+  $HOME/config/support/$CONTEXT/post-shutdown
+fi
+
+exit 0

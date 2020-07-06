@@ -1,0 +1,90 @@
+#!/bin/sh
+
+GO_VERSION="1.12.6"
+GO="/opt/go$GO_VERSION/go/bin/go"
+
+sudo /usr/local/scripts/install_go.sh $GO_VERSION
+if [ $? -ne 0 ]; then
+	echo "ERROR: go install has failed"
+	exit 1
+fi
+
+echo "setting GOPATH and GOROOT"
+unset GOROOT
+export GOPATH=$HOME/go
+export PATH=$PATH:$GOPATH/bin
+export GO111MODULE=on
+
+$GO version
+if [ $? -ne 0 ]; then
+	echo "ERROR: go version $GO_VERSION is not present"
+	exit 1
+fi
+
+PROJECT_ID="gobetween"
+ARTIFACT_ID="application"
+PROJECT_ROOT="$( cd "$( dirname "$0" )" && pwd )"
+TAR_FILE_NAME=$PROJECT_ID-$1.tar
+
+REPOSITORIES_PATH=$GOPATH/src/github.com/despegar
+echo "making directory $REPOSITORIES_PATH"
+mkdir -p $REPOSITORIES_PATH
+
+PROJECT_PATH=$REPOSITORIES_PATH/$PROJECT_ID
+rm -rf $PROJECT_PATH
+
+echo "copying $PROJECT_ROOT to $REPOSITORIES_PATH"
+cp -R $PROJECT_ROOT $REPOSITORIES_PATH
+
+cd $PROJECT_PATH
+
+echo "making empacar directories"
+mkdir -p empacar/app/config/
+
+echo $(go version)
+
+#echo "getting dependencies"
+#go get -u github.com/golang/dep/cmd/dep
+#dep ensure
+#dep status
+#if [ $? -ne 0 ]; then
+#	echo "ERROR: dep ensure has failed"
+#	cd $REPOSITORIES_PATH
+#	rm -rf $PROJECT_PATH
+#	exit 1
+#fi
+
+echo "compiling project"
+#go get github.com/despegar/gobetween
+$GO build -o $PROJECT_PATH/empacar/app/$ARTIFACT_ID
+
+if [ \( $? -ne 0 \) -o \( ! -f $PROJECT_PATH/empacar/app/$ARTIFACT_ID \) ]; then
+	echo "ERROR: binary file have not been builded"
+	cd $REPOSITORIES_PATH
+	rm -rf $PROJECT_PATH
+	exit 1
+fi
+
+echo "copying cloudia scripts"
+cp $PROJECT_PATH/cloudia/* $PROJECT_PATH/empacar/app/
+echo "copying configuration"
+cp -r $PROJECT_PATH/gobetween.toml $PROJECT_PATH/empacar/app/conf
+
+cd $PROJECT_PATH/empacar/
+
+echo "creating tar file $TAR_FILE_NAME"
+tar -czvf $TAR_FILE_NAME app/
+echo "tar file created"
+
+echo "making directory $PROJECT_ROOT/target/"
+mkdir -p $PROJECT_ROOT/target/
+
+echo "copying tar to target directory"
+cp $TAR_FILE_NAME $PROJECT_ROOT/target/
+
+cd $REPOSITORIES_PATH
+
+echo "deleting temporary files"
+rm -rf $PROJECT_PATH
+
+echo "build finished"

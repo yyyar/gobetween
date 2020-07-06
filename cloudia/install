@@ -1,0 +1,37 @@
+#!/bin/bash
+
+APP_HOME="$( cd "$( dirname "$0" )" && pwd )"
+echo "APP_HOME $APP_HOME"
+
+APP_TARGET_DIR="$HOME/data"
+
+mkdir -p $APP_TARGET_DIR
+rm -rf $APP_TARGET_DIR/*
+cp -rf $APP_HOME/* $APP_TARGET_DIR/
+
+if [ -f "$APP_TARGET_DIR/pre-install" ]; then
+  echo "Executing $APP_TARGET_DIR/pre-install"
+  $APP_TARGET_DIR/pre-install
+  ret=$?
+  if [[ $ret -ne 0 ]];then
+    exit $ret
+  fi
+fi
+
+CONTEXT="rc"
+if [ -f "/etc/cluster.context" ];
+then
+   CONTEXT=$(cat /etc/cluster.context)
+fi
+echo "context $CONTEXT"
+
+if [ -f "$HOME/sensitive.conf" ]; then
+  cp $HOME/sensitive.conf $APP_TARGET_DIR/config/support/$CONTEXT/sensitive.conf
+fi
+
+cp -r $APP_TARGET_DIR/config/ $HOME
+
+if [ -f "$APP_TARGET_DIR/post-install" ]; then
+  echo "executing $APP_TARGET_DIR/post-install"
+  $APP_TARGET_DIR/post-install
+fi
