@@ -189,7 +189,7 @@ protocol = "udp"
 ## For more details on PROXYPROTOCOL see https://www.haproxy.org/download/1.8/doc/proxy-protocol.txt
 #
 #  [servers.default.proxy_protocol]  # (optional)
-#  version = "1"                     # (required) proxy protocol version. only "1" for now.
+#  version = "1"                     # (required) proxy protocol version, both "1" and "2" are allowed.
 #
 ## -------------------- healthchecks ------------------------- #
 #

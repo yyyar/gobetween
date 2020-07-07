@@ -28,7 +28,7 @@ require (
 	github.com/miekg/dns v1.0.14
 	github.com/mitchellh/go-testing-interface v1.0.0 // indirect
 	github.com/mitchellh/mapstructure v1.1.2 // indirect
-	github.com/pires/go-proxyproto v0.0.0-20190111085350-4d51b51e3bfc
+	github.com/pires/go-proxyproto v0.1.3
 	github.com/prometheus/client_golang v0.9.2
 	github.com/rogpeppe/fastuuid v1.0.0 // indirect
 	github.com/sirupsen/logrus v1.4.0

@@ -6,7 +6,10 @@ package core
  * @author Yaroslav Pogrebnyak <yyyaroslav@gmail.com>
  */
 
-import "net"
+import (
+	"crypto/tls"
+	"net"
+)
 
 type Context interface {
 	String() string
@@ -23,7 +26,8 @@ type TcpContext struct {
 	/**
 	 * Current client connection
 	 */
-	Conn net.Conn
+	Conn     net.Conn
+	TlsState *tls.ConnectionState
 }
 
 func (t TcpContext) String() string {

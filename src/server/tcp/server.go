@@ -242,12 +242,26 @@ func (this *Server) wrap(conn net.Conn, sniEnabled bool) {
 	}
 
 	if this.tlsConfig != nil {
-		conn = tls.Server(conn, this.tlsConfig)
-	}
+		tlsConn := tls.Server(conn, this.tlsConfig)
+		err = tlsConn.Handshake()
+		if err != nil {
+			log.Error("Failed to complete TLS handshake: ", err)
+			conn.Close()
+			return
+		}
 
-	this.connect <- &core.TcpContext{
-		hostname,
-		conn,
+		tlsState := tlsConn.ConnectionState()
+		this.connect <- &core.TcpContext{
+			hostname,
+			tlsConn,
+			&tlsState,
+		}
+	} else {
+		this.connect <- &core.TcpContext{
+			hostname,
+			conn,
+			nil,
+		}
 	}
 
 }
@@ -336,7 +350,14 @@ func (this *Server) handle(ctx *core.TcpContext) {
 		switch this.cfg.ProxyProtocol.Version {
 		case "1":
 			log.Debug("Sending proxy_protocol v1 header ", clientConn.RemoteAddr(), " -> ", this.listener.Addr(), " -> ", backendConn.RemoteAddr())
-			err := proxyprotocol.SendProxyProtocolV1(clientConn, backendConn)
+			err := proxyprotocol.SendProxyProtocolV1(this.cfg.ProxyProtocol, ctx, backendConn)
+			if err != nil {
+				log.Error(err)
+				return
+			}
+		case "2":
+			log.Debug("Sending proxy_protocol v2 header ", clientConn.RemoteAddr(), " -> ", this.listener.Addr(), " -> ", backendConn.RemoteAddr())
+			err := proxyprotocol.SendProxyProtocolV2(this.cfg.ProxyProtocol, ctx, backendConn)
 			if err != nil {
 				log.Error(err)
 				return
