@@ -34,9 +34,9 @@
   * **Stats & Metrics** - for servers and backends including rx/tx, status, active connections & etc.
  
 * [Discovery](https://github.com/yyyar/gobetween/wiki/Discovery)
-  * **Static** - hardcode backends list in config file
+  * **Static** - hardcode backends list in the config file
   * **Docker** - query backends from Docker / Swarm API filtered by label
-  * **Exec** - execute arbitrary program and get backends from its stdout
+  * **Exec** - execute an arbitrary program and get backends from its stdout
   * **JSON** - query arbitrary http url and pick backends from response json (of any structure)
   * **Plaintext** - query arbitrary http and parse backends from response text with customized regexp
   * **SRV** - query DNS server and get backends from SRV records
@@ -46,7 +46,7 @@
 * [Healthchecks](https://github.com/yyyar/gobetween/wiki/Healthchecks)
   * **Ping** - simple TCP ping healthcheck
   * **Exec** - execute arbitrary program passing host & port as options, and read healthcheck status from the stdout
-  * **Probe** - send specific bytes to backend (udp, tcp or tls) and expect correct answer (bytes or regexp)
+  * **Probe** - send specific bytes to backend (udp, tcp or tls) and expect a correct answer (bytes or regexp)
 
 * [Balancing Strategies](https://github.com/yyyar/gobetween/wiki/Balancing) (with [SNI](https://github.com/yyyar/gobetween/wiki/Server-Name-Indication) support)
   * **Weight** - select backend from pool based relative weights of backends

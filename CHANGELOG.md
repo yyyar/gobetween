@@ -12,7 +12,7 @@
  - IPV6 support for SRV discovery #222
 
 ### Added
- - Multistage docker build with default base image 'scratch'
+ - Multistage docker build
  - Build as snap package
  - Latest letsencrypt changes
 
@@ -100,12 +100,12 @@ This release brings several new features and various fixes and improvements.
 - Propagating sni backend value in scheduler after discovery
 
 ### Changed
-- Optimizing Docker image (now FROM stratch)
+- Optimizing Docker image (now FROM scratch)
 
 
 
 ## [0.4.0] - 2017-04-07
-This release brings many new features and improvemets, as well as bugfixes.
+This release brings many new features and improvements, as well as bugfixes.
 Major things are UDP support, TLS termination, TLS proxy, SNI-aware balancing.
 
 ### New Features
@@ -129,7 +129,7 @@ Major things are UDP support, TLS termination, TLS proxy, SNI-aware balancing.
 
 
 ## [0.3.0] - 2016-08-18
-This release brings several new features and improvemets, as well as bugfixes. Major things are
+This release brings several new features and improvements, as well as bugfixes. Major things are
 integrations with Consul, more flexible command-line options and Access control module.
 
 ### New Features
