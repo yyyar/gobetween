@@ -1,6 +1,6 @@
 module github.com/yyyar/gobetween
 
-go 1.12
+go 1.14
 
 require (
 	github.com/armon/go-metrics v0.3.3 // indirect
