@@ -191,6 +191,10 @@ func (s *Session) ListenResponses(sendTo *net.UDPConn) {
 			n, err := s.conn.Read(b)
 
 			if err != nil {
+				if err, ok := err.(net.Error); ok && err.Timeout() {
+					return
+				}
+
 				if atomic.LoadUint32(&s.stopped) == 0 {
 					log.Errorf("Failed to read from backend: %v", err)
 				}
