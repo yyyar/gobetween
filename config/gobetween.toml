@@ -44,8 +44,8 @@ enabled = false # false | true
 bind = ":9284"  # "host:port"
 
 #
-# Default values for server configuration, may be overridden in [servers] sections.
-# All "duration" fields (for example, postfixed with '_timeout') have the following format:
+# Default values for server configuration, may be overriden in [servers] sections.
+# All "duration" fields (for examole, postfixed with '_timeout') have the following format:
 # <int><duration> where duration can be one of 'ms', 's', 'm', 'h'.
 # Examples: "5s", "1m", "500ms", etc. "0" value means no limit
 #
@@ -123,7 +123,7 @@ protocol = "udp"
 #
 ## ---------------- backends tls properties ----------------- #
 #
-#  [servers.default.backends_tls]      # (optional) backends tls options (if present -- connect to backends via tls)
+#  [servers.default.backends_tls]      # (optional) backends tls options (if present -- conntect to backends via tls)
 #    ignore_verify = false             # (optional) insecure, disable tls certificate verification while connecting to backends
 #    root_ca_cert_path = "/path/to/file.pem" # (optional) path to series of root PEM encoded certificates.
 #                                              By default the host's root CA set is used (on many linux distros it's /etc/ssl/cert.pem)
@@ -304,7 +304,7 @@ protocol = "udp"
 #  lxd_accept_server_cert = false                           # (optional) Accept the LXD server certificate. Only used when scheme is https
 #
 #  lxd_container_label_key = "user.label"                   # (optional) Filter containers that have specified setting
-#  lxd_container_label_value = "foo"                        # (optional) Filter containers that have specified value of 'lxd_container_label_key' setting
+#  lxd_container_label_value = "foo"                        # (optional) Filter continers that have specified value of 'lxd_container_label_key' setting
 #
 #  lxd_container_port = 0                                   # (required) Port of container to use
 #  lxd_container_port_key = "user.gobetween.port"           # (optional) Container setting key that specifies the port.
