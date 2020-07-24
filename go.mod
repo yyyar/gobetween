@@ -1,6 +1,6 @@
 module github.com/yyyar/gobetween/main
 
-go 1.12
+go 1.14
 
 replace github.com/yyyar/gobetween => ./src
 

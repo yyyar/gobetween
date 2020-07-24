@@ -26,6 +26,7 @@ type Config struct {
 type LoggingConfig struct {
 	Level  string `toml:"level" json:"level"`
 	Output string `toml:"output" json:"output"`
+	Format string `toml:"format" json:"format"`
 }
 
 /**

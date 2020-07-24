@@ -183,7 +183,7 @@ func lxdBuildClient(cfg config.DiscoveryConfig) (lxd.ContainerServer, error) {
 			 *
 			 * First, see if communication with the LXD server is possible.
 			 */
-			_, err := lxdConfig.GetContainerServer(cfg.LXDServerRemoteName)
+			_, err := lxdConfig.GetInstanceServer(cfg.LXDServerRemoteName)
 			if err != nil {
 				/* If there was an error, then gobetween will try to download the server's cert. */
 				if cfg.LXDAcceptServerCert {
@@ -208,7 +208,7 @@ func lxdBuildClient(cfg config.DiscoveryConfig) (lxd.ContainerServer, error) {
 		 *
 		 * Authentication must happen even if PKI is in use.
 		 */
-		client, err = lxdConfig.GetContainerServer(cfg.LXDServerRemoteName)
+		client, err = lxdConfig.GetInstanceServer(cfg.LXDServerRemoteName)
 		if err != nil {
 			return nil, err
 		}
@@ -224,7 +224,7 @@ func lxdBuildClient(cfg config.DiscoveryConfig) (lxd.ContainerServer, error) {
 	}
 
 	/* Build a new client */
-	client, err = lxdConfig.GetContainerServer(cfg.LXDServerRemoteName)
+	client, err = lxdConfig.GetInstanceServer(cfg.LXDServerRemoteName)
 	if err != nil {
 		return nil, err
 	}
@@ -264,7 +264,8 @@ func lxdBuildConfig(cfg config.DiscoveryConfig) (*lxd_config.Config, error) {
 */
 func lxdGetRemoteCertificate(config *lxd_config.Config, remote string) error {
 	addr := config.Remotes[remote]
-	certificate, err := shared.GetRemoteCertificate(addr.Addr)
+	userAgent := ""
+	certificate, err := shared.GetRemoteCertificate(addr.Addr, userAgent)
 	if err != nil {
 		return err
 	}
