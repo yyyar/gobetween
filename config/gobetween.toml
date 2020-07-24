@@ -10,8 +10,9 @@
 # Logging configuration
 #
 [logging]
-level = "info"   # "debug" | "info" | "warn" | "error"
+level = "info"    # "debug" | "info" | "warn" | "error"
 output = "stdout" # "stdout" | "stderr" | "/path/to/gobetween.log"
+format = "text"   # (optional) "text" | "json"
 
 #
 # Pprof profiler configuration

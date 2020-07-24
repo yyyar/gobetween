@@ -13,6 +13,7 @@ import (
 	"sync/atomic"
 	"time"
 
+	"github.com/eric-lindau/udpfacade"
 	"github.com/yyyar/gobetween/balance"
 	"github.com/yyyar/gobetween/config"
 	"github.com/yyyar/gobetween/core"
@@ -24,7 +25,6 @@ import (
 	"github.com/yyyar/gobetween/server/udp/session"
 	"github.com/yyyar/gobetween/stats"
 	"github.com/yyyar/gobetween/utils"
-	"github.com/eric-lindau/udpfacade"
 )
 
 const UDP_PACKET_SIZE = 65507
@@ -62,6 +62,55 @@ type Server struct {
 	/* ----- sessions ----- */
 	sessions map[string]*session.Session
 	mu       sync.Mutex
+}
+
+/**
+ * fire'n'forget connection pool
+ */
+type connPool struct {
+	pool map[string]net.Conn
+	mu   sync.RWMutex
+}
+
+func newConnPool() *connPool {
+	return &connPool{
+		pool: make(map[string]net.Conn),
+	}
+}
+
+func (cp *connPool) get(addr string) net.Conn {
+	if cp == nil {
+		return nil
+	}
+
+	cp.mu.RLock()
+	defer cp.mu.RUnlock()
+	return cp.pool[addr]
+}
+
+func (cp *connPool) put(addr string, conn net.Conn) {
+	if cp == nil {
+		return
+	}
+
+	cp.mu.Lock()
+	defer cp.mu.Unlock()
+	cp.pool[addr] = conn
+}
+
+func (cp *connPool) close() {
+	if cp == nil {
+		return
+	}
+
+	cp.mu.Lock()
+	defer cp.mu.Unlock()
+
+	for _, conn := range cp.pool {
+		conn.Close()
+	}
+
+	cp.pool = nil
 }
 
 /**
@@ -185,8 +234,15 @@ func (this *Server) serve() {
 		Transparent:        this.cfg.Udp.Transparent,
 	}
 
+	var cp *connPool
+	if cfg.MaxRequests == 1 {
+		cp = newConnPool()
+	}
+
 	// Main loop goroutine - reads incoming data and decides what to do
 	go func() {
+
+		defer cp.close()
 
 		buf := make([]byte, UDP_PACKET_SIZE)
 		for {
@@ -211,7 +267,7 @@ func (this *Server) serve() {
 
 			//special case for single request mode
 			if cfg.MaxRequests == 1 {
-				err := this.fireAndForget(clientAddr, buf[:n])
+				err := this.fireAndForget(cp, clientAddr, buf[:n])
 
 				if err != nil {
 					log.Errorf("Error sending data to backend: %v ", err)
@@ -246,7 +302,7 @@ func (this *Server) cleanup() {
 /**
  * Elect and connect to backend
  */
-func (this *Server) electAndConnect(clientAddr *net.UDPAddr) (net.Conn, *core.Backend, error) {
+func (this *Server) electAndConnect(pool *connPool, clientAddr *net.UDPAddr) (net.Conn, *core.Backend, error) {
 	backend, err := this.scheduler.TakeBackend(core.UdpContext{
 		ClientAddr: *clientAddr,
 	})
@@ -260,12 +316,16 @@ func (this *Server) electAndConnect(clientAddr *net.UDPAddr) (net.Conn, *core.Ba
 
 	addrStr := host + ":" + port
 
+	conn := pool.get(addrStr)
+	if conn != nil {
+		return conn, backend, nil
+	}
+
 	addr, err := net.ResolveUDPAddr("udp", addrStr)
 	if err != nil {
 		return nil, nil, fmt.Errorf("Could not resolve udp address %s: %v", addrStr, err)
 	}
 
-	var conn net.Conn
 	if this.cfg.Udp.Transparent {
 		conn, err = udpfacade.DialUDPFrom(clientAddr, addr)
 		if err != nil {
@@ -277,6 +337,8 @@ func (this *Server) electAndConnect(clientAddr *net.UDPAddr) (net.Conn, *core.Ba
 			return nil, nil, fmt.Errorf("Could not dial UDP addr %v: %v", addr, err)
 		}
 	}
+
+	pool.put(addrStr, conn)
 
 	return conn, backend, nil
 }
@@ -302,7 +364,7 @@ func (this *Server) getOrCreateSession(cfg session.Config, clientAddr *net.UDPAd
 		go func() { s.Close() }()
 	}
 
-	conn, backend, err := this.electAndConnect(clientAddr)
+	conn, backend, err := this.electAndConnect(nil, clientAddr)
 	if err != nil {
 		return nil, fmt.Errorf("Could not elect/connect to backend: %v", err)
 	}
@@ -341,9 +403,9 @@ func (this *Server) proxy(cfg session.Config, clientAddr *net.UDPAddr, buf []byt
 /**
  * Omit creating session, just send one packet of data
  */
-func (this *Server) fireAndForget(clientAddr *net.UDPAddr, buf []byte) error {
+func (this *Server) fireAndForget(pool *connPool, clientAddr *net.UDPAddr, buf []byte) error {
 
-	conn, backend, err := this.electAndConnect(clientAddr)
+	conn, backend, err := this.electAndConnect(pool, clientAddr)
 	if err != nil {
 		return fmt.Errorf("Could not elect or connect to backend: %v", err)
 	}
