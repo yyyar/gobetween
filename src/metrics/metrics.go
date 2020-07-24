@@ -187,7 +187,7 @@ func Start(cfg config.MetricsConfig) {
 
 	http.Handle("/metrics", promhttp.Handler())
 	go func() {
-		fmt.Errorf("%s", http.ListenAndServe(cfg.Bind, nil))
+		log.Errorf("Failed to listen and serve prometeus metrics endpoint: %v", http.ListenAndServe(cfg.Bind, nil))
 	}()
 }
 
