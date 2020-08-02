@@ -73,7 +73,7 @@
 
 ## Hacking
 
-* Install Go 1.12+ https://golang.org/
+* Install Go 1.14+ https://golang.org/
 * `$ git clone git@github.com:yyyar/gobetween.git`
 * `$ make`
 * `$ make run`
