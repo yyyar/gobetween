@@ -313,11 +313,11 @@ func prepareConfig(name string, server config.Server, defaults config.Connection
 		}
 	}
 
-	if server.Healthcheck.InitialBackendStatus != nil {
-		switch *server.Healthcheck.InitialBackendStatus {
-		case "live", "unhealthy":
+	if server.Healthcheck.InitialStatus != nil {
+		switch *server.Healthcheck.InitialStatus {
+		case "healthy", "unhealthy":
 		default:
-			return config.Server{}, errors.New("Unsupported initial_backend_status")
+			return config.Server{}, errors.New("Unsupported healthcheck initial_status")
 		}
 	}
 

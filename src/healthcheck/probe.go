@@ -26,7 +26,7 @@ func probe(t core.Target, cfg config.HealthcheckConfig, result chan<- CheckResul
 	timeout, _ := time.ParseDuration(cfg.Timeout)
 
 	checkResult := CheckResult{
-		Live:   FailCheckResult,
+		Status:   Unhealthy,
 		Target: t,
 	}
 
@@ -50,7 +50,7 @@ func probe(t core.Target, cfg config.HealthcheckConfig, result chan<- CheckResul
 		conn, err = net.DialTimeout(cfg.ProbeProtocol, t.Address(), timeout)
 	}
 	if err != nil {
-		checkResult.Live = FailCheckResult
+		checkResult.Status = Unhealthy
 		return
 	}
 
@@ -115,5 +115,5 @@ func probe(t core.Target, cfg config.HealthcheckConfig, result chan<- CheckResul
 		panic("probe_strategy should be checked in manager")
 	}
 
-	checkResult.Live = LiveCheckResult
+	checkResult.Status = Healthy
 }

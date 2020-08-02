@@ -30,9 +30,9 @@ func ping(t core.Target, cfg config.HealthcheckConfig, result chan<- CheckResult
 
 	conn, err := net.DialTimeout("tcp", t.Address(), pingTimeoutDuration)
 	if err != nil {
-		checkResult.Live = FailCheckResult
+		checkResult.Status = Unhealthy
 	} else {
-		checkResult.Live = LiveCheckResult
+		checkResult.Status = Healthy
 		conn.Close()
 	}
 

@@ -17,12 +17,12 @@ import (
  */
 type CheckFunc func(core.Target, config.HealthcheckConfig, chan<- CheckResult)
 
-type CheckResultLiveness int32
+type HealthCheckStatus int32
 
 const (
-	InitialCheckResult CheckResultLiveness = iota
-	FailCheckResult
-	LiveCheckResult
+	Initial HealthCheckStatus = iota
+	Unhealthy
+	Healthy
 )
 
 /**
@@ -35,7 +35,7 @@ type CheckResult struct {
 	Target core.Target
 
 	/* Check live status */
-	Live CheckResultLiveness
+	Status HealthCheckStatus
 }
 
 /**
@@ -155,7 +155,7 @@ func (this *Healthcheck) UpdateWorkers(targets []core.Target) {
 				cfg:    this.cfg,
 				check:  this.check,
 				LastResult: CheckResult{
-					Live: InitialCheckResult,
+					Status: Initial,
 				},
 			}
 			keep.Start()
@@ -187,21 +187,21 @@ func (this *Healthcheck) HasCheck() bool {
 	return this.cfg.Kind != "none"
 }
 
-func (this *Healthcheck) InitialBackendState() CheckResultLiveness {
+func (this *Healthcheck) InitialBackendHealthCheckStatus() HealthCheckStatus {
 	if !this.HasCheck() {
-		return LiveCheckResult
+		return Healthy
 	}
-	if this.cfg.InitialBackendStatus != nil {
-		switch *this.cfg.InitialBackendStatus {
+	if this.cfg.InitialStatus != nil {
+		switch *this.cfg.InitialStatus {
 		case "unhealthy":
-			return FailCheckResult
-		case "live":
-			return LiveCheckResult
+			return Unhealthy
+		case "healthy":
+			return Healthy
 		default:
-			panic("Healthcheck invalid initial backend status, this should have been validated in manager, but has invalid value " + *this.cfg.InitialBackendStatus)
+			panic("Healthcheck invalid initial status, this should have been validated in manager, but has invalid value " + *this.cfg.InitialStatus)
 		}
 	}
-	return LiveCheckResult
+	return Healthy
 }
 
 /**
