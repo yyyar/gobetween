@@ -195,9 +195,12 @@ protocol = "udp"
 #
 #  [servers.default.healthcheck]   # (optional)
 #  interval = "2s"                 # (required) healthcheck running interval
-#  timeout = "0s"                  # (required) max time for healthcheck to execute until mark as failed
-#  fails = 5                       # (optional) consecutive number of checks that should fail, to mark backend as inactive
-#  passes = 2                      # (optional) consecutive number of checks that should pass, to mark backend as active
+#  timeout = "0s"                  # (required) max time for healthcheck to execute until mark as unhealthy
+#  fails = 5                       # (optional) consecutive number of checks that should fail, to mark backend as unhealthy
+#  passes = 2                      # (optional) consecutive number of checks that should pass, to mark backend as healthy
+#
+#  # The status when a backend is first discovered (default healthy)
+#  initial_status = "healthy"      # (optional) "healthy" | "unhealthy"
 #
 #  # -- ping -- #
 #  kind = "ping"                   # Unavailable if server.protocol is udp

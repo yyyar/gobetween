@@ -313,6 +313,14 @@ func prepareConfig(name string, server config.Server, defaults config.Connection
 		}
 	}
 
+	if server.Healthcheck.InitialStatus != nil {
+		switch *server.Healthcheck.InitialStatus {
+		case "healthy", "unhealthy":
+		default:
+			return config.Server{}, errors.New("Unsupported healthcheck initial_status")
+		}
+	}
+
 	if server.Healthcheck.Kind == "probe" {
 
 		switch server.Healthcheck.ProbeProtocol {

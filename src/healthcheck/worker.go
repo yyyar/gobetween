@@ -99,15 +99,17 @@ func (this *Worker) process(checkResult CheckResult) {
 
 	log := logging.For("healthcheck/worker")
 
-	if this.LastResult.Live && !checkResult.Live {
-		this.passes = 0
-		this.fails++
-	} else if !this.LastResult.Live && checkResult.Live {
-		this.fails = 0
-		this.passes++
-	} else {
+	if checkResult.Status == this.LastResult.Status {
 		// check status not changed
 		return
+	}
+
+	if checkResult.Status == Unhealthy {
+		this.passes = 0
+		this.fails++
+	} else if checkResult.Status == Healthy {
+		this.fails = 0
+		this.passes++
 	}
 
 	if this.passes == 0 && this.fails >= this.cfg.Fails ||
