@@ -9,6 +9,9 @@ import (
 	"math/rand"
 	"os"
 	"runtime"
+	"os/signal"
+	"strconv"
+	"syscall"
 	"time"
 
 	"github.com/yyyar/gobetween/api"
@@ -73,6 +76,11 @@ func main() {
 		log.Println("Using parameters from env var: ", os.Args)
 	}
 
+	k8sShutdownTime := 0
+	if v := os.Getenv("GOBETWEEN_SHUTDOWN_TIME"); v != "" {
+		k8sShutdownTime, _ = strconv.Atoi(v)
+	}
+
 	// Process flags and start
 	cmd.Execute(func(cfg *config.Config) {
 
@@ -84,6 +92,17 @@ func main() {
 
 		/* setup metrics */
 		metrics.Start((*cfg).Metrics)
+
+		go func(){
+			quit := make(chan os.Signal, 1)
+			signal.Notify(quit, os.Interrupt, syscall.SIGTERM)
+			q := <-quit
+			if q == syscall.SIGTERM {
+				log.Printf("Shutting down with timeout: %ds", time.Second)
+				time.Sleep(time.Duration(k8sShutdownTime) * time.Second)
+			}
+			os.Exit(0)
+		}()
 
 		// Start API
 		api.Start((*cfg).Api)
