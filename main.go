@@ -94,23 +94,17 @@ func main() {
 		/* setup metrics */
 		metrics.Start((*cfg).Metrics)
 
-		// Wait to SIGTERM signal
-		go func(){
-			quit := make(chan os.Signal, 1)
-			signal.Notify(quit, os.Interrupt, syscall.SIGTERM)
-			q := <-quit
-			log.Printf("Received shutdown signal")
-			if q == syscall.SIGTERM {
-				log.Printf("Shutting down with timeout: %s", time.Duration(k8sShutdownTime) * time.Second)
-				time.Sleep(time.Duration(k8sShutdownTime) * time.Second)
-			}
-			os.Exit(0)
-		}()
-
 		// Start API
 		api.Start((*cfg).Api)
-
-		// block forever
-		<-(chan string)(nil)
+		
+		// Wait to SIGTERM signal
+		quit := make(chan os.Signal, 2)
+		signal.Notify(quit, os.Interrupt, syscall.SIGTERM)
+		q := <-quit
+		log.Printf("Received shutdown signal")
+		if q == syscall.SIGTERM {
+			log.Printf("Shutting down with timeout: %s", time.Duration(k8sShutdownTime) * time.Second)
+			time.Sleep(time.Duration(k8sShutdownTime) * time.Second)
+		}
 	})
 }
