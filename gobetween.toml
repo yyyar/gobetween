@@ -28,27 +28,493 @@ bind = ":9290"  # bind host:port
  exec_expected_negative_output = "0"
  timeout = "5s"
 
+[servers.calidad]
+ bind = "0.0.0.0:9091"
+ protocol = "udp"
+ balance = "roundrobin"
+ backend_idle_timeout="0"
+ client_idle_timeout="0"
 
-[servers.solutions]
+[servers.calidad.udp]
+ max_requests = 1
+ max_responses = 0
+
+[servers.calidad.discovery]
+ kind = "static"
+ static_list = [
+  "as-logstash-00:9091",
+  "as-logstash-01:9091"
+ ]
+
+[servers.calidad.healthcheck]
+ interval = "30s"
+ kind = "exec"
+ exec_command = "./hc.sh"
+ exec_expected_positive_output = "1"
+ exec_expected_negative_output = "0"
+ timeout = "5s"
+
+[servers.platform-cancel]
+ bind = "0.0.0.0:9092"
+ protocol = "udp"
+ balance = "roundrobin"
+ backend_idle_timeout="0"
+ client_idle_timeout="0"
+
+[servers.platform-cancel.udp]
+ max_requests = 1
+ max_responses = 0
+
+[servers.platform-cancel.discovery]
+ kind = "static"
+ static_list = [
+  "as-logstash-00:9092",
+  "as-logstash-01:9092"
+ ]
+
+[servers.platform-cancel.healthcheck]
+ interval = "30s"
+ kind = "exec"
+ exec_command = "./hc.sh"
+ exec_expected_positive_output = "1"
+ exec_expected_negative_output = "0"
+ timeout = "5s"
+
+[servers.platform-transactions]
+ bind = "0.0.0.0:9093"
+ protocol = "udp"
+ balance = "roundrobin"
+ backend_idle_timeout="0"
+ client_idle_timeout="0"
+
+[servers.platform-transactions.udp]
+ max_requests = 1
+ max_responses = 0
+
+[servers.platform-transactions.discovery]
+ kind = "static"
+ static_list = [
+  "as-logstash-00:9093",
+  "as-logstash-01:9093"
+ ]
+
+[servers.platform-transactions.healthcheck]
+ interval = "30s"
+ kind = "exec"
+ exec_command = "./hc.sh"
+ exec_expected_positive_output = "1"
+ exec_expected_negative_output = "0"
+ timeout = "5s"
+
+[servers.platform-nonair]
+ bind = "0.0.0.0:9094"
+ protocol = "udp"
+ balance = "roundrobin"
+ backend_idle_timeout="0"
+ client_idle_timeout="0"
+
+[servers.platform-nonair.udp]
+ max_requests = 1
+ max_responses = 0
+
+[servers.platform-nonair.discovery]
+ kind = "static"
+ static_list = [
+  "as-logstash-00:9094",
+  "as-logstash-01:9094"
+ ]
+
+[servers.platform-nonair.healthcheck]
+ interval = "30s"
+ kind = "exec"
+ exec_command = "./hc.sh"
+ exec_expected_positive_output = "1"
+ exec_expected_negative_output = "0"
+ timeout = "5s"
+
+[servers.platform-cambios]
+ bind = "0.0.0.0:9095"
+ protocol = "udp"
+ balance = "roundrobin"
+ backend_idle_timeout="0"
+ client_idle_timeout="0"
+
+[servers.platform-cambios.udp]
+ max_requests = 1
+ max_responses = 0
+
+[servers.platform-cambios.discovery]
+ kind = "static"
+ static_list = [
+  "as-logstash-00:9095",
+  "as-logstash-01:9095"
+ ]
+
+[servers.platform-cambios.healthcheck]
+ interval = "30s"
+ kind = "exec"
+ exec_command = "./hc.sh"
+ exec_expected_positive_output = "1"
+ exec_expected_negative_output = "0"
+ timeout = "5s"
+
+[servers.platform-hoteles]
+ bind = "0.0.0.0:9096"
+ protocol = "udp"
+ balance = "roundrobin"
+ backend_idle_timeout="0"
+ client_idle_timeout="0"
+
+[servers.platform-hoteles.udp]
+ max_requests = 1
+ max_responses = 0
+
+[servers.platform-hoteles.discovery]
+ kind = "static"
+ static_list = [
+  "as-logstash-00:9096",
+  "as-logstash-01:9096"
+ ]
+
+[servers.platform-hoteles.healthcheck]
+ interval = "30s"
+ kind = "exec"
+ exec_command = "./hc.sh"
+ exec_expected_positive_output = "1"
+ exec_expected_negative_output = "0"
+ timeout = "5s"
+
+[servers.worklist]
+ bind = "0.0.0.0:9097"
+ protocol = "udp"
+ balance = "roundrobin"
+ backend_idle_timeout="0"
+ client_idle_timeout="0"
+
+[servers.worklist.udp]
+ max_requests = 1
+ max_responses = 0
+
+[servers.worklist.discovery]
+ kind = "static"
+ static_list = [
+  "as-logstash-00:9097",
+  "as-logstash-01:9097"
+ ]
+
+[servers.worklist.healthcheck]
+ interval = "30s"
+ kind = "exec"
+ exec_command = "./hc.sh"
+ exec_expected_positive_output = "1"
+ exec_expected_negative_output = "0"
+ timeout = "5s"
+
+[servers.comunicaciones]
+ bind = "0.0.0.0:9098"
+ protocol = "udp"
+ balance = "roundrobin"
+ backend_idle_timeout="0"
+ client_idle_timeout="0"
+
+[servers.comunicaciones.udp]
+ max_requests = 1
+ max_responses = 0
+
+[servers.comunicaciones.discovery]
+ kind = "static"
+ static_list = [
+  "as-logstash-00:9098",
+  "as-logstash-01:9098"
+ ]
+
+[servers.comunicaciones.healthcheck]
+ interval = "30s"
+ kind = "exec"
+ exec_command = "./hc.sh"
+ exec_expected_positive_output = "1"
+ exec_expected_negative_output = "0"
+ timeout = "5s"
+
+[servers.reservations]
+ bind = "0.0.0.0:9099"
+ protocol = "udp"
+ balance = "roundrobin"
+ backend_idle_timeout="0"
+ client_idle_timeout="0"
+
+[servers.reservations.udp]
+ max_requests = 1
+ max_responses = 0
+
+[servers.reservations.discovery]
+ kind = "static"
+ static_list = [
+  "as-logstash-00:9099",
+  "as-logstash-01:9099"
+ ]
+
+[servers.reservations.healthcheck]
+ interval = "30s"
+ kind = "exec"
+ exec_command = "./hc.sh"
+ exec_expected_positive_output = "1"
+ exec_expected_negative_output = "0"
+ timeout = "5s"
+
+[servers.detail]
+ bind = "0.0.0.0:9100"
+ protocol = "udp"
+ balance = "roundrobin"
+ backend_idle_timeout="0"
+ client_idle_timeout="0"
+
+[servers.detail.udp]
+ max_requests = 1
+ max_responses = 0
+
+[servers.detail.discovery]
+ kind = "static"
+ static_list = [
+  "as-logstash-00:9100",
+  "as-logstash-01:9100"
+ ]
+
+[servers.detail.healthcheck]
+ interval = "30s"
+ kind = "exec"
+ exec_command = "./hc.sh"
+ exec_expected_positive_output = "1"
+ exec_expected_negative_output = "0"
+ timeout = "5s"
+
+[servers.my-trips]
+ bind = "0.0.0.0:9101"
+ protocol = "udp"
+ balance = "roundrobin"
+ backend_idle_timeout="0"
+ client_idle_timeout="0"
+
+[servers.my-trips.udp]
+ max_requests = 1
+ max_responses = 0
+
+[servers.my-trips.discovery]
+ kind = "static"
+ static_list = [
+  "as-logstash-00:9101",
+  "as-logstash-01:9101"
+ ]
+
+[servers.my-trips.healthcheck]
+ interval = "30s"
+ kind = "exec"
+ exec_command = "./hc.sh"
+ exec_expected_positive_output = "1"
+ exec_expected_negative_output = "0"
+ timeout = "5s"
+
+[servers.nativo]
+ bind = "0.0.0.0:9102"
+ protocol = "udp"
+ balance = "roundrobin"
+ backend_idle_timeout="0"
+ client_idle_timeout="0"
+
+[servers.nativo.udp]
+ max_requests = 1
+ max_responses = 0
+
+[servers.nativo.discovery]
+ kind = "static"
+ static_list = [
+  "as-logstash-00:9102",
+  "as-logstash-01:9102"
+ ]
+
+[servers.nativo.healthcheck]
+ interval = "30s"
+ kind = "exec"
+ exec_command = "./hc.sh"
+ exec_expected_positive_output = "1"
+ exec_expected_negative_output = "0"
+ timeout = "5s"
+
+[servers.agent-tools]
+ bind = "0.0.0.0:9103"
+ protocol = "udp"
+ balance = "roundrobin"
+ backend_idle_timeout="0"
+ client_idle_timeout="0"
+
+[servers.agent-tools.udp]
+ max_requests = 1
+ max_responses = 0
+
+[servers.agent-tools.discovery]
+ kind = "static"
+ static_list = [
+  "as-logstash-00:9103",
+  "as-logstash-01:9103"
+ ]
+
+[servers.agent-tools.healthcheck]
+ interval = "30s"
+ kind = "exec"
+ exec_command = "./hc.sh"
+ exec_expected_positive_output = "1"
+ exec_expected_negative_output = "0"
+ timeout = "5s"
+
+[servers.ivr]
+ bind = "0.0.0.0:9104"
+ protocol = "udp"
+ balance = "roundrobin"
+ backend_idle_timeout="0"
+ client_idle_timeout="0"
+
+[servers.ivr.udp]
+ max_requests = 1
+ max_responses = 0
+
+[servers.ivr.discovery]
+ kind = "static"
+ static_list = [
+  "as-logstash-00:9104",
+  "as-logstash-01:9104"
+ ]
+
+[servers.ivr.healthcheck]
+ interval = "30s"
+ kind = "exec"
+ exec_command = "./hc.sh"
+ exec_expected_positive_output = "1"
+ exec_expected_negative_output = "0"
+ timeout = "5s"
+
+[servers.encuestas]
+ bind = "0.0.0.0:9105"
+ protocol = "udp"
+ balance = "roundrobin"
+ backend_idle_timeout="0"
+ client_idle_timeout="0"
+
+[servers.encuestas.udp]
+ max_requests = 1
+ max_responses = 0
+
+[servers.encuestas.discovery]
+ kind = "static"
+ static_list = [
+  "as-logstash-00:9105",
+  "as-logstash-01:9105"
+ ]
+
+[servers.encuestas.healthcheck]
+ interval = "30s"
+ kind = "exec"
+ exec_command = "./hc.sh"
+ exec_expected_positive_output = "1"
+ exec_expected_negative_output = "0"
+ timeout = "5s"
+
+[servers.soluciones]
  bind = "0.0.0.0:9106"
  protocol = "udp"
  balance = "roundrobin"
  backend_idle_timeout="0"
  client_idle_timeout="0"
- max_responses = 0
 
-[servers.solutions.udp]
+[servers.soluciones.udp]
  max_requests = 1
  max_responses = 0
 
-[servers.solutions.discovery]
+[servers.soluciones.discovery]
  kind = "static"
  static_list = [
   "as-logstash-00:9106",
   "as-logstash-01:9106"
  ]
 
-[servers.solutions.healthcheck]
+[servers.soluciones.healthcheck]
+ interval = "30s"
+ kind = "exec"
+ exec_command = "./hc.sh"
+ exec_expected_positive_output = "1"
+ exec_expected_negative_output = "0"
+ timeout = "5s"
+
+[servers.cancel]
+ bind = "0.0.0.0:9107"
+ protocol = "udp"
+ balance = "roundrobin"
+ backend_idle_timeout="0"
+ client_idle_timeout="0"
+
+[servers.cancel.udp]
+ max_requests = 1
+ max_responses = 0
+
+[servers.cancel.discovery]
+ kind = "static"
+ static_list = [
+  "as-logstash-00:9107",
+  "as-logstash-01:9107"
+ ]
+
+[servers.cancel.healthcheck]
+ interval = "30s"
+ kind = "exec"
+ exec_command = "./hc.sh"
+ exec_expected_positive_output = "1"
+ exec_expected_negative_output = "0"
+ timeout = "5s"
+
+[servers.cambios-nonair]
+ bind = "0.0.0.0:9108"
+ protocol = "udp"
+ balance = "roundrobin"
+ backend_idle_timeout="0"
+ client_idle_timeout="0"
+
+[servers.cambios-nonair.udp]
+ max_requests = 1
+ max_responses = 0
+
+[servers.cambios-nonair.discovery]
+ kind = "static"
+ static_list = [
+  "as-logstash-00:9108",
+  "as-logstash-01:9108"
+ ]
+
+[servers.cambios-nonair.healthcheck]
+ interval = "30s"
+ kind = "exec"
+ exec_command = "./hc.sh"
+ exec_expected_positive_output = "1"
+ exec_expected_negative_output = "0"
+ timeout = "5s"
+
+[servers.cambios-air]
+ bind = "0.0.0.0:9109"
+ protocol = "udp"
+ balance = "roundrobin"
+ backend_idle_timeout="0"
+ client_idle_timeout="0"
+
+[servers.cambios-air.udp]
+ max_requests = 1
+ max_responses = 0
+
+[servers.cambios-air.discovery]
+ kind = "static"
+ static_list = [
+  "as-logstash-00:9109",
+  "as-logstash-01:9109"
+ ]
+
+[servers.cambios-air.healthcheck]
  interval = "30s"
  kind = "exec"
  exec_command = "./hc.sh"
