@@ -6,7 +6,7 @@ You can [submit an issue](https://github.com/yyyar/gobetween/issues/new). Please
 as you can, so that we could either help you to fix your setup, or reproduce the issue on our side. This includes config of 
 gobetween, logs, expected behavior and actual behavior, steps to reproduce. 
 
-Please make sure you've cleaned the data you provide us from sencitive information such as public ips, user names, emails, logins, 
+Please make sure you've cleaned the data you provide us from sensitive information such as public ips, user names, emails, logins, 
 security tokens and other information that you don't want to make public.
 
 ## Submitting changes
@@ -18,10 +18,10 @@ of what you've done. Please make sure all your commits are atomic (one feature p
   working on it, or the change you propose does not fit the gobetween ideology.
   * In case if you have intermediate commits, such as "WIP - work in progress" or sequence of commits that add some files/code and 
   then removes it, please [squash](https://git-scm.com/book/en/v2/Git-Tools-Rewriting-History) them prior to pull request
-  * Please make sure git commits are descriptve
+  * Please make sure git commits are descriptive
   * Please change just a required minimum of code in order to implement your feature or fix a bug. Pull requests that have 
   a lot of not related changes, are hard to review and hard to merge due to possible conflicts with other branches:
-    * Don't rename existing variables if it's not requred for your change
+    * Don't rename existing variables if it's not required for your change
     * Don't add or remove empty strings
     * Don't autoformat files according to your IDE settings, leave original formatting in places that you don't explicitly change
     * Write go-doc style comments on functions you add
@@ -31,7 +31,7 @@ of what you've done. Please make sure all your commits are atomic (one feature p
 
 ## Coding conventions
 
-Please read the code and you'll get the essence of it. Following coding conventions is an attemot to make a short but not 
+Please read the code and you'll get the essence of it. Following coding conventions is an attempt to make a short but not 
 complete extract:
 
   * Simple code is better than smart tricky code

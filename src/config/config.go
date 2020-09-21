@@ -26,6 +26,7 @@ type Config struct {
 type LoggingConfig struct {
 	Level  string `toml:"level" json:"level"`
 	Output string `toml:"output" json:"output"`
+	Format string `toml:"format" json:"format"`
 }
 
 /**
@@ -305,6 +306,10 @@ type HealthcheckConfig struct {
 	Passes   int    `toml:"passes" json:"passes"`
 	Fails    int    `toml:"fails" json:"fails"`
 	Timeout  string `toml:"timeout" json:"timeout"`
+
+	// The liveness when a backend is first discovered (default healthy)
+	// healthy | unhealthy
+	InitialStatus *string `toml:"initial_status" json:"initial_status"`
 
 	/* Depends on Kind */
 
