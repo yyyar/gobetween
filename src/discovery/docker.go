@@ -74,7 +74,7 @@ func dockerFetch(cfg config.DiscoveryConfig) (*[]core.Backend, error) {
 	/* Add filter labels if any */
 	var filters map[string][]string
 	if cfg.DockerContainerLabel != "" {
-		filters = map[string][]string{"label": []string{cfg.DockerContainerLabel}}
+		filters = map[string][]string{"label": {cfg.DockerContainerLabel}}
 	}
 
 	/* Fetch containers */
