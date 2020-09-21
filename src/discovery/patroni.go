@@ -309,7 +309,7 @@ func (cl *PatroniCluster) UpdateListeners() {
 		if member, ok := cl.Members[cl.Leader]; ok && member.Valid() {
 			backends = append(backends, member.Backend())
 		}
-		for pool, _ := range cl.LeaderPools {
+		for pool := range cl.LeaderPools {
 			pool <- backends
 		}
 	}
@@ -324,7 +324,7 @@ func (cl *PatroniCluster) UpdateListeners() {
 				backends = append(backends, backend)
 			}
 		}
-		for pool, _ := range cl.ReplicaPools {
+		for pool := range cl.ReplicaPools {
 			pool <- backends
 		}
 	}
