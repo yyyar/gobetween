@@ -7,6 +7,7 @@ require (
 	github.com/burntsushi/toml v0.3.1
 	github.com/containerd/containerd v1.3.6 // indirect
 	github.com/containerd/continuity v0.0.0-20200706134602-f1c9af8e2a20 // indirect
+	github.com/coreos/etcd v3.3.10+incompatible
 	github.com/elgs/gojq v0.0.0-20160421194050-81fa9a608a13
 	github.com/elgs/gosplitargs v0.0.0-20161028071935-a491c5eeb3c8 // indirect
 	github.com/eric-lindau/udpfacade v0.0.0-20190621043444-d8c1c27add16
