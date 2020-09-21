@@ -2,22 +2,23 @@ package discovery
 
 import (
 	"context"
-	"github.com/coreos/etcd/pkg/transport"
-	"github.com/elgs/gojq"
-	"github.com/sirupsen/logrus"
 	"net/url"
 	"strings"
 	"time"
 
+	"github.com/coreos/etcd/pkg/transport"
+	"github.com/elgs/gojq"
+	"github.com/sirupsen/logrus"
+
+	"github.com/coreos/etcd/client"
 	"github.com/yyyar/gobetween/config"
 	"github.com/yyyar/gobetween/core"
 	"github.com/yyyar/gobetween/logging"
-	"go.etcd.io/etcd/client"
 )
 
 type Host struct {
 	address string
-	port string
+	port    string
 }
 
 /**
@@ -33,9 +34,9 @@ func NewEtcdDiscovery(cfg config.DiscoveryConfig) interface{} {
 	return &d
 }
 
-func etcdWatch(cfg config.DiscoveryConfig, out chan ([]core.Backend), stop chan bool)  {
+func etcdWatch(cfg config.DiscoveryConfig, out chan ([]core.Backend), stop chan bool) {
 	log := logging.For("etcdWatch")
-	retryTimeout := time.Second*30
+	retryTimeout := time.Second * 30
 
 	ctxt, cancel := context.WithCancel(context.Background())
 	go func() {
@@ -45,7 +46,7 @@ func etcdWatch(cfg config.DiscoveryConfig, out chan ([]core.Backend), stop chan 
 		}
 	}()
 
-	mainLoop:
+mainLoop:
 	for {
 		cli, err := createEtcdClient(cfg)
 		if err != nil {
@@ -83,12 +84,12 @@ func etcdWatch(cfg config.DiscoveryConfig, out chan ([]core.Backend), stop chan 
 		}
 
 		select {
-			case <-ctxt.Done():
-				return
-			case out <- constructCluster(members, log):
+		case <-ctxt.Done():
+			return
+		case out <- constructCluster(members, log):
 		}
 
-		watcher := kapi.Watcher(cfg.EtcdPrefix, &client.WatcherOptions{AfterIndex: response.Index, Recursive: true,})
+		watcher := kapi.Watcher(cfg.EtcdPrefix, &client.WatcherOptions{AfterIndex: response.Index, Recursive: true})
 		for {
 			event, err := watcher.Next(ctxt)
 			if err != nil {
@@ -150,8 +151,8 @@ func createEtcdClient(cfg config.DiscoveryConfig) (client.Client, error) {
 
 	if cfg.EtcdTlsEnabled {
 		tls := transport.TLSInfo{
-			CertFile: cfg.EtcdTlsCertPath,
-			KeyFile: cfg.EtcdTlsKeyPath,
+			CertFile:      cfg.EtcdTlsCertPath,
+			KeyFile:       cfg.EtcdTlsKeyPath,
 			TrustedCAFile: cfg.EtcdTlsCacertPath,
 		}
 		t, err := transport.NewTransport(tls, timeout)
@@ -167,7 +168,7 @@ func createEtcdClient(cfg config.DiscoveryConfig) (client.Client, error) {
 	return cli, err
 }
 
-func nodeToHost(cfg config.DiscoveryConfig,node *client.Node) (host Host, errout error) {
+func nodeToHost(cfg config.DiscoveryConfig, node *client.Node) (host Host, errout error) {
 	parsed, err := gojq.NewStringQuery(string(node.Value))
 	if err != nil {
 		errout = err
@@ -183,7 +184,7 @@ func nodeToHost(cfg config.DiscoveryConfig,node *client.Node) (host Host, errout
 		errout = err
 		return
 	}
-	host = Host{address: dsnUrl.Hostname(), port: dsnUrl.Port(),}
+	host = Host{address: dsnUrl.Hostname(), port: dsnUrl.Port()}
 	return
 }
 
@@ -196,7 +197,7 @@ func constructCluster(members map[string]Host, log *logrus.Entry) []core.Backend
 				Port: member.port,
 			},
 			Priority: 1,
-			Weight: 1,
+			Weight:   1,
 			Stats: core.BackendStats{
 				Live: true,
 			},

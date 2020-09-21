@@ -5,23 +5,24 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/sirupsen/logrus"
-	"github.com/yyyar/gobetween/config"
-	"github.com/yyyar/gobetween/core"
-	"github.com/yyyar/gobetween/logging"
-	"go.etcd.io/etcd/client"
 	"net/url"
 	"path"
 	"strings"
 	"sync"
 	"time"
+
+	"github.com/coreos/etcd/client"
+	"github.com/sirupsen/logrus"
+	"github.com/yyyar/gobetween/config"
+	"github.com/yyyar/gobetween/core"
+	"github.com/yyyar/gobetween/logging"
 )
 
 var patroni_manager *PatroniManager
 var patroni_manager_mutex sync.Mutex
 
 type PatroniManager struct {
-	Lock sync.Mutex
+	Lock     sync.Mutex
 	Clusters map[string]*PatroniCluster
 }
 
@@ -32,10 +33,10 @@ type PatroniCluster struct {
 	Members   map[string]*PatroniMember
 	Leader    string
 
-	Mutex 		sync.Mutex
-	stop      context.CancelFunc
-	ctxt      context.Context
-	LeaderPools map[chan ([]core.Backend)]struct{}
+	Mutex        sync.Mutex
+	stop         context.CancelFunc
+	ctxt         context.Context
+	LeaderPools  map[chan ([]core.Backend)]struct{}
 	ReplicaPools map[chan ([]core.Backend)]struct{}
 }
 
@@ -79,9 +80,9 @@ func NewPatroniCluster(cfg config.DiscoveryConfig) *PatroniCluster {
 		Cluster:   cfg.PatroniCluster,
 		Namespace: cfg.PatroniNamespace,
 		Members:   make(map[string]*PatroniMember),
-		Leader:	   "",
+		Leader:    "",
 
-		LeaderPools: make(map[chan ([]core.Backend)]struct{}),
+		LeaderPools:  make(map[chan ([]core.Backend)]struct{}),
 		ReplicaPools: make(map[chan ([]core.Backend)]struct{}),
 	}
 	return &cl
@@ -120,7 +121,6 @@ func (cl *PatroniCluster) RunDiscovery(cfg config.DiscoveryConfig, out chan ([]c
 	}
 }
 
-
 /* Following method must be called while holding mutex */
 func (cl *PatroniCluster) Start() {
 	cl.ctxt, cl.stop = context.WithCancel(context.Background())
@@ -139,23 +139,22 @@ func (cl *PatroniCluster) Running() bool {
 }
 
 func (cl *PatroniCluster) Empty() bool {
-	return len(cl.LeaderPools) + len(cl.ReplicaPools) == 0
+	return len(cl.LeaderPools)+len(cl.ReplicaPools) == 0
 }
 
-
 type PatroniMember struct {
-	Name string
+	Name    string
 	ConnUrl string `json:"conn_url"`
-	ApiUrl string `json:"api_url"`
+	ApiUrl  string `json:"api_url"`
 	/* Don't care about these attributes for now
 	State string `json:"state"`
 	Role string `json:"role"`
 	Version string `json:"version"`
 	XlogLocation uint64 `json:"xlog_location"`
 	Timeline string `json:"timeline"`
-	 */
+	*/
 
-	target 		core.Target
+	target core.Target
 }
 
 func parsePatroniMember(node *client.Node) (*PatroniMember, error) {
@@ -196,8 +195,6 @@ func (m *PatroniMember) parseConnUrl() {
 	}
 }
 
-
-
 func (m *PatroniMember) Backend() core.Backend {
 	return core.Backend{
 		Target:   m.target,
@@ -212,8 +209,8 @@ func (cl *PatroniCluster) MonitorEtcd() {
 	log.Infof("Starting etcd monitor for Patroni cluster %v", cl.Cluster)
 	defer log.Infof("Stopping etcd monitor for Patroni cluster %v", cl.Cluster)
 	/* First iteration will not wait */
-	timeout := 0*time.Second
-	mainLoop:
+	timeout := 0 * time.Second
+mainLoop:
 	for {
 		select {
 		case <-cl.ctxt.Done():
@@ -222,7 +219,7 @@ func (cl *PatroniCluster) MonitorEtcd() {
 			if timeout == 0 {
 				timeout, _ = time.ParseDuration(cl.cfg.Timeout)
 				if timeout == 0 {
-					timeout = 10*time.Second
+					timeout = 10 * time.Second
 				}
 			}
 		}
@@ -244,7 +241,7 @@ func (cl *PatroniCluster) MonitorEtcd() {
 
 		cl.UpdateListeners()
 
-		watcher := kapi.Watcher(cl.MainPath(), &client.WatcherOptions{AfterIndex: etcdIndex, Recursive: true,})
+		watcher := kapi.Watcher(cl.MainPath(), &client.WatcherOptions{AfterIndex: etcdIndex, Recursive: true})
 		for {
 			event, err := watcher.Next(cl.ctxt)
 			if err != nil {
@@ -267,7 +264,7 @@ func (cl *PatroniCluster) MonitorEtcd() {
 					} else {
 						changed = existingMember.Update(newMember)
 					}
-				} else if (ok) {
+				} else if ok {
 					changed = true
 					delete(cl.Members, key)
 				}
@@ -286,7 +283,7 @@ func (cl *PatroniCluster) MonitorEtcd() {
 
 func (cl *PatroniCluster) FetchMembers(kapi client.KeysAPI) (uint64, error) {
 	response, err := kapi.Get(cl.ctxt, cl.MemberPath(), &client.GetOptions{Recursive: true})
-	if err != nil  {
+	if err != nil {
 		return 0, err
 	}
 	if !response.Node.Dir {
@@ -352,7 +349,6 @@ func (cl *PatroniCluster) MemberPath() string {
 func (cl *PatroniCluster) LeaderPath() string {
 	return path.Join(cl.MainPath(), "leader")
 }
-
 
 func NewPatroniDiscovery(cfg config.DiscoveryConfig) interface{} {
 	d := Discovery{
