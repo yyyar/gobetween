@@ -6,11 +6,11 @@ import (
 	"strings"
 	"time"
 
-	"github.com/coreos/etcd/pkg/transport"
+	"github.com/etcd-io/etcd/pkg/transport"
 	"github.com/elgs/gojq"
 	"github.com/sirupsen/logrus"
 
-	"github.com/coreos/etcd/client"
+	"github.com/etcd-io/etcd/client"
 	"github.com/yyyar/gobetween/config"
 	"github.com/yyyar/gobetween/core"
 	"github.com/yyyar/gobetween/logging"

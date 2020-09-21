@@ -11,7 +11,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/coreos/etcd/client"
+	"github.com/etcd-io/etcd/client"
 	"github.com/sirupsen/logrus"
 	"github.com/yyyar/gobetween/config"
 	"github.com/yyyar/gobetween/core"
