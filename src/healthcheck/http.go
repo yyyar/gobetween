@@ -2,13 +2,14 @@ package healthcheck
 
 import (
 	"context"
-	"github.com/yyyar/gobetween/config"
-	"github.com/yyyar/gobetween/core"
-	"github.com/yyyar/gobetween/logging"
 	"net/http"
 	"net/url"
 	"strconv"
 	"time"
+
+	"github.com/yyyar/gobetween/config"
+	"github.com/yyyar/gobetween/core"
+	"github.com/yyyar/gobetween/logging"
 )
 
 func httpCheck(t core.Target, cfg config.HealthcheckConfig, result chan<- CheckResult) {
@@ -19,7 +20,7 @@ func httpCheck(t core.Target, cfg config.HealthcheckConfig, result chan<- CheckR
 	defer cancel()
 
 	checkResult := CheckResult{
-		Live:   false,
+		Status: Unhealthy,
 		Target: t,
 	}
 
@@ -65,7 +66,7 @@ func httpCheck(t core.Target, cfg config.HealthcheckConfig, result chan<- CheckR
 	}
 
 	if response.StatusCode == 200 {
-		checkResult.Live = true
+		checkResult.Status = Healthy
 	} else {
 		log.Debugf("Failed healthcheck from %v, received status %s", t, err)
 	}

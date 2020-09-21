@@ -1,5 +1,33 @@
 # Changelog
 
+## [0.8.0]
+
+### New Features
+ - Transparent mode for UDP connections #218
+ - Environment variables substitution into config (disabled by default) #201
+ - Combined priority + weight balancing, support of weight = 0 and ignore negative weight #204
+ - Support of Consul ACL tokens #195
+ - Pidfile support #190
+ - TLS probe healthcheck #173
+ - IPV6 support for SRV discovery #222
+
+### Added
+ - Multistage docker build
+ - Build as snap package
+ - Latest letsencrypt changes
+
+### Removed
+ - Windows/386 build
+
+### Fixed
+ - Panic when removing UDP server with enabled access control #215
+ - Servers deleted via API have scheduler still running #140
+ - Iphash random selection of backends for the same client ip #229
+ - Fixed systemd unit #190
+ - JSON logs format
+ - High cpu load by UDP server in max_requests=1 mode (fire and forget) by using connection pool #290
+ - Logging of metric server error #277
+
 ## [0.7.0]
 
 ### New Features
@@ -72,12 +100,12 @@ This release brings several new features and various fixes and improvements.
 - Propagating sni backend value in scheduler after discovery
 
 ### Changed
-- Optimizing Docker image (now FROM stratch)
+- Optimizing Docker image (now FROM scratch)
 
 
 
 ## [0.4.0] - 2017-04-07
-This release brings many new features and improvemets, as well as bugfixes.
+This release brings many new features and improvements, as well as bugfixes.
 Major things are UDP support, TLS termination, TLS proxy, SNI-aware balancing.
 
 ### New Features
@@ -101,7 +129,7 @@ Major things are UDP support, TLS termination, TLS proxy, SNI-aware balancing.
 
 
 ## [0.3.0] - 2016-08-18
-This release brings several new features and improvemets, as well as bugfixes. Major things are
+This release brings several new features and improvements, as well as bugfixes. Major things are
 integrations with Consul, more flexible command-line options and Access control module.
 
 ### New Features

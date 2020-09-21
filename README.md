@@ -34,9 +34,9 @@
   * **Stats & Metrics** - for servers and backends including rx/tx, status, active connections & etc.
  
 * [Discovery](https://github.com/yyyar/gobetween/wiki/Discovery)
-  * **Static** - hardcode backends list in config file
+  * **Static** - hardcode backends list in the config file
   * **Docker** - query backends from Docker / Swarm API filtered by label
-  * **Exec** - execute arbitrary program and get backends from its stdout
+  * **Exec** - execute an arbitrary program and get backends from its stdout
   * **JSON** - query arbitrary http url and pick backends from response json (of any structure)
   * **Plaintext** - query arbitrary http and parse backends from response text with customized regexp
   * **SRV** - query DNS server and get backends from SRV records
@@ -76,7 +76,7 @@
 
 ## Hacking
 
-* Install Go 1.12+ https://golang.org/
+* Install Go 1.14+ https://golang.org/
 * `$ git clone git@github.com:yyyar/gobetween.git`
 * `$ make`
 * `$ make run`

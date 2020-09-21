@@ -137,7 +137,7 @@ func (this *Scheduler) Start() {
 
 			// handle backend healthcheck result
 			case checkResult := <-this.Healthcheck.Out:
-				this.HandleBackendLiveChange(checkResult.Target, checkResult.Live)
+				this.HandleBackendLiveChange(checkResult.Target, checkResult.Status == healthcheck.Healthy)
 
 			/* ----- stats ----- */
 
