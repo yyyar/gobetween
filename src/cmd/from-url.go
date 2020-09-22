@@ -35,7 +35,7 @@ var FromUrlCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 
 		if len(args) != 1 {
-			cmd.Help()
+			_ = cmd.Help()
 			return
 		}
 

@@ -8,10 +8,11 @@ package cmd
 
 import (
 	"fmt"
+	"os"
+
 	"github.com/spf13/cobra"
 	"github.com/yyyar/gobetween/info"
 	"github.com/yyyar/gobetween/utils/pidfile"
-	"os"
 )
 
 /* Persistent parsed options */
@@ -62,7 +63,7 @@ var RootCmd = &cobra.Command{
 		}
 
 		if configPath == "" {
-			cmd.Help()
+			_ = cmd.Help()
 			return
 		}
 
