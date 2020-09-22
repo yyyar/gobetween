@@ -33,7 +33,7 @@ func init() {
 }
 
 /**
- * FromConsul command
+ * FromEtcd command
  */
 var FromEtcdCmd = &cobra.Command{
 	Use:   "from-etcd <host:port>",
