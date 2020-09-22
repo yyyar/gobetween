@@ -1,13 +1,19 @@
 package discovery
 
+/**
+ * etcd.go - Etcd API discovery implementation
+ *
+ * @author Ants Aasma <ants.aasma@eesti.ee>
+ */
+
 import (
 	"context"
 	"net/url"
 	"strings"
 	"time"
 
-	"github.com/etcd-io/etcd/pkg/transport"
 	"github.com/elgs/gojq"
+	"github.com/etcd-io/etcd/pkg/transport"
 	"github.com/sirupsen/logrus"
 
 	"github.com/etcd-io/etcd/client"
