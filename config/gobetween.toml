@@ -115,7 +115,7 @@ protocol = "udp"
 #
 #bind = "localhost:3000"     #  (required) "<host>:<port>"
 #protocol = "tcp"            #  (required) "tcp" | "tls" | "udp"
-#balance = "weight"          #  (optional [weight]) "weight" | "leastconn" | "roundrobin" | "iphash" | "iphash1" | "leastbandwidth"
+#balance = "weight"          #  (optional [weight]) "weight" | "leastconn" | "roundrobin" | "iphash" | "iphash1" | "ipporthash1" | "leastbandwidth"
 #
 #max_connections = 0
 #client_idle_timeout = "10m"

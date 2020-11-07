@@ -482,6 +482,7 @@ func prepareConfig(name string, server config.Server, defaults config.Connection
 		"leastconn",
 		"roundrobin",
 		"leastbandwidth",
+		"ipporthash1",
 		"iphash1",
 		"iphash":
 	case "":
