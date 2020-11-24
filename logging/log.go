@@ -13,6 +13,7 @@ import (
 	"strings"
 
 	"github.com/sirupsen/logrus"
+	"gopkg.in/natefinch/lumberjack.v2"
 )
 
 /**
@@ -34,11 +35,14 @@ func Configure(output string, l string) {
 	} else if output == "stderr" {
 		logrus.SetOutput(os.Stderr)
 	} else {
-		f, err := os.OpenFile(output, os.O_WRONLY|os.O_APPEND|os.O_CREATE, 0755)
-		if err != nil {
-			logrus.Fatal(err)
+		logger := &lumberjack.Logger{
+			Filename:   output,
+			MaxSize:    10, // megabytes
+			MaxBackups: 3,
+			MaxAge:     30,   //days
+			Compress:   true, // disabled by default
 		}
-		logrus.SetOutput(f)
+		logrus.SetOutput(logger)
 	}
 
 	if l == "" {
