@@ -108,6 +108,9 @@ type Server struct {
 	// weight | leastconn | roundrobin
 	Balance string `toml:"balance" json:"balance"`
 
+	CloseOnFailure bool `toml:"close_on_failure" json:"close_on_failure"`
+	WaitForHealthcheck bool `toml:"wait_for_healthcheck" json:"wait_for_healthcheck"`
+
 	// Optional configuration for server name indication
 	Sni *Sni `toml:"sni" json:"sni"`
 
@@ -216,6 +219,8 @@ type DiscoveryConfig struct {
 	*PlaintextDiscoveryConfig
 	*ConsulDiscoveryConfig
 	*LXDDiscoveryConfig
+	*EtcdDiscoveryConfig
+	*PatroniDiscoveryConfig
 }
 
 type StaticDiscoveryConfig struct {
@@ -297,6 +302,27 @@ type LXDDiscoveryConfig struct {
 	LXDContainerAddressType string `toml:"lxd_container_address_type" json:"lxd_container_address_type"`
 }
 
+type EtcdDiscoveryConfig struct {
+	EtcdHosts           []string `toml:"etcd_hosts" json:"etcd_hosts"`
+	EtcdUsername        *string  `toml:"etcd_username" json:"etcd_username"`
+	EtcdPassword        *string  `toml:"etcd_password" json:"etcd_password"`
+	EtcdPrefix          string   `toml:"etcd_prefix" json:"etcd_prefix"`
+	EtcdDsnJsonPath		string   `toml:"etcd_dsn_json_path" json:"etcd_dsn_json_path"`
+
+	EtcdTlsEnabled		bool	`toml:"etcd_tls_enabled" json:"etcd_tls_enabled"`
+	EtcdTlsCertPath   	string	`toml:"etcd_tls_cert_path" json:"etcd_tls_cert_path"`
+	EtcdTlsKeyPath    	string	`toml:"etcd_tls_key_path" json:"etcd_tls_key_path"`
+	EtcdTlsCacertPath 	string	`toml:"etcd_tls_cacert_path" json:"etcd_tls_cacert_path"`
+
+	*Tls
+}
+
+type PatroniDiscoveryConfig struct {
+	PatroniCluster string `toml:"patroni_cluster" json:"patroni_cluster"`
+	PatroniNamespace string `toml:"patroni_namespace" json:"patroni_namespace"`
+	PatroniPoolType      string     `toml:"patroni_pool_type" json:"patroni_pool_type"`
+}
+
 /**
  * Healthcheck configuration
  */
@@ -316,6 +342,7 @@ type HealthcheckConfig struct {
 	*PingHealthcheckConfig
 	*ExecHealthcheckConfig
 	*ProbeHealthcheckConfig
+	*HttpHealthcheckConfig
 }
 
 type PingHealthcheckConfig struct{}
@@ -332,4 +359,10 @@ type ExecHealthcheckConfig struct {
 	ExecCommand                string `toml:"exec_command" json:"exec_command,omitempty"`
 	ExecExpectedPositiveOutput string `toml:"exec_expected_positive_output" json:"exec_expected_positive_output"`
 	ExecExpectedNegativeOutput string `toml:"exec_expected_negative_output" json:"exec_expected_negative_output"`
+}
+
+type HttpHealthcheckConfig struct {
+	HttpPath string `toml:"http_path" json:"http_path"`
+	HttpPort int	`toml:"http_port" json:"http_port"`
+	HttpMethod string `toml:"http_method" json:"http_method"`
 }

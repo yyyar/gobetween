@@ -100,6 +100,8 @@ func New(name string, cfg config.Server) (*Server, error) {
 			Discovery:    discovery.New(cfg.Discovery.Kind, *cfg.Discovery),
 			Healthcheck:  healthcheck.New(cfg.Healthcheck.Kind, *cfg.Healthcheck),
 			StatsHandler: statsHandler,
+			CloseOnFailure: cfg.CloseOnFailure,
+			WaitForHealthcheck: cfg.WaitForHealthcheck,
 		},
 	}
 
@@ -305,10 +307,15 @@ func (this *Server) handle(ctx *core.TcpContext) {
 
 	/* Find out backend for proxying */
 	var err error
-	backend, err := this.scheduler.TakeBackend(ctx)
+	backend, terminateSignal, err := this.scheduler.TakeBackend(ctx)
 	if err != nil {
 		log.Error(err, "; Closing connection: ", clientConn.RemoteAddr())
 		return
+	}
+
+	/* We are only interested on backend going down if we are to close our connection */
+	if !this.cfg.CloseOnFailure {
+		terminateSignal = nil
 	}
 
 	/* Connect to backend */
@@ -370,6 +377,11 @@ func (this *Server) handle(ctx *core.TcpContext) {
 				continue
 			}
 			this.scheduler.IncrementTx(*backend, s.CountWrite)
+		case <-terminateSignal:
+			log.Debugf("Terminating connection to %s", clientConn.RemoteAddr().String())
+			clientConn.Close()
+			backendConn.Close()
+			terminateSignal = nil
 		}
 	}
 

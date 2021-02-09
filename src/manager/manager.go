@@ -281,6 +281,7 @@ func prepareConfig(name string, server config.Server, defaults config.Connection
 		"ping",
 		"probe",
 		"exec",
+		"http",
 		"none":
 	default:
 		return config.Server{}, errors.New("Not supported healthcheck type " + server.Healthcheck.Kind)
@@ -368,7 +369,21 @@ func prepareConfig(name string, server config.Server, defaults config.Connection
 		}
 
 	}
-
+	if server.Healthcheck.Kind == "http" {
+		if server.Healthcheck.HttpPath == "" {
+			server.Healthcheck.HttpPath = "/"
+		}
+		switch server.Healthcheck.HttpMethod {
+		case
+			"GET",
+			"HEAD",
+			"OPTIONS":
+		case "":
+			server.Healthcheck.HttpMethod = "GET"
+		default:
+			return config.Server{}, errors.New("Unsupported http method " + server.Healthcheck.HttpMethod)
+		}
+	}
 	if server.ProxyProtocol != nil {
 
 		if server.Protocol != "tcp" {
@@ -555,6 +570,26 @@ func prepareConfig(name string, server config.Server, defaults config.Connection
 			server.Discovery.LXDContainerAddressType = "IPv4"
 		default:
 			return config.Server{}, errors.New("Invalid lxd_container_address_type. Must be IPv4 or IPv6")
+		}
+
+	}
+
+	if server.Discovery.Kind == "patroni" {
+		if server.Discovery.PatroniCluster == "" {
+			return config.Server{}, errors.New("patroni_cluster is required")
+		}
+
+		if server.Discovery.PatroniNamespace == "" {
+			server.Discovery.PatroniNamespace = "/service/"
+		}
+		switch server.Discovery.PatroniPoolType {
+		case
+			"leader",
+			"replica":
+		case "":
+			server.Discovery.PatroniPoolType = "leader"
+		default:
+			return config.Server{}, errors.New("Invalid patroni_pool_type. Must be one of leader,replica")
 		}
 
 	}

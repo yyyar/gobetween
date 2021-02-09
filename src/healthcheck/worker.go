@@ -38,6 +38,7 @@ type Worker struct {
 
 	/* Last confirmed check result */
 	LastResult CheckResult
+	LastResultUnknown bool
 
 	/* Current passes count, if LastResult.Live = true */
 	passes int
@@ -99,10 +100,17 @@ func (this *Worker) process(checkResult CheckResult) {
 
 	log := logging.For("healthcheck/worker")
 
+	if this.LastResultUnknown {
+		this.LastResult = checkResult
+		this.LastResultUnknown = false
+		this.out <- checkResult
+		return
+	}
+
 	if checkResult.Status == this.LastResult.Status {
 		// check status not changed
 		return
-	}
+	}	
 
 	if checkResult.Status == Unhealthy {
 		this.passes = 0

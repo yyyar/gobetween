@@ -42,11 +42,14 @@
   * **SRV** - query DNS server and get backends from SRV records
   * **Consul** - query Consul Services API for backends 
   * **LXD** - query backends from LXD
+  * **etcd** - query etcd and pick backends from JSON
+  * **patroni** - query etcd as used by Patroni for backends
 
 * [Healthchecks](https://github.com/yyyar/gobetween/wiki/Healthchecks)
   * **Ping** - simple TCP ping healthcheck
   * **Exec** - execute arbitrary program passing host & port as options, and read healthcheck status from the stdout
-  * **Probe** - send specific bytes to backend (udp, tcp or tls) and expect a correct answer (bytes or regexp)
+  * **Probe** - send specific bytes to backend (udp, tcp or tls) and expect correct answer (bytes or regexp)
+  * **HTTP** - send HTTP requests to backend or an alternative port on the same host
 
 * [Balancing Strategies](https://github.com/yyyar/gobetween/wiki/Balancing) (with [SNI](https://github.com/yyyar/gobetween/wiki/Server-Name-Indication) support)
   * **Weight** - select backend from pool based relative weights of backends

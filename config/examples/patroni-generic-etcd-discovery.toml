@@ -1,0 +1,69 @@
+# Sample configuration for routing to a Patroni cluster discovering members
+# using a generic etcd interface.
+#
+# Discovers all members from cluster /members directory and then uses HTTP
+# healthchecks to Patroni REST API to determine which nodes to route to.
+
+[api]
+enabled = true
+bind = ":8888"
+cors = false
+
+[servers]
+
+# Master pool
+[servers.testcluster_rw]
+protocol = "tcp"
+bind = "0.0.0.0:5430"
+
+# Proactively terminates connections to a dead master so clients don't have to
+# wait for tcp keepalive to time out.
+close_on_failure = true
+# Do not route connections before we get first healhcheck back
+wait_for_healthcheck = true
+
+  [servers.testcluster_rw.discovery]
+  kind = "etcd"
+
+  etcd_hosts = [ "http://127.0.0.1:2379" ]
+  etcd_prefix = "/service/testcluster/members"
+  etcd_dsn_json_path = "conn_url"
+
+  [servers.testcluster_rw.healthcheck]
+  kind = "http"
+  # For robust operation make sure the folling rule holds:
+  # timeout < (passes - fails + 1)*interval
+  interval = "5s"
+  timeout = "5s"
+  passes = 1
+  fails = 1
+  
+  http_path = "/read-write"
+  http_port = 8008
+  http_method = "GET"
+
+[servers.testcluster_ro]
+protocol = "tcp"
+bind = "0.0.0.0:5431"
+close_on_failure = true
+wait_for_healthcheck = true
+
+  [servers.testcluster_ro.discovery]
+  kind = "etcd"
+
+  etcd_hosts = [ "http://127.0.0.1:2379" ]
+  etcd_prefix = "/service/testcluster/members"
+  etcd_dsn_json_path = "conn_url"
+  etcd_healthcheck_json_path = "api_url"
+  etcd_leader_pool = false
+
+   [servers.testcluster_ro.healthcheck]
+   kind = "http"
+   interval = "5s"
+   passes = 1
+   fails = 1
+   timeout = "5s"
+
+   http_path = "/read-only"
+   http_port = 8008
+   http_method = "GET"
