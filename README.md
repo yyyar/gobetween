@@ -12,7 +12,7 @@
 
 **gobetween** -  modern & minimalistic load balancer and reverse-proxy for the :cloud: Cloud era.
 
-**Current status**: *Under active development*. Currently in use in several highly loaded production environments.
+**Current status**: *Maintenance mode, accepting PRs*. Currently in use in several highly loaded production environments.
 
 ## Features
 
