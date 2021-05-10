@@ -67,9 +67,10 @@ dist:
 	@echo Building dist
 
 	@set -e ;\
-	for arch in  "linux   386  0      "  "linux   amd64 0      "  \
-				 "darwin  386  0      "  "darwin  amd64 0      "  \
-				 "windows amd64  0 .exe " ;                       \
+	for arch in  "linux   386   0      "    \
+		     "linux   amd64 0      "    \
+		     "darwin  amd64 0      "    \
+		     "windows amd64 0 .exe " ;  \
 	do \
 		set -- $$arch ; \
 		echo "******************* $$1_$$2 ********************" ;\
