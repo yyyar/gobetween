@@ -48,10 +48,28 @@ var versions map[string]uint16 = map[string]uint16{
 }
 
 /**
+ * TLS ClientAuthType mappings
+ */
+var client_auths map[string]tls.ClientAuthType = map[string]tls.ClientAuthType{
+	"no_client_cert":     tls.NoClientCert,
+	"request":            tls.RequestClientCert,
+	"require_any":        tls.RequireAnyClientCert,
+	"verify_if_given":    tls.VerifyClientCertIfGiven,
+	"require_and_verify": tls.RequireAndVerifyClientCert,
+}
+
+/**
  * Maps tls version from string to golang constant
  */
 func MapVersion(version string) uint16 {
 	return versions[version]
+}
+
+/**
+ * Maps tls client auth from string to tls.ClientAuthType
+ */
+func MapClientAuth(auth string) tls.ClientAuthType {
+	return client_auths[auth]
 }
 
 /**
@@ -89,6 +107,7 @@ func MakeTlsConfig(tlsC *config.Tls, getCertificate func(*tls.ClientHelloInfo) (
 	tlsConfig.MinVersion = MapVersion(tlsC.MinVersion)
 	tlsConfig.MaxVersion = MapVersion(tlsC.MaxVersion)
 	tlsConfig.SessionTicketsDisabled = !tlsC.SessionTickets
+	tlsConfig.ClientAuth = MapClientAuth(tlsC.ClientAuth)
 
 	if getCertificate != nil {
 		tlsConfig.GetCertificate = getCertificate
@@ -99,6 +118,16 @@ func MakeTlsConfig(tlsC *config.Tls, getCertificate func(*tls.ClientHelloInfo) (
 	var err error
 	if crt, err = tls.LoadX509KeyPair(tlsC.CertPath, tlsC.KeyPath); err != nil {
 		return nil, err
+	}
+
+	if tlsConfig.ClientAuth != tls.NoClientCert {
+		caCertPool := x509.NewCertPool()
+		certFile, err := ioutil.ReadFile(tlsC.ClientCA)
+		if err != nil {
+			return nil, err
+		}
+		caCertPool.AppendCertsFromPEM(certFile)
+		tlsConfig.ClientCAs = caCertPool
 	}
 
 	tlsConfig.Certificates = []tls.Certificate{crt}
