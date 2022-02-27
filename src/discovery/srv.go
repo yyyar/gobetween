@@ -153,12 +153,15 @@ func srvIPLookup(cfg config.DiscoveryConfig, pattern string, typ uint16) (string
 		return "", nil
 	}
 
-	switch ans := resp.Answer[0].(type) {
-	case *dns.A:
-		return ans.A.String(), nil
-	case *dns.AAAA:
-		return fmt.Sprintf("[%s]", ans.AAAA.String()), nil
-	default:
-		return "", nil
+	for _, answer := range resp.Answer {
+		switch ans := answer.(type) {
+		case *dns.A:
+			return ans.A.String(), nil
+		case *dns.AAAA:
+			return fmt.Sprintf("[%s]", ans.AAAA.String()), nil
+		default:
+			continue
+		}
 	}
+	return "", nil
 }
