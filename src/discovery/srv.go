@@ -75,6 +75,10 @@ func srvFetch(cfg config.DiscoveryConfig) (*[]core.Backend, error) {
 	for _, ans := range r.Answer {
 		record, ok := ans.(*dns.SRV)
 		if !ok {
+			// RRSIG is allowed because DNSSEC could be enabled.
+			if _, ok := ans.(*dns.RRSIG); ok {
+				continue
+			}
 			return nil, errors.New("Non-SRV record in SRV answer")
 		}
 
