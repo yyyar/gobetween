@@ -57,7 +57,7 @@ func attachServers(app *gin.RouterGroup) {
 			return
 		}
 
-		if err := manager.Create(name, cfg); err != nil {
+		if err := manager.Create(name, cfg, make(chan struct{}, 1)); err != nil {
 			c.IndentedJSON(http.StatusConflict, err.Error())
 			return
 		}

@@ -54,6 +54,9 @@ type Server struct {
 	/* Stop channel */
 	stop chan bool
 
+	/* A channel that helps to determine when the server has completed */
+	completed chan<- struct{}
+
 	/* ----- modules ----- */
 
 	/* Access module checks if client is allowed to connect */
@@ -116,7 +119,7 @@ func (cp *connPool) close() {
 /**
  * Creates new UDP server
  */
-func New(name string, cfg config.Server) (*Server, error) {
+func New(name string, cfg config.Server, completed chan <- struct{}) (*Server, error) {
 
 	statsHandler := stats.NewHandler(name)
 	scheduler := &scheduler.Scheduler{
@@ -131,6 +134,7 @@ func New(name string, cfg config.Server) (*Server, error) {
 		cfg:       cfg,
 		scheduler: scheduler,
 		stop:      make(chan bool),
+		completed: completed,
 		sessions:  make(map[string]*session.Session),
 	}
 
@@ -158,7 +162,6 @@ func (this *Server) Cfg() config.Server {
  * Starts server
  */
 func (this *Server) Start() error {
-
 	// Start listening
 	if err := this.listen(); err != nil {
 		return fmt.Errorf("Could not start listening UDP: %v", err)
@@ -241,6 +244,7 @@ func (this *Server) serve() {
 
 	// Main loop goroutine - reads incoming data and decides what to do
 	go func() {
+		defer func() { this.completed <- struct{}{} }()
 
 		defer cp.close()
 
