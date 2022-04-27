@@ -75,6 +75,10 @@ func srvFetch(cfg config.DiscoveryConfig) (*[]core.Backend, error) {
 	for _, ans := range r.Answer {
 		record, ok := ans.(*dns.SRV)
 		if !ok {
+			// RRSIG is allowed because DNSSEC could be enabled.
+			if _, ok := ans.(*dns.RRSIG); ok {
+				continue
+			}
 			return nil, errors.New("Non-SRV record in SRV answer")
 		}
 
@@ -149,12 +153,15 @@ func srvIPLookup(cfg config.DiscoveryConfig, pattern string, typ uint16) (string
 		return "", nil
 	}
 
-	switch ans := resp.Answer[0].(type) {
-	case *dns.A:
-		return ans.A.String(), nil
-	case *dns.AAAA:
-		return fmt.Sprintf("[%s]", ans.AAAA.String()), nil
-	default:
-		return "", nil
+	for _, answer := range resp.Answer {
+		switch ans := answer.(type) {
+		case *dns.A:
+			return ans.A.String(), nil
+		case *dns.AAAA:
+			return fmt.Sprintf("[%s]", ans.AAAA.String()), nil
+		default:
+			continue
+		}
 	}
+	return "", nil
 }
