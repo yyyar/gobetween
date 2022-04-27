@@ -11,6 +11,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/yyyar/gobetween/config"
+	"github.com/yyyar/gobetween/core"
 	"github.com/yyyar/gobetween/manager"
 	"github.com/yyyar/gobetween/stats"
 )
@@ -58,6 +59,28 @@ func attachServers(app *gin.RouterGroup) {
 		}
 
 		if err := manager.Create(name, cfg); err != nil {
+			c.IndentedJSON(http.StatusConflict, err.Error())
+			return
+		}
+
+		c.IndentedJSON(http.StatusOK, nil)
+	})
+
+	/**
+	 * Update backends with name :name
+	 * pass in []core.Backend
+	 */
+	app.POST("/servers/:name/backends", func(c *gin.Context) {
+
+		name := c.Param("name")
+
+		cfg := []core.Backend{}
+		if err := c.BindJSON(&cfg); err != nil {
+			c.IndentedJSON(http.StatusBadRequest, err.Error())
+			return
+		}
+
+		if err := manager.UpdateBackends(name, &cfg); err != nil {
 			c.IndentedJSON(http.StatusConflict, err.Error())
 			return
 		}

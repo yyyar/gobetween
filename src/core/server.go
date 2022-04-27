@@ -27,6 +27,11 @@ type Server interface {
 	Stop()
 
 	/**
+	 * UpdateBackends allows you to set a new backend config
+	 */
+	UpdateBackends(backends *[]Backend)
+
+	/**
 	 * Get server configuration
 	 */
 	Cfg() config.Server
