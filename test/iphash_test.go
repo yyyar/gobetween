@@ -60,7 +60,8 @@ func prepareClients(n int) []DummyContext {
 		rand.Read(ip)
 
 		clients[i] = DummyContext{
-			ip: ip,
+			ip:   ip,
+			port: 10000 + i,
 		}
 	}
 
@@ -118,48 +119,64 @@ func TestIPHash2AddingBackendsRedistribution(t *testing.T) {
 */
 
 func TestIPHash1RemovingBackendsStability(t *testing.T) {
-
-	balancer := &balance.Iphash1Balancer{}
-
-	backends := prepareBackends("127.0.0", 4)
-	clients := prepareClients(100)
-
-	// Perform balancing for on a given balancer, for clients versus backends
-	d1, err := makeDistribution(balancer, backends, clients)
-	if err != nil {
-		t.Error(err)
-		t.Fail()
+	tests := []struct {
+		name     string
+		balancer core.Balancer
+	}{
+		{
+			name:     "TestIphash1Balancer",
+			balancer: &balance.Iphash1Balancer{},
+		},
+		{
+			name:     "TestIpPorthash1Balancer",
+			balancer: &balance.IpPorthash1Balancer{},
+		},
 	}
 
-	// Remove a backend from a list(second one)
-	removedBackend := backends[1]
-	backends = append(backends[:1], backends[2:]...)
+	for _, tt := range tests {
+		tt := tt
+		t.Run(tt.name, func(t *testing.T) {
 
-	// Perform balancing on the same balancer, same clients, but backends missing one.
-	d2, err := makeDistribution(balancer, backends, clients)
-	if err != nil {
-		t.Error(err)
-		t.Fail()
-	}
+			backends := prepareBackends("127.0.0", 4)
+			clients := prepareClients(100)
 
-	// check the results
-	for k, v1 := range d1 {
+			// Perform balancing for on a given balancer, for clients versus backends
+			d1, err := makeDistribution(tt.balancer, backends, clients)
+			if err != nil {
+				t.Error(err)
+				t.Fail()
+			}
 
-		// in the second try (d2) removed backend will be obviously changed to something else,
-		// skipping it
-		if v1 == removedBackend {
-			continue
-		}
+			// Remove a backend from a list(second one)
+			removedBackend := backends[1]
+			backends = append(backends[:1], backends[2:]...)
 
-		v2 := d2[k]
+			// Perform balancing on the same balancer, same clients, but backends missing one.
+			d2, err := makeDistribution(tt.balancer, backends, clients)
+			if err != nil {
+				t.Error(err)
+				t.Fail()
+			}
 
-		// the second try (d2) should not have other changes, so that if some backend (not removed) was
-		// elected previously, it should be elected now
-		if v1 != v2 {
-			t.Fail()
-			break
-		}
+			// check the results
+			for k, v1 := range d1 {
 
+				// in the second try (d2) removed backend will be obviously changed to something else,
+				// skipping it
+				if v1 == removedBackend {
+					continue
+				}
+
+				v2 := d2[k]
+
+				// the second try (d2) should not have other changes, so that if some backend (not removed) was
+				// elected previously, it should be elected now
+				if v1 != v2 {
+					t.Fail()
+					break
+				}
+			}
+		})
 	}
 
 }

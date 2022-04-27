@@ -55,6 +55,7 @@
   * **Roundrobin** - simple elect backend from pool in circular order
   * **Iphash** - route client to the same backend based on client ip hash
   * **Iphash1** - same as iphash but backend removal consistent (clients remain connecting to the same backend, even if some other backends down)
+  * **IpPorthash1** - same as iphash1 but route client to the same backend based on client ip+port hash (this is useful for balancing NATed connections)
   * **Leastconn** - select backend with least active connections
   * **Leastbandwidth** -  backends with least bandwidth
 
