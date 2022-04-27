@@ -1,0 +1,55 @@
+env:
+  - GO111MODULE=on
+  - CGO_ENABLED=0
+
+before:
+  hooks:
+    - go mod tidy
+
+builds:
+  -
+    binary: gobetween
+    ldflags: -s -w -X main.version={{ .Version }} -X main.revision={{ .Commit }} -X main.branch={{ .Branch }}
+    goos:
+      - linux
+      - darwin
+      - windows
+    goarch:
+      - "386"
+      - amd64
+      - arm
+      - arm64
+    goarm:
+      - "6"
+      - "7"
+
+archives:
+  -
+    builds:
+      - gobetween
+    format_overrides:
+      - goos: windows
+        format: zip
+    replacements:
+      darwin: Darwin
+      linux: Linux
+      amd64: x86_64
+
+nfpms:
+  -
+    vendor: gobetween
+    homepage: https://gobetween.io
+    maintainer: "Yaroslav Pogrebnyak <yyyaroslav@gmail.com>"
+    description: "Modern & minimalistic load balancer for the Cloud era"
+    license: GPL-3.0
+    formats:
+      - apk
+      - deb
+      - rpm
+    bindir: /usr/local/bin
+
+checksum:
+  name_template: "checksums.txt"
+
+changelog:
+  sort: asc
