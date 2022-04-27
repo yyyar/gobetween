@@ -165,9 +165,11 @@ type tlsCommon struct {
  * for protocol = "tls"
  */
 type Tls struct {
-	AcmeHosts []string `toml:"acme_hosts" json:"acme_hosts"`
-	CertPath  string   `toml:"cert_path" json:"cert_path"`
-	KeyPath   string   `toml:"key_path" json:"key_path"`
+	AcmeHosts  []string `toml:"acme_hosts" json:"acme_hosts"`
+	CertPath   string   `toml:"cert_path" json:"cert_path"`
+	KeyPath    string   `toml:"key_path" json:"key_path"`
+	ClientAuth string   `toml:"client_auth" json:"client_auth"`
+	ClientCA   string   `toml:"client_ca" json:"client_ca"`
 	tlsCommon
 }
 
