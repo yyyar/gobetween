@@ -8,4 +8,5 @@ type Config struct {
 	ClientIdleTimeout  time.Duration
 	BackendIdleTimeout time.Duration
 	Transparent        bool
+	Source             string
 }

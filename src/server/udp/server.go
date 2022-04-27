@@ -232,6 +232,7 @@ func (this *Server) serve() {
 		ClientIdleTimeout:  utils.ParseDurationOrDefault(*this.cfg.ClientIdleTimeout, 0),
 		BackendIdleTimeout: utils.ParseDurationOrDefault(*this.cfg.BackendIdleTimeout, 0),
 		Transparent:        this.cfg.Udp.Transparent,
+		Source:             this.cfg.Udp.Source,
 	}
 
 	var cp *connPool
@@ -330,6 +331,16 @@ func (this *Server) electAndConnect(pool *connPool, clientAddr *net.UDPAddr) (ne
 		conn, err = udpfacade.DialUDPFrom(clientAddr, addr)
 		if err != nil {
 			return nil, nil, fmt.Errorf("Could not dial UDP addr %v from %v: %v", addr, clientAddr, err)
+		}
+	} else if this.cfg.Udp.Source != "" {
+		laddrStr := this.cfg.Udp.Source + ":0" // 0 means "pick a random source port"
+		laddr, err := net.ResolveUDPAddr("udp", laddrStr)
+		if err != nil {
+			return nil, nil, fmt.Errorf("Could not resolve udp local address %s: %v", laddrStr, err)
+		}
+		conn, err = net.DialUDP("udp", laddr, addr)
+		if err != nil {
+			return nil, nil, fmt.Errorf("Could not dial UDP addr %v from %v: %v", addr, laddr, err)
 		}
 	} else {
 		conn, err = net.DialUDP("udp", nil, addr)
