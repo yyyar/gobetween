@@ -11,7 +11,7 @@ import (
 	"encoding/json"
 	"errors"
 
-	"github.com/burntsushi/toml"
+	"github.com/BurntSushi/toml"
 )
 
 /**
