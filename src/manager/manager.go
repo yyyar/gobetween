@@ -483,7 +483,8 @@ func prepareConfig(name string, server config.Server, defaults config.Connection
 		"roundrobin",
 		"leastbandwidth",
 		"iphash1",
-		"iphash":
+		"iphash",
+		"ipporthash1":
 	case "":
 		server.Balance = "weight"
 	default:
