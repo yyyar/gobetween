@@ -1,5 +1,21 @@
 # Changelog
 
+## [0.8.1]
+
+### Added
+ - freebsd/amd64 build
+ - linux/arm64 build
+
+### Updated
+ - Go to 1.24
+ - All dependencies to latest versions, security upgrades
+ - Added tls1.3 option and its cipher suites to TLS configs
+
+### Removed
+ - PreferServerCiphers from TLS configs as it is deprecated in Go 1.24
+ - SSLv3 as it is deprecated and broken
+
+
 ## [0.8.0]
 
 ### New Features

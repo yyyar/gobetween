@@ -2,7 +2,7 @@ ARG BASE_IMAGE=scratch
 
 # ---------------------  dev (build) image --------------------- #
 
-FROM golang:1.14-alpine as builder
+FROM golang:1.24-alpine as builder
 
 RUN apk add git
 RUN apk add make

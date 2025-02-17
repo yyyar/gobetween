@@ -67,7 +67,8 @@ dist:
 	@echo Building dist
 
 	@set -e ;\
-	for arch in  "linux   386   0      "    \
+	for arch in "freebsd   amd64 0    " \
+	 		 "linux   386   0      "    \
 		     "linux   amd64 0      "    \
 		     "linux   arm64 0      "    \
 		     "linux   arm   0      "    \

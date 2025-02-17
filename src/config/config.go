@@ -153,11 +153,10 @@ type Sni struct {
  * Common part of Tls and BackendTls types
  */
 type tlsCommon struct {
-	Ciphers             []string `toml:"ciphers" json:"ciphers"`
-	PreferServerCiphers bool     `toml:"prefer_server_ciphers" json:"prefer_server_ciphers"`
-	MinVersion          string   `toml:"min_version" json:"min_version"`
-	MaxVersion          string   `toml:"max_version" json:"max_version"`
-	SessionTickets      bool     `toml:"session_tickets" json:"session_tickets"`
+	Ciphers        []string `toml:"ciphers" json:"ciphers"`
+	MinVersion     string   `toml:"min_version" json:"min_version"`
+	MaxVersion     string   `toml:"max_version" json:"max_version"`
+	SessionTickets bool     `toml:"session_tickets" json:"session_tickets"`
 }
 
 /**

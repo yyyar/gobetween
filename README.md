@@ -1,4 +1,4 @@
-[![Stand With Ukraine](https://raw.githubusercontent.com/vshymanskyy/StandWithUkraine/main/banner-direct.svg)](https://vshymanskyy.github.io/StandWithUkraine)
+[![Stand With Ukraine](https://raw.githubusercontent.com/vshymanskyy/StandWithUkraine/main/badges/StandWithUkraine.svg)](https://vshymanskyy.github.io/StandWithUkraine)
 
 <img src="/logo.png?raw=true" alt="gobetween" width="256px" />
 
@@ -7,7 +7,6 @@
 [![Go Report Card](https://goreportcard.com/badge/github.com/yyyar/gobetween)](https://goreportcard.com/report/github.com/yyyar/gobetween)
 [![Docs](https://img.shields.io/badge/docs-current-brightgreen.svg)](https://github.com/yyyar/gobetween/wiki)
 [![Docker](https://img.shields.io/docker/pulls/yyyar/gobetween.svg)](https://hub.docker.com/r/yyyar/gobetween/)
-[![Snap Status](https://build.snapcraft.io/badge/yyyar/gobetween.svg)](https://build.snapcraft.io/user/yyyar/gobetween)
 [![Telegram](https://img.shields.io/badge/telegram-chat-blue.svg)](https://t.me/joinchat/GdlUlg_gRfchk1BORU82PA)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](/LICENSE)
 
@@ -64,7 +63,7 @@
 
 
 ## Architecture
-<img src="http://i.piccy.info/i9/8b92154435be32f21eaa3ff7b3dc6d1c/1466244332/74457/1043487/gog.png" alt="gobetween" />
+<img src="/architecture.png?raw=true" alt="architecture" />
 
 ## Usage
 
@@ -75,7 +74,7 @@
 
 ## Hacking
 
-* Install Go 1.14+ https://golang.org/
+* Install Go 1.24+ https://golang.org/
 * `$ git clone git@github.com:yyyar/gobetween.git`
 * `$ make`
 * `$ make run`
