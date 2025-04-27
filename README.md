@@ -49,7 +49,7 @@
   * **Exec** - execute arbitrary program passing host & port as options, and read healthcheck status from the stdout
   * **Probe** - send specific bytes to backend (udp, tcp or tls) and expect a correct answer (bytes or regexp)
 
-* [Balancing Strategies](https://github.com/yyyar/gobetween/wiki/Balancing) (with [SNI](https://github.com/yyyar/gobetween/wiki/Server-Name-Indication) support)
+* [Balancing Strategies](https://github.com/yyyar/gobetween/wiki/Balancing) (with [SNI](https://github.com/yyyar/gobetween/wiki/Server-Name-Indication) and [MaxConnections](https://github.com/yyyar/gobetween/wiki/Balancing#limiting-number-of-active-connections-to-a-backend-since-082) support)
   * **Weight** - select backend from pool based relative weights of backends
   * **Roundrobin** - simple elect backend from pool in circular order
   * **Iphash** - route client to the same backend based on client ip hash

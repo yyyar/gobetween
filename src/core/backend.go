@@ -16,10 +16,11 @@ import (
  */
 type Backend struct {
 	Target
-	Priority int          `json:"priority"`
-	Weight   int          `json:"weight"`
-	Sni      string       `json:"sni,omitempty"`
-	Stats    BackendStats `json:"stats"`
+	Priority       int          `json:"priority"`
+	Weight         int          `json:"weight"`
+	MaxConnections int          `json:"max_connections,omitempty"`
+	Sni            string       `json:"sni,omitempty"`
+	Stats          BackendStats `json:"stats"`
 }
 
 /**
@@ -51,6 +52,7 @@ func (this *Backend) MergeFrom(other Backend) *Backend {
 
 	this.Priority = other.Priority
 	this.Weight = other.Weight
+	this.MaxConnections = other.MaxConnections
 	this.Sni = other.Sni
 
 	return this
@@ -67,6 +69,6 @@ func (this *Backend) Address() string {
  * String conversion
  */
 func (this Backend) String() string {
-	return fmt.Sprintf("{%s p=%d,w=%d,l=%t,a=%d}",
-		this.Address(), this.Priority, this.Weight, this.Stats.Live, this.Stats.ActiveConnections)
+	return fmt.Sprintf("{%s p=%d,w=%d,m=%d,l=%t,a=%d}",
+		this.Address(), this.Priority, this.Weight, this.MaxConnections, this.Stats.Live, this.Stats.ActiveConnections)
 }

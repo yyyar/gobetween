@@ -23,13 +23,14 @@ import (
 )
 
 const (
-	jsonRetryWaitDuration      = 2 * time.Second
-	jsonDefaultHttpTimeout     = 5 * time.Second
-	jsonDefaultHostPattern     = "host"
-	jsonDefaultPortPattern     = "port"
-	jsonDefaultWeightPattern   = "weight"
-	jsonDefaultPriorityPattern = "priority"
-	jsonDefaultSniPattern      = "sni"
+	jsonRetryWaitDuration            = 2 * time.Second
+	jsonDefaultHttpTimeout           = 5 * time.Second
+	jsonDefaultHostPattern           = "host"
+	jsonDefaultPortPattern           = "port"
+	jsonDefaultWeightPattern         = "weight"
+	jsonDefaultPriorityPattern       = "priority"
+	jsonDefaultSniPattern            = "sni"
+	jsonDefaultMaxConnectionsPattern = "max_connections"
 )
 
 /**
@@ -57,6 +58,10 @@ func NewJsonDiscovery(cfg config.DiscoveryConfig) interface{} {
 
 	if cfg.JsonSniPattern == "" {
 		cfg.JsonSniPattern = jsonDefaultSniPattern
+	}
+
+	if cfg.JsonMaxConnectionsPattern == "" {
+		cfg.JsonMaxConnectionsPattern = jsonDefaultMaxConnectionsPattern
 	}
 
 	d := Discovery{
@@ -142,6 +147,10 @@ func jsonFetch(cfg config.DiscoveryConfig) (*[]core.Backend, error) {
 
 		if sni, err := parsed.QueryToString(key + cfg.JsonSniPattern); err == nil {
 			backend.Sni = sni
+		}
+
+		if maxConnections, err := parsed.QueryToInt64(key + cfg.JsonMaxConnectionsPattern); err == nil {
+			backend.MaxConnections = int(maxConnections)
 		}
 
 		backends = append(backends, backend)

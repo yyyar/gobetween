@@ -17,7 +17,7 @@ import (
 )
 
 const (
-	DEFAULT_BACKEND_PATTERN = `^(?P<host>\S+):(?P<port>\d+)(\sweight=(?P<weight>\d+))?(\spriority=(?P<priority>\d+))?(\ssni=(?P<sni>[^\s]+))?$`
+	DEFAULT_BACKEND_PATTERN = `^(?P<host>\S+):(?P<port>\d+)(\sweight=(?P<weight>\d+))?(\spriority=(?P<priority>\d+))?(\smax_connections=(?P<max_connections>\d+))?(\ssni=(?P<sni>[^\s]+))?$`
 )
 
 /**
@@ -62,14 +62,20 @@ func ParseBackend(line string, pattern string) (*core.Backend, error) {
 		priority = 1
 	}
 
+	maxConnections, err := strconv.Atoi(result["max_connections"])
+	if err != nil {
+		maxConnections = 0 // 0 means no limit
+	}
+
 	backend := core.Backend{
 		Target: core.Target{
 			Host: result["host"],
 			Port: result["port"],
 		},
-		Weight:   weight,
-		Sni:      result["sni"],
-		Priority: priority,
+		Weight:         weight,
+		MaxConnections: maxConnections,
+		Sni:           result["sni"],
+		Priority:      priority,
 		Stats: core.BackendStats{
 			Live: true,
 		},

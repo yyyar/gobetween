@@ -84,7 +84,7 @@ bind = "0.0.0.0:3000"
   static_list = [
       "localhost:8000 weight=40 priority=1",
       "localhost:8001 weight=60 priority=1",
-      "localhost:8002 weight=100 priority=0"
+      "localhost:8002 weight=100 priority=0 max_connections=10"
   ]
 
 # ---------- udp example ----------- #
@@ -266,6 +266,7 @@ protocol = "udp"
 #  json_weight_pattern = "weight"          # (optional) path to weight value in JSON object, by default "weight"
 #  json_priority_pattern = "priority"      # (optional) path to priority value in JSON object, by default "priority"
 #  json_sni_pattern = "sni"                # (optional) path to SNI value in JSON object, by default "sni"
+#  json_max_connections_pattern = "0"      # (optional) path to SNI value in JSON object, by default "max_connections"
 #
 #  # -- exec -- #
 #  kind = "exec"
