@@ -5,6 +5,7 @@ package config
  *
  * @author Yaroslav Pogrebnyak <yyyaroslav@gmail.com>
  * @author Gene Ponomarenko <kikomdev@gmail.com>
+ * @Improver Ben Gabbard <ben.gabbard@live.com>
  */
 
 /**
@@ -167,6 +168,8 @@ type Tls struct {
 	AcmeHosts []string `toml:"acme_hosts" json:"acme_hosts"`
 	CertPath  string   `toml:"cert_path" json:"cert_path"`
 	KeyPath   string   `toml:"key_path" json:"key_path"`
+	key_pass_path  string `toml:"key_pass_path" json:"key_pass_path"`
+	key_pass       string `toml:"key_pass" json:"key_pass"`
 	tlsCommon
 }
 
@@ -175,6 +178,8 @@ type BackendsTls struct {
 	RootCaCertPath *string `toml:"root_ca_cert_path" json:"root_ca_cert_path"`
 	CertPath       *string `toml:"cert_path" json:"cert_path"`
 	KeyPath        *string `toml:"key_path" json:"key_path"`
+	key_pass_path  *string `toml:"key_pass_path" json:"key_pass_path"`
+	key_pass       *string `toml:"key_pass" json:"key_pass"`
 	tlsCommon
 }
 
