@@ -186,6 +186,7 @@ type Udp struct {
 	MaxRequests  uint64 `toml:"max_requests" json:"max_requests"`
 	MaxResponses uint64 `toml:"max_responses" json:"max_responses"`
 	Transparent  bool   `toml:"transparent" json:"transparent"`
+	Source       string `toml:"source" json:"source"`
 }
 
 /**
