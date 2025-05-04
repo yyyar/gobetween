@@ -26,7 +26,7 @@ func probe(t core.Target, cfg config.HealthcheckConfig, result chan<- CheckResul
 	timeout, _ := time.ParseDuration(cfg.Timeout)
 
 	checkResult := CheckResult{
-		Status:   Unhealthy,
+		Status: Unhealthy,
 		Target: t,
 	}
 
