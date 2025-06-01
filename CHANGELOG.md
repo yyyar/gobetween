@@ -1,5 +1,10 @@
 # Changelog
 
+## [0.8.2]
+
+### Added
+ - max_connections parameter for backends to limit connections to individual backends
+
 ## [0.8.1]
 
 ### Added

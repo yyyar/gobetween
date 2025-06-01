@@ -36,14 +36,22 @@ func init() {
  * Wrap it in middlewares if needed
  */
 func New(sniConf *config.Sni, balance string) core.Balancer {
+
+	// Create the base balancer
 	balancer := reflect.New(typeRegistry[balance]).Elem().Addr().Interface().(core.Balancer)
 
-	if sniConf == nil {
-		return balancer
-	}
-
-	return &middleware.SniBalancer{
-		SniConf:  sniConf,
+	// Apply max connections middleware (always applied)
+	balancer = &middleware.MaxConnectionsMiddleware{
 		Delegate: balancer,
 	}
+
+	// Apply SNI middleware if configured
+	if sniConf != nil {
+		balancer = &middleware.SniMiddleware{
+			SniConf:  sniConf,
+			Delegate: balancer,
+		}
+	}
+
+	return balancer
 }

@@ -232,12 +232,13 @@ type ExecDiscoveryConfig struct {
 }
 
 type JsonDiscoveryConfig struct {
-	JsonEndpoint        string `toml:"json_endpoint" json:"json_endpoint"`
-	JsonHostPattern     string `toml:"json_host_pattern" json:"json_host_pattern"`
-	JsonPortPattern     string `toml:"json_port_pattern" json:"json_port_pattern"`
-	JsonWeightPattern   string `toml:"json_weight_pattern" json:"json_weight_pattern"`
-	JsonPriorityPattern string `toml:"json_priority_pattern" json:"json_priority_pattern"`
-	JsonSniPattern      string `toml:"json_sni_pattern" json:"json_sni_pattern"`
+	JsonEndpoint              string `toml:"json_endpoint" json:"json_endpoint"`
+	JsonHostPattern           string `toml:"json_host_pattern" json:"json_host_pattern"`
+	JsonPortPattern           string `toml:"json_port_pattern" json:"json_port_pattern"`
+	JsonWeightPattern         string `toml:"json_weight_pattern" json:"json_weight_pattern"`
+	JsonPriorityPattern       string `toml:"json_priority_pattern" json:"json_priority_pattern"`
+	JsonSniPattern            string `toml:"json_sni_pattern" json:"json_sni_pattern"`
+	JsonMaxConnectionsPattern string `toml:"json_max_connections_pattern" json:"json_max_connections_pattern"`
 }
 
 type PlaintextDiscoveryConfig struct {

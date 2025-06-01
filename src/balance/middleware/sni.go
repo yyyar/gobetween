@@ -18,9 +18,9 @@ import (
 )
 
 /**
- * SniBalancer middleware delegate
+ * SniMiddleware middleware delegate
  */
-type SniBalancer struct {
+type SniMiddleware struct {
 	SniConf  *config.Sni
 	Delegate core.Balancer
 }
@@ -28,7 +28,7 @@ type SniBalancer struct {
 /**
  * Elect backend using sni pre-processing
  */
-func (sniBalancer *SniBalancer) Elect(ctx core.Context, backends []*core.Backend) (*core.Backend, error) {
+func (sniBalancer *SniMiddleware) Elect(ctx core.Context, backends []*core.Backend) (*core.Backend, error) {
 
 	/* ------ try find matching to requesedSni backends ------ */
 
@@ -59,7 +59,7 @@ func (sniBalancer *SniBalancer) Elect(ctx core.Context, backends []*core.Backend
 /**
  * Filter out backends that match requestedSni
  */
-func (sniBalancer *SniBalancer) matchingBackends(requestedSni string, backends []*core.Backend) []*core.Backend {
+func (sniBalancer *SniMiddleware) matchingBackends(requestedSni string, backends []*core.Backend) []*core.Backend {
 
 	log := logging.For("balance/middleware/sni")
 
@@ -85,7 +85,7 @@ func (sniBalancer *SniBalancer) matchingBackends(requestedSni string, backends [
 /**
  * Try match requested sni to actual backend sni
  */
-func (sniBalancer *SniBalancer) matchSni(requestedSni string, backendSni string) (bool, error) {
+func (sniBalancer *SniMiddleware) matchSni(requestedSni string, backendSni string) (bool, error) {
 
 	sniMatching := sniBalancer.SniConf.HostnameMatchingStrategy
 
