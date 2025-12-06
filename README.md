@@ -75,7 +75,7 @@
 ## Hacking
 
 * Install Go 1.24+ https://golang.org/
-* `$ git clone git@github.com:yyyar/gobetween.git`
+* `$ git clone https://github.com/yyyar/gobetween.git`
 * `$ make`
 * `$ make run`
 
