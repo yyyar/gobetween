@@ -13,6 +13,8 @@ NAME := gobetween
 VERSION := $(shell cat VERSION)
 REVISION := $(shell git rev-parse HEAD 2>/dev/null)
 BRANCH := $(shell git symbolic-ref --short HEAD 2>/dev/null)
+OS := $(shell uname -o | tr '[:upper:]' '[:lower:]')
+ARCH := $(shell uname -m | tr '[:upper:]' '[:lower:]')
 
 LDFLAGS := \
   -X main.version=${VERSION} \
@@ -34,7 +36,7 @@ build:
 
 build-static:
 	@echo Building...
-	CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -v -a -tags netgo -o ./bin/$(NAME) -ldflags '-s -w --extldflags "-static" ${LDFLAGS}' .
+	CGO_ENABLED=0 GOOS=$(OS) GOARCH=$(ARCH) go build -v -a -tags netgo -o ./bin/$(NAME) -ldflags '-s -w --extldflags "-static" ${LDFLAGS}' .
 	@echo Done.
 
 run: build
@@ -72,6 +74,7 @@ dist:
 		     "linux   amd64 0      "    \
 		     "linux   arm64 0      "    \
 		     "linux   arm   0      "    \
+		     "linux   riscv64 0    "    \
 		     "darwin  amd64 0      "    \
 		     "windows amd64 0 .exe " ;  \
 	do \
