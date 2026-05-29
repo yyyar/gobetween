@@ -1,0 +1,19 @@
+language: go
+
+go:
+  - "1.14"
+  - "stable"
+
+env:
+ - GOMAXPROCS=2
+
+before_install:
+  - sudo apt-get -qq update
+  - sudo apt-get install -y zip
+
+install:
+    - make deps
+
+script:
+    - make dist
+    

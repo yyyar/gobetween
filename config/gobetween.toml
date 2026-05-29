@@ -1,0 +1,318 @@
+#
+# gobetween.toml - sample config file
+#
+# Website: http://gobetween.io
+# Documentation: https://github.com/yyyar/gobetween/wiki/Configuration
+#
+
+
+#
+# Logging configuration
+#
+[logging]
+level = "info"    # "debug" | "info" | "warn" | "error"
+output = "stdout" # "stdout" | "stderr" | "/path/to/gobetween.log"
+format = "text"   # (optional) "text" | "json"
+
+#
+# Pprof profiler configuration
+#
+[profiler]
+enabled = false # false | true
+bind = ":6060"  # "host:port"
+
+#
+# REST API server configuration
+#
+[api]
+enabled = true  # true | false
+bind = ":8888"  # "host:port"
+cors = false    # cross-origin resource sharing
+
+#  [api.basic_auth]   # (optional) Enable HTTP Basic Auth
+#  login = "admin"    # HTTP Auth Login
+#  password = "1111"  # HTTP Auth Password
+
+#  [api.tls]                        # (optional) Enable HTTPS
+#  cert_path = "/path/to/cert.pem"  # Path to certificate
+#  key_path = "/path/to/key.pem"    # Path to key
+
+#
+# Metrics server configuration
+#
+[metrics]
+enabled = false # false | true
+bind = ":9284"  # "host:port"
+
+#
+# Default values for server configuration, may be overridden in [servers] sections.
+# All "duration" fields (for example, postfixed with '_timeout') have the following format:
+# <int><duration> where duration can be one of 'ms', 's', 'm', 'h'.
+# Examples: "5s", "1m", "500ms", etc. "0" value means no limit
+#
+[defaults]
+max_connections = 0              # Maximum simultaneous connections to the server
+client_idle_timeout = "0"        # Client inactivity duration before forced connection drop
+backend_idle_timeout = "0"       # Backend inactivity duration before forced connection drop
+backend_connection_timeout = "0" # Backend connection timeout (ignored in udp)
+
+#
+## Acme (letsencrypt) configuration.
+## Letsencrypt allows server obtain free TLS certificates automagically.
+## See https://letsencrypt.org for details.
+##
+## Each server that requires acme certificates should have acme_hosts configured in tls section.
+#
+#[acme]                           # (optional)
+#challenge = "http"               # (optional) http | sni | dns
+#http_bind = "0.0.0.0:80"         # (optional) It is possible to bind to other port, but letsencrypt will send requests to http(80) anyway
+#cache_dir = "/tmp"               # (optional) directory to put acme certificates
+
+#
+# Servers contains as many [server.<name>] sections as needed.
+#
+[servers]
+
+# ---------- tcp example ----------- #
+
+[servers.sample]
+protocol = "tcp"
+bind = "0.0.0.0:3000"
+
+  [servers.sample.discovery]
+  kind = "static"
+  static_list = [
+      "localhost:8000 weight=40 priority=1",
+      "localhost:8001 weight=60 priority=1",
+      "localhost:8002 weight=100 priority=0 max_connections=10"
+  ]
+
+# ---------- udp example ----------- #
+
+[servers.udpsample]
+bind = "localhost:4000"
+protocol = "udp"
+
+  [servers.udpsample.udp]
+  max_responses = 1
+
+  [servers.udpsample.discovery]
+  kind = "static"
+  static_list = [
+      "8.8.8.8:53",
+      "8.8.4.4:53",
+      "91.239.100.100:53"
+  ]
+
+#
+# -------------------- example ----------------------------- #
+
+##
+## Example server section.
+##
+
+#[servers.default]
+#
+#bind = "localhost:3000"     #  (required) "<host>:<port>"
+#protocol = "tcp"            #  (required) "tcp" | "tls" | "udp"
+#balance = "weight"          #  (optional [weight]) "weight" | "leastconn" | "roundrobin" | "iphash" | "iphash1" | "leastbandwidth"
+#
+#max_connections = 0
+#client_idle_timeout = "10m"
+#backend_idle_timeout = "10m"
+#backend_connection_timeout = "5s"
+#
+## ---------------- backends tls properties ----------------- #
+#
+#  [servers.default.backends_tls]      # (optional) backends tls options (if present -- connect to backends via tls)
+#    ignore_verify = false             # (optional) insecure, disable tls certificate verification while connecting to backends
+#    root_ca_cert_path = "/path/to/file.pem" # (optional) path to series of root PEM encoded certificates.
+#                                              By default the host's root CA set is used (on many linux distros it's /etc/ssl/cert.pem)
+#                                      # Client certificate used by gobetween to make authenticated requests to backends.
+#                                      # Use this only if required by backends
+#    cert_path = "/path/to/file.crt"   # (optional) path to crt file
+#    key_path = "/path/to/file.key"    # (optional) path to key file
+#    min_version = "tls1"              # (optional) "ssl3" | "tls1" | "tls1.1" | "tls1.2" - minimum allowed tls version
+#    max_version = "tls1.2"            # (optional) maximum allowed tls version
+#    ciphers = []                      # (optional) list of supported ciphers. Empty means all supported. For a list see https://golang.org/pkg/crypto/tls/#pkg-constants
+#    prefer_server_ciphers = false     # (optional) if true server selects server's most preferred cipher
+#    session_tickets = true            # (optional) if true enables session tickets
+#
+#
+## ---------------------- sni properties --------------------- #
+#
+# [servers.default.sni]                    # (optional)
+# read_timeout = "2s"                      # (optional) timeout for reading sni from client
+# hostname_matching_strategy = "exact"     # (optional) "exact" | "regexp" if regexp, then match using regular expression associated with backend.
+# unexpected_hostname_strategy = "default" # (optional) "default" | "reject" | "any" strategy for dealing with unknown hostname requests
+#                                          #    "default" -- forward connections to backends with no sni tag
+#                                          #    "reject" -- drop connection
+#                                          #    "any" -- forward to any available backend
+#
+#
+## ---------------------- tls properties --------------------- #
+#
+#  # *Either both cert_path and key_path or acme_hosts should be specified (and configured global [acme] section
+#
+#  [servers.default.tls]             # (required) if protocol == "tls"
+#  cert_path = "/path/to/file.crt"   # (*required) path to crt file
+#  key_path = "/path/to/file.key"    # (*required) path to key file
+#  min_version = "tls1"              # (optional) "ssl3" | "tls1" | "tls1.1" | "tls1.2" - minimum allowed tls version
+#  max_version = "tls1.2"            # (optional) maximum allowed tls version
+#  ciphers = []                      # (optional) list of supported ciphers. Empty means all supported. For a list see https://golang.org/pkg/crypto/tls/#pkg-constants
+#  prefer_server_ciphers = false     # (optional) if true server selects server's most preferred cipher
+#  session_tickets = true            # (optional) if true enables session tickets
+#  acme_hosts = []                   # (*optional) list of acme hosts, to provide certificates for
+#
+#
+## ---------------------- udp properties --------------------- #
+#  [servers.default.udp]             # (optional)
+#  max_requests  = 0                 # (optional) if > 0 accepts no more requests than max_requests and closes session
+#  max_responses = 0                 # (optional) if > 0 accepts no more responses than max_responses from backend and closes session
+#  transparent = false               # (optional, not supported in Windows)
+#                                    #            if true - work in transparent mode, when forwarded udp packets have client source address.
+#                                    #            (requires additional host configuration)
+#
+#
+## -------------------- access management -------------------- #
+#
+#  [servers.default.access]  # (optional)
+#  default = "allow"         # (required) default access order
+#  rules = [                 # (required) list of access rules in
+#    "deny 127.0.0.1",       #   the following format: <deny|allow> <ip|network>
+#    "deny 192.168.0.1",     #   are checked in sequence until match,
+#    "allow 192.168.0.1/24"  #   if no match, use 'default' order. ipv4 and ipv6 are supported
+#  ]
+#
+## -------------------- proxy protocol properties -------------------- #
+#
+## For more details on PROXYPROTOCOL see https://www.haproxy.org/download/1.8/doc/proxy-protocol.txt
+#
+#  [servers.default.proxy_protocol]  # (optional)
+#  version = "1"                     # (required) proxy protocol version. only "1" for now.
+#
+## -------------------- healthchecks ------------------------- #
+#
+#  [servers.default.healthcheck]   # (optional)
+#  interval = "2s"                 # (required) healthcheck running interval
+#  timeout = "0s"                  # (required) max time for healthcheck to execute until mark as unhealthy
+#  fails = 5                       # (optional) consecutive number of checks that should fail, to mark backend as unhealthy
+#  passes = 2                      # (optional) consecutive number of checks that should pass, to mark backend as healthy
+#
+#  # The status when a backend is first discovered (default healthy)
+#  initial_status = "healthy"      # (optional) "healthy" | "unhealthy"
+#
+#  # -- ping -- #
+#  kind = "ping"                   # Unavailable if server.protocol is udp
+#
+#  # -- probe -- #
+#  ##
+#  ## Probe sends string to backend and expects specific string in response to check if
+#  ## backend is alive. Only the beginning of received buffer will be compared with expected value, so that
+#  ## backend response can contain extra data, not being checked. probe_send and probe_recv are
+#  ## configured as strings and support escape sequences: \n \r or \xNN for hex. First probe_recv_len bytes of server response 
+#  ## could be also matched using regular expression.
+#  ##
+#  kind = "probe"
+#  probe_protocol = "udp"         # (required) "udp" | "tcp" | "tls"
+#  probe_strategy = "starts_with" # (optional) "starts_with" | "regexp"
+#  probe_send    = 'PING\xFF\n'   # (required) string to send
+#  probe_recv    = 'PONG\xAA\n'   # (required) string to expect in response (response starts with or regexp)
+#  probe_recv_len = 0             # (optional) number of bytes to read (value > 0 is required for regexp strategy)
+#
+#  # -- exec -- #
+#  kind = "exec"
+#  exec_command = "/path/to/healthcheck.sh"      # (required) command to execute
+#  exec_expected_positive_output = "1"           # (required) expected output of command in case of success
+#  exec_expected_negative_output = "0"           # (required) expected output of command in case of failure
+#
+## -------------------- discovery ---------------------------- #
+#
+#  [servers.default.discovery]      # (required)
+#  failpolicy = "keeplast"          # (optional) "keeplast" | "setempty" - what to do with backends if discovery fails
+#  interval = "0s"                  # (required) backends cache invalidation interval; 0 means never.
+#  timeout = "5s"                   # (optional) max time to wait for discover until falling to failpolicy
+#
+#  # -- static -- #
+#  kind = "static"
+#  static_list = [                       #  (required)  [
+#      "localhost:8000 weight=5",        #    "<host>:<port> weight=<int>" weight=1 by default
+#      "localhost:8001 sni=www.foo.com"  #  ]
+#  ]
+#
+#  # -- srv -- #
+#  kind = "srv"
+#  srv_lookup_server = "some.server:53"   # (required) "<host:port>"
+#  srv_lookup_pattern = "some.service."   # (required) lookup service
+#  srv_dns_protocol = "udp"               # (optional) protocol to use for dns lookup
+#
+#  # -- docker -- #
+#  kind = "docker"
+#  docker_endpoint = "http://localhost:2375" # (required) Endpoint to docker API
+#  docker_container_private_port = 80        # (required) Private port of container to use
+#  docker_container_label = "proxied=true"   # (optional) Label to filter containers
+#  docker_container_host_env_var = ""        # (optional) Take container host from container env variable
+#
+#  docker_tls_enabled = false                 # (optional) enable client tls auth
+#  docker_tls_cert_path = '/path/to/cert.pem' # (optional) key and cert should be specified together, or both left not specified
+#  docker_tls_key_path = '/path/to/key.pem'   # (optional)
+#  docker_tls_cacert_path = '/path/to/cacert.pem' # (optional) if not specified, docker endpoint tls verification will be skipped (insecure!)
+#
+#  # -- json -- #
+#  kind = "json"
+#  json_endpoint = "http://some.url.com"   # (required) JSON discovery Url
+#  json_host_pattern = "host"              # (optional) path to host value in JSON object, by default "host"
+#  json_port_pattern = "port"              # (optional) path to port value in JSON object, by default "port"
+#  json_weight_pattern = "weight"          # (optional) path to weight value in JSON object, by default "weight"
+#  json_priority_pattern = "priority"      # (optional) path to priority value in JSON object, by default "priority"
+#  json_sni_pattern = "sni"                # (optional) path to SNI value in JSON object, by default "sni"
+#  json_max_connections_pattern = "0"      # (optional) path to SNI value in JSON object, by default "max_connections"
+#
+#  # -- exec -- #
+#  kind = "exec"
+#  exec_command = ["/path/to/script", "arg1", "arg2"] # (required) command to exec and variable-length arguments
+#
+#  # -- plaintext -- #
+#  kind = "plaintext"
+#  plaintext_endpoint = "http://some.url.com"   # (required) Url to plain text discovery
+#  plaintext_regex_pattern = ""                 # (optional) Regex with named capturing groups
+#
+#  # -- consul -- #
+#  kind = "consul"
+#  consul_host = "localhost:8500"       # (required) Consul host:port
+#  consul_service_name = "myservice"    # (required) Service name
+#  consul_service_tag = ""              # (optional) Service tag
+#  consul_service_passing_only = true   # (optional) Get only services with passing healthchecks
+#  consul_service_datacenter = ""       # (optional) Datacenter to use
+#
+#  consul_auth_username = ""   # (optional) HTTP Basic Auth username
+#  consul_auth_password = ""   # (optional) HTTP Basic Auth password
+#
+#  consul_acl_token     = ""   # (optional) ACL token used in requests to Consul
+#
+#  consul_tls_enabled = true                      # (optional) enable client tls auth
+#  consul_tls_cert_path = "/path/to/cert.pem"
+#  consul_tls_key_path = "/path/to/key.pem"
+#  consul_tls_cacert_path = "/path/to/cacert.pem"
+#
+#  # -- lxd -- #
+#  kind = "lxd"
+#  lxd_server_address = "unix:///var/lib/lxd/unix.socket"   # (required) Address of the LXD server. Either unix://<path> or https://<addr>:port
+#  lxd_server_remote_name = ""                              # (optional) Name of the LXD server
+#  lxd_server_remote_password = ""                          # (optional) Password to the remote LXD server. Only used when address scheme is https
+#
+#  lxd_config_directory = "~/.config/lxd"                   # (optional) Directory where LXD server info and certificates are stored
+#  lxd_generate_client_certs = false                        # (optional) Generate client SSL certificates for gobetween if not previously generated. Only used when scheme is https
+#  lxd_accept_server_cert = false                           # (optional) Accept the LXD server certificate. Only used when scheme is https
+#
+#  lxd_container_label_key = "user.label"                   # (optional) Filter containers that have specified setting
+#  lxd_container_label_value = "foo"                        # (optional) Filter containers that have specified value of 'lxd_container_label_key' setting
+#
+#  lxd_container_port = 0                                   # (required) Port of container to use
+#  lxd_container_port_key = "user.gobetween.port"           # (optional) Container setting key that specifies the port.
+#
+#  lxd_container_interface = "eth0"                         # (optional) Interface of container to use
+#  lxd_container_interface_key = "user.gobetween.interface" # (optional) Container setting that specifies the interface.
+#
+#  lxd_container_sni_key = ""                               # (optional) Container setting that specifies the sni name of the container.
+#  lxd_container_address_type = "IPv4"                      # (optional) Container setting that specifies whether to use an IPv4 or IPv6 address. Valid options are IPv4 or IPv6.

@@ -1,0 +1,24 @@
+{
+    "api": {
+        "enabled": true,
+        "bind": "0.0.0.0:8888"
+    },
+    "metrics": {
+        "enabled": true,
+        "bind": ":9284"
+    },
+    "servers": {
+        "sample":{
+            "bind":"localhost:3000",
+            "healthcheck": {
+                "kind": "ping",
+                "interval": "2s",
+                "timeout": "1s"
+            },
+            "discovery": {
+                "kind": "static",
+                "static_list": ["localhost:8000 weight=1"]
+            }
+        }
+    }
+}

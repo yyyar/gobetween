@@ -1,0 +1,49 @@
+#
+# snapcraft.yaml - Snapcraft file
+# @author Yaroslav Pogrebnyak <yyyaroslav@gmail.com>
+#
+
+name: gobetween
+version: '1'
+version-script: cat VERSION
+icon: logo.png
+summary: modern & minimalistic load balancer and reverse-proxy for the Cloud era
+description: gobetween is free, open-source, modern & minimalistic L4 load balancer and reverse proxy for the Cloud era
+confinement: strict
+grade: devel
+architectures:
+  - build-on: amd64
+    run-on: amd64
+  - build-on: i386
+    run-on: i386
+base: core18
+
+parts:
+  gobetween:
+      plugin: make
+      source: .
+      source-type: local
+      build-packages:
+      - gcc
+      - git
+      makefile: Makefile
+      artifacts:
+        - bin/gobetween
+      override-build: |
+        snap list | grep go || snap install go --channel=1.12/stable --classic
+        snapcraftctl build
+
+  config:
+    plugin: dump
+    source: .
+    stage:
+      - config/gobetween.toml
+
+apps:
+  gobetween:
+    command: bash $SNAP_DATA/gobetween.sh
+    daemon: simple
+    plugs:
+        - network
+        - network-bind
+
